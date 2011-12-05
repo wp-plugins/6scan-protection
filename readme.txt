@@ -43,6 +43,10 @@ Yes, 6Scan Security has been tested with many other security plugins and does no
 
 We work with all standard hosting packages that support Wordpress.  We have specifically tested 6Scan Security with many popular hosting companies, including GoDaddy, Hostgator, Dreamhost, Site5, 1&1 and others.
 
+= I get the error "Can't create signature file" or "Can't update .htaccess file" when installing the plugin =
+
+6Scan requires write permissions to your web root directory and .htaccess file in order to install the automatic fix signatures.  For more information on how to enable write access, please see http://codex.wordpress.org/Changing_File_Permissions .
+
 == Screenshots ==
 
 1. Your dashboard shows the vulnerabilities you are being protected against.
