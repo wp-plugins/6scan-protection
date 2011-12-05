@@ -6,7 +6,7 @@ Requires at least: 3.0.0
 Tested up to: 3.2.1
 Stable tag: trunk
 
-6Scan Security uses constantly updated attack signatures to protect your website against hackers destroying, stealing or manipulating your data.
+6Scan Security protects your website against hackers destroying, stealing or manipulating your data using constantly updated attack signatures.
 
 == Description ==
 
