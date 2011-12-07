@@ -7,13 +7,13 @@ function sixscan_installation_install() {
 	try {
 		
 		/*	Make sure we can create signature file and update the site's .htaccess file */
-		if ( sixscan_installation_is_writable_directory( ABSPATH ) == FALSE ){
+		if ( sixscan_common_is_writable_directory( ABSPATH ) == FALSE ){
 			$err_message = "Can't create signature file " . ABSPATH . SIXSCAN_COMM_SIGNATURE_FILENAME;
 			sixscan_common_report_analytics( SIXSCAN_ANALYTICS_INSTALL_CATEGORY , SIXSCAN_ANALYTICS_INSTALL_INIT_ACT , $err_message );
 			die( $err_message );
 		}
 		
-		if ( sixscan_installation_is_writable_htaccess() == FALSE ){
+		if ( sixscan_common_is_writable_htaccess() == FALSE ){
 			$err_message = "Can't update .htaccess file at " . SIXSCAN_HTACCESS_FILE;
 			sixscan_common_report_analytics( SIXSCAN_ANALYTICS_INSTALL_CATEGORY , SIXSCAN_ANALYTICS_INSTALL_INIT_ACT , $err_message );
 			die( $err_message );
@@ -32,6 +32,7 @@ function sixscan_installation_install() {
 			add_option( SIXSCAN_OPTION_MENU_DASHBOARD_TOKEN , '' );	
 			add_option( SIXSCAN_OPTION_COMM_ORACLE_NONCE , 1 );
 			add_option( SIXSCAN_OPTION_COMM_LAST_SIG_UPDATE_NONCE , 0 );
+			add_option( SIXSCAN_OPTION_LAST_ERROR_OCCURED , 0 );
 		}
 		
 		/*	Rewrite the htaccess and 6scan-gate file. */
@@ -57,6 +58,7 @@ function sixscan_installation_uninstall() {
 			delete_option( SIXSCAN_OPTION_MENU_DASHBOARD_TOKEN );
 			delete_option( SIXSCAN_OPTION_COMM_ORACLE_NONCE );				
 			delete_option( SIXSCAN_OPTION_COMM_LAST_SIG_UPDATE_NONCE );
+			delete_option( SIXSCAN_OPTION_LAST_ERROR_OCCURED );
 		}			
 	} catch( Exception $e ) {
 		sixscan_common_report_analytics( SIXSCAN_ANALYTICS_UNINSTALL_CATEGORY , SIXSCAN_ANALYTICS_UNINSTALL_RM_ACT , "Deactivation failed: " . $e );
@@ -85,29 +87,4 @@ function sixscan_installation_account_setup_required_notice() {
 		}
 }	
 	
-function sixscan_installation_is_writable_directory( $dir_to_check ){	
-	$test_fname = $dir_to_check . SIXSCAN_COMM_SIGNATURE_FILENAME;
-	
-	/*	We can't rely on is_writable() , since safe mode limitations are not taken into account. Lets try by ourselves: */
-	$fh = @fopen( $test_fname , "a+" );
-	if ($fh === FALSE)
-		return FALSE;
-	
-	/*	Cleanup */
-	fclose( $fh );
-	unlink( $test_fname );
-	return TRUE;	
-}
-
-function sixscan_installation_is_writable_htaccess(){
-	/*	We can't rely on is_writable() , since safe mode limitations are not taken into account. Lets try by ourselves: */		
-	$fh = @fopen( SIXSCAN_HTACCESS_FILE , "a+" );
-	if ($fh == FALSE)
-		return FALSE;
-	
-	fclose( $fh );
-	
-	/*	Even if there weren't an htaccess present, and we have just created it , there is no reason to unlink() it, since we will generate new one, anyways */	
-	return TRUE;
-}	
 ?>

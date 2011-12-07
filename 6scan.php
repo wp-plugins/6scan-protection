@@ -4,7 +4,7 @@ Plugin Name: 6Scan
 Plugin URI: http://www.6scan.com/
 Description: 6Scan protects your website against hackers destroying, stealing or defacing your website's precious and vulnerable data.
 Author: 6Scan
-Version: 1.0.1
+Version: 1.0.2
 Author URI: http://www.6scan.com
 */
 

@@ -3,7 +3,7 @@
 if ( ! defined( 'ABSPATH' ) ) 
 	die( 'No direct access allowed' );
 
-define ( 'SIXSCAN_VERSION',								'1.0.1' );
+define ( 'SIXSCAN_VERSION',								'1.0.2' );
 
 if( empty( $_SERVER[ "HTTPS" ] ) )
 	define( 'SERVER_HTTP_PREFIX',						'http://' );
@@ -18,7 +18,7 @@ define ( 'SIXSCAN_SERVER',								'https://' . SIXSCAN_SERVER_ADDRESS . '/' );
 /*	User registration form url depends on the blog being on https/http */
 define ( 'SIXSCAN_BODYGUARD_REGISTER_FORM_URL' ,		SERVER_HTTP_PREFIX . SIXSCAN_SERVER_ADDRESS .  '/dashboard/v1/register' );
 
-define ( 'SIXSCAN_BODYGUARD_REGISTER_FORM_URL' ,		SIXSCAN_SERVER . 'dashboard/v1/register' );
+define ( 'SIXSCAN_BODYGUARD_ERROR_REPORT_FORM_URL' ,	SIXSCAN_SERVER .  '/dashboard/v1/error_feedback' );
 define ( 'SIXSCAN_BODYGUARD_REGISTER_URL' , 			SIXSCAN_SERVER . 'wpapi/v1/register' );
 define ( 'SIXSCAN_BODYGUARD_VERIFY_URL' , 				SIXSCAN_SERVER . 'wpapi/v1/verify' );
 define ( 'SIXSCAN_BODYGUARD_6SCAN_UPDATE_SIG_URL' , 	SIXSCAN_SERVER . 'wpapi/v1/update-signatures' );
@@ -36,6 +36,7 @@ define ( 'SIXSCAN_OPTION_MENU_SITE_ID' , 				'sixscan_registered_site_id' );
 define ( 'SIXSCAN_OPTION_MENU_API_TOKEN' , 				'sixscan_registered_api_token' );
 define ( 'SIXSCAN_OPTION_MENU_VERIFICATION_TOKEN' , 	'sixscan_registered_verification_token' );
 define ( 'SIXSCAN_OPTION_MENU_DASHBOARD_TOKEN' , 		'sixscan_registered_dashboard_token' );
+define ( 'SIXSCAN_OPTION_LAST_ERROR_OCCURED',			'sixscan_last_error_occured' );
 
 define ( 'SIXSCAN_UPDATE_OK_RESPONSE_CODE',				200 );
 define ( 'SIXSCAN_UPDATE_LAST_VERSION_RESPONSE_CODE',	304 );
@@ -87,11 +88,11 @@ kwIDAQAB
 EOD
 );
 
-function sixscan_common_set_site_id( $site_id ) {
+function sixscan_common_set_site_id( $site_id ){
 	update_option( SIXSCAN_OPTION_MENU_SITE_ID , $site_id );
 }
 
-function sixscan_common_get_site_id() {
+function sixscan_common_get_site_id(){
 	return get_option ( SIXSCAN_OPTION_MENU_SITE_ID );
 }
 
@@ -99,7 +100,7 @@ function sixscan_common_set_api_token( $api_token ){
 	update_option( SIXSCAN_OPTION_MENU_API_TOKEN , $api_token );
 }
 
-function sixscan_common_get_api_token() {
+function sixscan_common_get_api_token(){
 	return get_option( SIXSCAN_OPTION_MENU_API_TOKEN );
 }
 
@@ -107,7 +108,7 @@ function sixscan_common_set_verification_token( $verification_token ){
 	update_option( SIXSCAN_OPTION_MENU_VERIFICATION_TOKEN , $verification_token );
 }
 
-function sixscan_common_get_verification_token() {
+function sixscan_common_get_verification_token(){
 	return get_option( SIXSCAN_OPTION_MENU_VERIFICATION_TOKEN );
 }
 
@@ -115,29 +116,56 @@ function sixscan_common_set_dashboard_token( $dashboard_token ){
 	update_option( SIXSCAN_OPTION_MENU_DASHBOARD_TOKEN , $dashboard_token );
 }
 
-function sixscan_common_get_dashboard_token() {
+function sixscan_common_get_dashboard_token(){
 	return get_option( SIXSCAN_OPTION_MENU_DASHBOARD_TOKEN );
 }
 
-function sixscan_common_is_oracle_registered() {
+function sixscan_common_is_oracle_registered(){
 	return get_option( SIXSCAN_OPTION_MENU_IS_BLOG_REGISTERED );
 }
 
-function sixscan_common_set_oracle_registered_true() {
+function sixscan_common_set_oracle_registered_true(){
 	update_option( SIXSCAN_OPTION_MENU_IS_BLOG_REGISTERED , TRUE );
 }
 
-function sixscan_common_is_oracle_verified() {
+function sixscan_common_is_oracle_verified(){
 	return get_option( SIXSCAN_OPTION_MENU_IS_BLOG_VERIFIED );
 }
 
-function sixscan_common_set_oracle_verified_true() {
+function sixscan_common_set_oracle_verified_true(){
 	update_option( SIXSCAN_OPTION_MENU_IS_BLOG_VERIFIED , TRUE );
 }
 
-function sixscan_common_remove_special_chars( $src_str ) {
+function sixscan_common_remove_special_chars( $src_str ){
 	return preg_replace( "/[^a-zA-Z0-9.-]/" , "_" , $src_str );
 }
+
+function sixscan_common_is_writable_directory( $dir_to_check ){	
+	$test_fname = $dir_to_check . SIXSCAN_COMM_SIGNATURE_FILENAME;
+	
+	/*	We can't rely on is_writable() , since safe mode limitations are not taken into account. Lets try by ourselves: */
+	$fh = @fopen( $test_fname , "a+" );
+	if ($fh === FALSE)
+		return FALSE;
+	
+	/*	Cleanup */
+	fclose( $fh );
+	unlink( $test_fname );
+	return TRUE;	
+}
+
+function sixscan_common_is_writable_htaccess(){
+	/*	We can't rely on is_writable() , since safe mode limitations are not taken into account. Lets try by ourselves: */		
+	$fh = @fopen( SIXSCAN_HTACCESS_FILE , "a+" );
+	if ($fh == FALSE)
+		return FALSE;
+	
+	fclose( $fh );
+	
+	/*	Even if there weren't an htaccess present, and we have just created it , there is no reason to unlink() it, since we will generate new one, anyways */	
+	return TRUE;
+}	
+
 
 function sixscan_common_report_analytics( $category , $action , $label ){
 	/*
@@ -192,5 +220,82 @@ function sixscan_common_report_analytics( $category , $action , $label ){
 
 	/*	Send the request to Google server */
 	@$ret_data = file_get_contents( $analytics_get_request );
+}
+
+function sixscan_common_gather_system_information_for_anonymous_support_ticket(){
+	$submission_data = "\n";		
+	
+	$register_status = sixscan_common_is_oracle_registered();
+	$submission_data .= "Register status: $register_status\n";
+	
+	$verif_status = sixscan_common_is_oracle_verified();
+	$submission_data .= "Verification status: $verif_status\n";
+	
+	$root_dir_writable =  sixscan_common_is_writable_directory( ABSPATH );
+	$submission_data .= "Is root writable: $root_dir_writable\n";
+	
+	$is_htaccess_writable = sixscan_common_is_writable_htaccess();
+	$submission_data .= "Is htaccess writable: $is_htaccess_writable\n";
+	
+	/* Check , whether site can access external resources */
+	$url = SIXSCAN_BODYGUARD_REGISTER_URL;
+	$proxy = new WP_HTTP_Proxy();	
+	if ( $proxy->is_enabled() && $proxy->send_through_proxy( $url ) )
+		$is_through_proxy = "true";
+	else
+		$is_through_proxy = "false";
+	$submission_data .= "Is access through proxy: $is_through_proxy\n";
+	
+	$arrContext = array( 'http' =>
+			array(
+				'method' => 'GET' ,
+				'user_agent' => 'SIXSCAN_SUBMITTER' ,
+				'max_redirects' => 6 ,
+				'protocol_version' => (float) '1.1' ,
+				'header' => '' ,
+				'ignore_errors' => true ,
+				'timeout' => 30 ,
+				'ssl' => array(
+						'verify_peer' => false ,
+						'verify_host' => false
+				)
+			)
+		);
+
+	/*	Please note , that proxy details are NOT sent in submission. They are ONLY used to access public URL , just like Wordpress uses them.
+		This is done , in order to check , whether connection is possible. This code is copy-pasted from class-http.php */
+	if ( $proxy->is_enabled() && $proxy->send_through_proxy( $url ) ) {
+		$arrContext[ 'http' ][ 'proxy' ] = 'tcp://' . $proxy->host() . ':' . $proxy->port();
+		$arrContext[ 'http' ][ 'request_fulluri' ] = true;
+
+		if ( $proxy->use_authentication() )
+			$arrContext[ 'http' ][ 'header' ] .= $proxy->authentication_header() . "\r\n";
+	}
+	$context = stream_context_create( $arrContext );	
+	
+	$handle = @fopen( $url , 'r' , false , $context );
+	if ( ! $handle ){
+		$last_error = error_get_last();
+		$fopen_info = "failed. Last error: " . print_r( $last_error , TRUE ) . "\n";
+	}
+	else{
+		$fopen_info = "works\n";
+		fclose( $handle );
+	}
+	$submission_data .= "fopen() status: $fopen_info\n";
+	
+	$htaccess_contents = file_get_contents( SIXSCAN_HTACCESS_FILE );
+	if ( $htaccess_contents == FALSE )
+		$htaccess_contents = "Empty";
+	$submission_data .= "Htaccess contents: $htaccess_contents\n";
+	
+	$plugin_list = get_plugins();	
+	$plugin_information = 
+	$submission_data .= "Plugins: " . print_r( $plugin_list , TRUE ) . "\n";
+	
+	$phpinif_info = ini_get_all();
+	$submission_data .= "phpinfo(): " . print_r( $phpinif_info , true ) . "\n";
+	
+	return $submission_data;
 }
 ?>

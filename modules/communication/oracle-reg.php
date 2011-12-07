@@ -4,7 +4,7 @@ if ( ! defined( 'ABSPATH' ) )
 	die( 'No direct access allowed' );
 
 /*	Register new user/site */
-function sixscan_communication_oracle_reg_register( $site_url , $user_email , $notice_script_url , $registration_form_data ){	
+function sixscan_communication_oracle_reg_register( $site_url , $user_email , $notice_script_url , $registration_form_data , & $sixscan_oracle_auth_struct ){	
 		
 	$expected = array( "site_id" , "api_token" , "dashboard_token" , "verification_token" );
 	
@@ -13,7 +13,8 @@ function sixscan_communication_oracle_reg_register( $site_url , $user_email , $n
 		$relative_notice_url = substr( $notice_script_url , strlen( $site_url ) + 1 );
 		
 		/*	Sending registration data to server, using GET */
-		 $response = wp_remote_get( SIXSCAN_BODYGUARD_REGISTER_URL ."?url=$site_url&email=$user_email&notice_script_url=$relative_notice_url&registration_form_data=$registration_form_data" , array(		
+		$request_register_url = SIXSCAN_BODYGUARD_REGISTER_URL ."?url=$site_url&email=$user_email&notice_script_url=$relative_notice_url&registration_form_data=$registration_form_data";
+		$response = wp_remote_get( $request_register_url , array(		
 			'timeout' => 30,
 			'redirection' => 5,
 			'httpversion' => '1.1',
@@ -26,12 +27,14 @@ function sixscan_communication_oracle_reg_register( $site_url , $user_email , $n
 		if ( is_wp_error( $response ) ) {
 			$error_string = $response->get_error_message();
 			sixscan_stat_analytics_log_action( SIXSCAN_ANALYTICS_INSTALL_CATEGORY , SIXSCAN_ANALYTICS_INSTALL_REG_ACT , SIXSCAN_ANALYTICS_FAIL_PREFIX_STRING . "wp_remote_post " . $error_string );		
-			return FALSE;
+			
+			$error_string = str_replace( $request_register_url , SIXSCAN_BODYGUARD_REGISTER_URL , $error_string );
+			return $error_string;			
 		}
 		else if ( 200 != wp_remote_retrieve_response_code( $response ) ) {
-			sixscan_stat_analytics_log_action( SIXSCAN_ANALYTICS_INSTALL_CATEGORY , SIXSCAN_ANALYTICS_INSTALL_REG_ACT , SIXSCAN_ANALYTICS_FAIL_PREFIX_STRING . "wp_remote_post returned httpd status" . 
-																wp_remote_retrieve_response_code( $response ) );	
-			return FALSE;
+			$error_string = "wp_remote_post returned httpd status " . wp_remote_retrieve_response_code( $response );
+			sixscan_stat_analytics_log_action( SIXSCAN_ANALYTICS_INSTALL_CATEGORY , SIXSCAN_ANALYTICS_INSTALL_REG_ACT , SIXSCAN_ANALYTICS_FAIL_PREFIX_STRING . $error_string );	
+			return $error_string;
 		}
 
 		$raw_register_data =  wp_remote_retrieve_body( $response ) ;	
@@ -48,7 +51,7 @@ function sixscan_communication_oracle_reg_register( $site_url , $user_email , $n
 			/*	If there was some mistake in the way, and we have received a key , which is not in our array. */
 			if ( $arr_location === FALSE ){	
 				sixscan_stat_analytics_log_action( SIXSCAN_ANALYTICS_INSTALL_CATEGORY , SIXSCAN_ANALYTICS_INSTALL_REG_ACT , SIXSCAN_ANALYTICS_FAIL_PREFIX_STRING . "oracle_response_failed_unknown_parameter" . $request_error_log );
-				return FALSE;		
+				return "Bad value received from 6Scan server.";		
 			}
 							
 			$sixscan_oracle_auth_struct[ $key ] = trim( $val );		
@@ -61,12 +64,12 @@ function sixscan_communication_oracle_reg_register( $site_url , $user_email , $n
 		if ( ! empty( $expected ) )
 		{
 			sixscan_stat_analytics_log_action( SIXSCAN_ANALYTICS_INSTALL_CATEGORY , SIXSCAN_ANALYTICS_INSTALL_REG_ACT , SIXSCAN_ANALYTICS_FAIL_PREFIX_STRING . "oracle_response_failed_" . $request_error_log );
-			return FALSE;
+			return "Bad value received from 6Scan server.";		
 		}
 		
 		sixscan_stat_analytics_log_action( SIXSCAN_ANALYTICS_INSTALL_CATEGORY , SIXSCAN_ANALYTICS_INSTALL_REG_ACT , SIXSCAN_ANALYTICS_OK_STRING );
 		/*	Return the data from registration server */
-		return $sixscan_oracle_auth_struct;
+		return TRUE;
 	}
 	catch( Exception $e ) {
 		sixscan_stat_analytics_log_action( SIXSCAN_ANALYTICS_INSTALL_CATEGORY , SIXSCAN_ANALYTICS_INSTALL_REG_ACT , SIXSCAN_ANALYTICS_FAIL_PREFIX_STRING . "sixscan_communication_oracle_reg_register_" . $e );
@@ -79,27 +82,29 @@ function sixscan_communication_oracle_reg_verification(){
 
 	try{
 		if ( ( sixscan_common_get_verification_token() == FALSE ) || ( sixscan_common_get_site_id() == FALSE ) || ( sixscan_common_get_api_token() == FALSE ) )
-			return FALSE;
+			return "6Scan was not registered properly.Data from DB is missing";
 						
 		/*	Create temporary verification url */														
 		$verification_file_name = ABSPATH . "/" . sixscan_common_get_verification_token() . ".php";				
 		
 		$file_handle = fopen( $verification_file_name , "w" ); 	
-		if ( $file_handle == FALSE)
-		{
+		if ( $file_handle == FALSE){
 			$error_desc = error_get_last();
 			sixscan_stat_analytics_log_action( SIXSCAN_ANALYTICS_INSTALL_CATEGORY , SIXSCAN_ANALYTICS_INSTALL_VERIF_ACT , SIXSCAN_ANALYTICS_FAIL_PREFIX_STRING . "_verification_file_creation_" . $error_desc[ 'message' ] . '_' . $error_desc[ 'type' ]);
-			return FALSE;	
+			return "Failed creating file " . $verification_file_name . " for verification purposes. Reason:" . $error_desc[ 'message' ] . ' Type:' . $error_desc[ 'type' ];	
 		}
 		
 		$verificiation_data = '<?php print " ' . sixscan_common_get_site_id() . '"; ?>';
 		fwrite( $file_handle , $verificiation_data  );
 		fclose( $file_handle );
-				
-		$response = wp_remote_get( SIXSCAN_BODYGUARD_VERIFY_URL . "?site_id=" . sixscan_common_get_site_id() . "&api_token=" . sixscan_common_get_api_token(),  array(
+					
+		$request_verification_url = SIXSCAN_BODYGUARD_VERIFY_URL . "?site_id=" . sixscan_common_get_site_id() . "&api_token=" . sixscan_common_get_api_token();
+		$response = wp_remote_get( $request_verification_url ,  array(
 			'timeout' => 30,
 			'redirection' => 5,
 			'httpversion' => '1.1',
+			'sslverify' => false,	/*	We have found out , that there are lots of users , who don't have their ca-certificates configured , and SSL connect fails.
+										If you want to force SSL CA verification , change this rule to 'true' */
 			'blocking' => true,
 			'headers' => array(),		
 			'cookies' => array()
@@ -111,11 +116,15 @@ function sixscan_communication_oracle_reg_verification(){
 		if ( is_wp_error( $response ) ) {
 			$error_string = $response->get_error_message();
 			sixscan_stat_analytics_log_action( SIXSCAN_ANALYTICS_INSTALL_CATEGORY , SIXSCAN_ANALYTICS_INSTALL_REG_ACT , SIXSCAN_ANALYTICS_FAIL_PREFIX_STRING . "_verification_process_" . $error_string );
-			return FALSE;
+			
+			/*	Make the error message simplier for user */
+			$error_string = str_replace( $request_verification_url , SIXSCAN_BODYGUARD_VERIFY_URL , $error_string );
+			return $error_string;
 		}
-		else if (200 != wp_remote_retrieve_response_code( $response ) ) {
-			sixscan_stat_analytics_log_action( SIXSCAN_ANALYTICS_INSTALL_CATEGORY , SIXSCAN_ANALYTICS_INSTALL_REG_ACT , SIXSCAN_ANALYTICS_FAIL_PREFIX_STRING . "_verification_process_server_response_" . wp_remote_retrieve_response_code( $response ) );
-			return FALSE;
+		else if ( 200 != wp_remote_retrieve_response_code( $response ) ) {
+			$error_string = "_verification_process_server_response_" . wp_remote_retrieve_response_code( $response );
+			sixscan_stat_analytics_log_action( SIXSCAN_ANALYTICS_INSTALL_CATEGORY , SIXSCAN_ANALYTICS_INSTALL_REG_ACT , SIXSCAN_ANALYTICS_FAIL_PREFIX_STRING . $error_string );
+			return $error_string;
 		}
 		
 		sixscan_stat_analytics_log_action( SIXSCAN_ANALYTICS_INSTALL_CATEGORY , SIXSCAN_ANALYTICS_INSTALL_VERIF_ACT , SIXSCAN_ANALYTICS_OK_STRING );

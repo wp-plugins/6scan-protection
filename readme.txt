@@ -1,5 +1,6 @@
 === 6Scan Security ===
 Contributors: 6Scan
+Version: 1.0.2
 Donate link: http://www.6scan.com
 Tags: 6scan,security,protection,anti-hack,hack,hackers,attack,sql injection,xss,file inclusion,exploit,automatic,bodyguard,patrol,scan
 Requires at least: 3.0.0
@@ -57,7 +58,12 @@ We work with all standard hosting packages that support Wordpress.  We have spec
 = 1.0.1 =
 * Initial alpha release.
 
+= 1.0.2 =
+* Error reporting form added.
+* If install fails, user now sees better error description.
+* Fixed a bug that could occur when installing the plugin on servers with an empty or outdated root CA list.
+
 == Upgrade Notice ==
 
-= 1.0.1 =
-* Initial release.
+* Error reporting improved.
+* Does not fail on SSL errors anymore
