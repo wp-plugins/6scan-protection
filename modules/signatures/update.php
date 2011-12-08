@@ -38,6 +38,7 @@ function sixscan_signature_engine_update_get ( $site_id , $api_token , $current_
 		'timeout' => 30,
 		'redirection' => 5,
 		'httpversion' => '1.1',
+		'sslverify' => false,
 		'blocking' => true,
 		'headers' => array(),
 		'cookies' => array()
@@ -120,6 +121,7 @@ function sixscan_signatures_update_get( $site_id , $api_token , $current_signatu
 		'timeout' => 30,
 		'redirection' => 5,
 		'httpversion' => '1.1',
+		'sslverify' => false,
 		'blocking' => true,
 		'headers' => array(),
 		'cookies' => array()

@@ -1,6 +1,6 @@
 === 6Scan Security ===
 Contributors: 6Scan
-Version: 1.0.2
+Version: 1.0.3
 Donate link: http://www.6scan.com
 Tags: 6scan,security,protection,anti-hack,hack,hackers,attack,sql injection,xss,file inclusion,exploit,automatic,bodyguard,patrol,scan
 Requires at least: 3.0.0
@@ -48,6 +48,10 @@ We work with all standard hosting packages that support Wordpress.  We have spec
 
 6Scan requires write permissions to your web root directory and .htaccess file in order to install the automatic fix signatures.  For more information on how to enable write access, please see http://codex.wordpress.org/Changing_File_Permissions .
 
+= I am seeing an error that is similar to "Could not open handle for fopen..." =
+
+Please read an extensive explanation on this matter [here](http://6scan.freshdesk.com/solution/articles/2681-i-am-seeing-an-error-that-is-similar-to-could-not-open-handle-for-fopen-)
+
 == Screenshots ==
 
 1. Your dashboard shows the vulnerabilities you are being protected against.
@@ -63,7 +67,10 @@ We work with all standard hosting packages that support Wordpress.  We have spec
 * If install fails, user now sees better error description.
 * Fixed a bug that could occur when installing the plugin on servers with an empty or outdated root CA list.
 
+= 1.0.3 =
+* Bugfix, regarding access to 6Scan's SSL server.
+
 == Upgrade Notice ==
 
 * Error reporting improved.
-* Does not fail on SSL errors anymore
+* Does not fail on SSL errors anymore.

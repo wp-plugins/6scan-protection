@@ -44,7 +44,8 @@ function sixscan_menu_dashboard(){
 				/* User just reentered verification screen */				
 				$previous_error = get_option( SIXSCAN_OPTION_LAST_ERROR_OCCURED );
 				if ( $previous_error != '' ){
-					$error_message = "There was a problem verifying your site with 6Scan: " . base64_decode( $previous_error ) . "<br>";
+					$previous_error = base64_decode( $previous_error );
+					$error_message = "There was a problem verifying your site with 6Scan: " . $previous_error . "<br>";
 					sixscan_menu_show_error_msg( $error_message );
 					sixscan_menu_show_error_submission_form( $previous_error );
 				}else{				

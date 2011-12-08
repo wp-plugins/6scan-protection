@@ -19,10 +19,13 @@ function sixscan_communication_oracle_reg_register( $site_url , $user_email , $n
 			'redirection' => 5,
 			'httpversion' => '1.1',
 			'blocking' => true,
+			'sslverify' => false,
 			'headers' => array(),
 			'cookies' => array()
 			)
 		);
+
+		$raw_register_data =  wp_remote_retrieve_body( $response ) ;	
 		
 		if ( is_wp_error( $response ) ) {
 			$error_string = $response->get_error_message();
@@ -32,12 +35,11 @@ function sixscan_communication_oracle_reg_register( $site_url , $user_email , $n
 			return $error_string;			
 		}
 		else if ( 200 != wp_remote_retrieve_response_code( $response ) ) {
-			$error_string = "wp_remote_post returned httpd status " . wp_remote_retrieve_response_code( $response );
+			$error_string = "wp_remote_post returned httpd status " . wp_remote_retrieve_response_code( $response ) . ", data:" . $raw_register_data;
 			sixscan_stat_analytics_log_action( SIXSCAN_ANALYTICS_INSTALL_CATEGORY , SIXSCAN_ANALYTICS_INSTALL_REG_ACT , SIXSCAN_ANALYTICS_FAIL_PREFIX_STRING . $error_string );	
 			return $error_string;
 		}
-
-		$raw_register_data =  wp_remote_retrieve_body( $response ) ;	
+		
 		$registration_answer = explode( "&" , $raw_register_data );
 		$request_error_log = "";
 		
@@ -122,7 +124,7 @@ function sixscan_communication_oracle_reg_verification(){
 			return $error_string;
 		}
 		else if ( 200 != wp_remote_retrieve_response_code( $response ) ) {
-			$error_string = "_verification_process_server_response_" . wp_remote_retrieve_response_code( $response );
+			$error_string = "_verification_process_server_response_" . wp_remote_retrieve_response_code( $response ) . " data:" .  wp_remote_retrieve_body( $response );
 			sixscan_stat_analytics_log_action( SIXSCAN_ANALYTICS_INSTALL_CATEGORY , SIXSCAN_ANALYTICS_INSTALL_REG_ACT , SIXSCAN_ANALYTICS_FAIL_PREFIX_STRING . $error_string );
 			return $error_string;
 		}

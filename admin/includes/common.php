@@ -3,7 +3,7 @@
 if ( ! defined( 'ABSPATH' ) ) 
 	die( 'No direct access allowed' );
 
-define ( 'SIXSCAN_VERSION',								'1.0.2' );
+define ( 'SIXSCAN_VERSION',								'1.0.3' );
 
 if( empty( $_SERVER[ "HTTPS" ] ) )
 	define( 'SERVER_HTTP_PREFIX',						'http://' );
@@ -18,7 +18,7 @@ define ( 'SIXSCAN_SERVER',								'https://' . SIXSCAN_SERVER_ADDRESS . '/' );
 /*	User registration form url depends on the blog being on https/http */
 define ( 'SIXSCAN_BODYGUARD_REGISTER_FORM_URL' ,		SERVER_HTTP_PREFIX . SIXSCAN_SERVER_ADDRESS .  '/dashboard/v1/register' );
 
-define ( 'SIXSCAN_BODYGUARD_ERROR_REPORT_FORM_URL' ,	SIXSCAN_SERVER .  '/dashboard/v1/error_feedback' );
+define ( 'SIXSCAN_BODYGUARD_ERROR_REPORT_FORM_URL' ,	SIXSCAN_SERVER .  'dashboard/v1/error_feedback' );
 define ( 'SIXSCAN_BODYGUARD_REGISTER_URL' , 			SIXSCAN_SERVER . 'wpapi/v1/register' );
 define ( 'SIXSCAN_BODYGUARD_VERIFY_URL' , 				SIXSCAN_SERVER . 'wpapi/v1/verify' );
 define ( 'SIXSCAN_BODYGUARD_6SCAN_UPDATE_SIG_URL' , 	SIXSCAN_SERVER . 'wpapi/v1/update-signatures' );
