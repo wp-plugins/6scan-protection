@@ -1,25 +1,24 @@
 === 6Scan Security ===
 Contributors: 6Scan
 Version: 1.0.3
-Donate link: http://www.6scan.com
-Tags: 6scan,security,protection,anti-hack,hack,hackers,attack,sql injection,xss,file inclusion,exploit,automatic,bodyguard,patrol,scan
+Tags: security,secure,6scan,protection,anti-hack,hack,attack,scan,sql injection,xss,file inclusion,exploit,automatic,bodyguard,patrol
 Requires at least: 3.0.0
-Tested up to: 3.2.1
+Tested up to: 3.3
 Stable tag: trunk
 
 6Scan Security protects your website against hackers destroying, stealing or manipulating your data using constantly updated attack signatures.
 
 == Description ==
 
-6Scan Security is the world's first plugin to scan your Wordpress site for known and unknown vulnerabilities and *automatically* fix them, before hackers use them to damage your site and online reputation.
+6Scan Security is the world's first plugin to scan your Wordpress site for known and unknown security vulnerabilities and *automatically* fix them, before hackers use them to damage your site and online reputation.
 
 * Patrol: 6Scan's Patrol scanner, written by a team of security experts, imitates the actions of a hacker trying to hack into your website.  Each page, form and script on your site is scoured for weak points that could potentially become security holes.  Patrol finds and protects against:
  * SQL Injection
  * Cross-Site Scripting (XSS)
  * Directory traversals
  * Remote file inclusion
- * And many more, including all of the OWASP Top Ten vulnerabilities.
-* Bodyguard: 6Scan's Bodyguard acts on your server to rapidly fix all vulnerabilities found by Patrol.
+ * And many more, including all of the OWASP Top Ten security vulnerabilities.
+* Bodyguard: 6Scan's Bodyguard acts on your server to rapidly fix all security vulnerabilities found by Patrol.
 * Constantly updated: Our team of security experts constantly finds new vulnerabilities and attack strategies, and integrates them into Patrol so you are immediately protected.
 * Install and forget: once 6Scan Security is installed, no further action is required to keep your site protected.
 * Invisibility: 6Scan Security is specifically engineered not to affect your site's performance or interfere with your site's legitimate users.
