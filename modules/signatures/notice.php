@@ -1,6 +1,6 @@
 <?php
 
-$wp_load_location = find_wp_load_location();
+$wp_load_location = sixscan_notice_find_wp_load_location();
 
 if ( $wp_load_location == FALSE ){
 	header( "HTTP/1.1 500 Can't initialize WP environment" );
@@ -50,23 +50,38 @@ update_option( SIXSCAN_OPTION_COMM_LAST_SIG_UPDATE_NONCE , $oracle_nonce );
 require_once( ABSPATH . 'wp-admin/includes/upgrade.php' );
 require_once( 'update.php' );
 
-$error_list = sixscan_signatures_update_request_total( $site_id ,  $api_token );
+/*	Default value, in case we don't need to send security env */
+$security_result = TRUE;
+if ( isset( $_GET[ SIXSCAN_NOTICE_SECURITY_ENV_NAME ] ) && ( $_GET[ SIXSCAN_NOTICE_SECURITY_ENV_NAME ] == 1 ) ){
+	$security_result = sixscan_send_security_environment( $site_id , $api_token );
+}
 
-/*	Show the status header */
-if ( $error_list != "" ){
-	header( 'HTTP/1.1 500' . $error_list );		
-	sixscan_common_report_analytics( SIXSCAN_ANALYTICS_NORMAL_CATEGORY , SIXSCAN_ANALYTICS_NORMAL_UPDATING_ACT , SIXSCAN_ANALYTICS_FAIL_PREFIX_STRING . $error_list );
+/* Update signatures, if needed */
+$error_list = "";
+if ( isset( $_GET[ SIXSCAN_NOTICE_UPDATE_NAME ] ) && ( $_GET[ SIXSCAN_NOTICE_UPDATE_NAME ] == 1 ) ){
+	$error_list = sixscan_signatures_update_request_total( $site_id ,  $api_token );
+}
+
+if ( ( $security_result === TRUE ) && ( $error_list == "" ) ){
+	header( 'HTTP/1.1 200 OK ' );
+	print "OK";
 }
 else{
-	header( 'HTTP/1.1 200 OK ' );
-	print 'Engine update successful';
-}
+	$reported_error = "";
+	
+	if ( $security_result != TRUE )
+		$reported_error .= $security_result;
 
+	if ( $error_list != "" )
+		$reported_error .= $error_list;
+	
+	header( 'HTTP/1.1 500 ' . $reported_error );	
+}
 /*	And exit */
 exit( 0 );
 
 
-function find_wp_load_location(){
+function sixscan_notice_find_wp_load_location(){
 	$current_wp_load_location = "../../../../../wp-load.php";	
 	$max_possible_nesting_levels = 5;
 	
@@ -79,6 +94,44 @@ function find_wp_load_location(){
 		}
 	}
 	return FALSE;
+}
+
+function sixscan_send_security_environment( $site_id ,  $api_token ){
+
+	$plugin_list = get_plugins();	
+	$data_arr = array();
+	
+	foreach ( $plugin_list as $plugin => $plugin_data ){
+		$plugin_info = array();
+		$plugin_info[ "Name" ] = $plugin_data[ "Name" ];
+		$plugin_info[ "Version" ] = $plugin_data[ "Version" ];
+		$plugin_info[ "URL" ] = $plugin;
+		$plugin_info[ "IsActive" ] = is_plugin_active( $plugin ) == TRUE ? "true" : "false";
+		$data_arr[] = $plugin_info;		
+	}
+	
+	$enc_data = json_encode( $data_arr );
+	
+	$version_update_url = SIXSCAN_BODYGUARD_6SCAN_UPDATE_SEC_URL 	. "?site_id=" . $site_id 
+																	. "&api_token=" . $api_token;
+		
+	$response = wp_remote_post( $version_update_url , array(		
+		'timeout' => 30,
+		'redirection' => 5,
+		'httpversion' => '1.1',
+		'sslverify' => false,
+		'blocking' => true,
+		'headers' => array(),
+		'body' => $enc_data,
+		'cookies' => array()
+		)
+	);	
+	
+	if ( is_wp_error( $response ) ) {
+		return $response->get_error_message();
+	}
+		
+	return TRUE;
 }
 
 ?>

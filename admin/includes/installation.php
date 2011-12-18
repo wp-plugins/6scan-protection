@@ -4,19 +4,49 @@ if ( ! defined( 'ABSPATH' ) )
 	die( 'No direct access allowed' );	
 
 function sixscan_installation_install() {		
-	try {
-		
+	try {		
 		/*	Make sure we can create signature file and update the site's .htaccess file */
 		if ( sixscan_common_is_writable_directory( ABSPATH ) == FALSE ){
-			$err_message = "Can't create signature file " . ABSPATH . SIXSCAN_COMM_SIGNATURE_FILENAME;
-			sixscan_common_report_analytics( SIXSCAN_ANALYTICS_INSTALL_CATEGORY , SIXSCAN_ANALYTICS_INSTALL_INIT_ACT , $err_message );
-			die( $err_message );
+			$err_message = "Install: Failed creating signature file at Wordpress directory " . ABSPATH . SIXSCAN_COMM_SIGNATURE_FILENAME .
+			"<br/><br/>Please see <a href='http://codex.wordpress.org/Changing_File_Permissions' target='_blank'>this Wordpress article</a> for more information on how to add write permissions." .
+			"<br/><br/>If you have additional questions, please visit our <a href='http://getsatisfaction.com/6scan' target='_blank'>community</a>";
+			sixscan_installation_fail_install( $err_message );	
 		}
 		
 		if ( sixscan_common_is_writable_htaccess() == FALSE ){
-			$err_message = "Can't update .htaccess file at " . SIXSCAN_HTACCESS_FILE;
-			sixscan_common_report_analytics( SIXSCAN_ANALYTICS_INSTALL_CATEGORY , SIXSCAN_ANALYTICS_INSTALL_INIT_ACT , $err_message );
-			die( $err_message );
+			$err_message = "6Scan Install: Failed writing .htaccess file " . SIXSCAN_HTACCESS_FILE . 
+			"<br/><br/>Please see <a href='http://codex.wordpress.org/Changing_File_Permissions' target='_blank'>this Wordpress article</a> for more information on how to add write permissions." .
+			"<br/><br/>If you have additional questions, please visit our <a href='http://getsatisfaction.com/6scan' target='_blank'>community</a>";
+			sixscan_installation_fail_install( $err_message );
+		}
+		
+		if ( ! function_exists ( 'openssl_verify' ) ){
+			$err_message = "6Scan Install: Function \"openssl_verify()\" does not exist. Please contact your system administrator to add OpenSSL support on this server. 6Scan requires
+OpenSSL functions for increased security.".
+		"<br/><br/>If you have additional questions, please visit our <a href='http://getsatisfaction.com/6scan' target='_blank'>community</a>";
+			sixscan_installation_fail_install( $err_message );
+		}
+		
+		if ( ! WP_Filesystem() ){	    	    
+			$err_message = "6Scan Install: Failed initializing WP_Filesystem(). This usually happens when security permissions do not allow writing to the Wordpress directory." . 
+			"<br/><br/>Please see <a href='http://codex.wordpress.org/Changing_File_Permissions' target='_blank'>this Wordpress article</a> for more information on how to add write permissions." .
+			"<br/><br/>If you have additional questions, please visit our <a href='http://getsatisfaction.com/6scan' target='_blank'>community</a>";
+			sixscan_installation_fail_install( $err_message );
+		}
+				
+		if ( ini_get( "allow_url_fopen" ) == FALSE ){
+			$err_message = "6Scan Install: \"allow_url_fopen\" in your php.ini is disabled. 6Scan needs this option to be enabled, in order to contact its server for automatic updates." . 
+			"Please see <a href='http://6scan.freshdesk.com/solution/categories/3294/folders/6728/articles/2681-i-am-seeing-an-error-that-is-similar-to-could-not-open-handle-for-fopen-' target='_blank'>this FAQ entry</a> for instructions on how to fix this." .
+			"<br/><br/>If you have additional questions, please visit our <a href='http://getsatisfaction.com/6scan' target='_blank'>community</a>";
+			sixscan_installation_fail_install( $err_message );
+		}
+		else{
+			$fopen_status = sixscan_common_is_fopen_working();
+			if ( $fopen_status !== TRUE ){
+				$err_message = "6Scan Install: failed opening connection to its server. fopen() failed with message: $fopen_status." . 
+				"<br/><br/>If you have additional questions, please visit our <a href='http://getsatisfaction.com/6scan' target='_blank'>community</a>";
+				sixscan_installation_fail_install( $err_message );
+			}
 		}
 							
 		/*	Create the DB fields , unless already exists ( If user has reactivated the plugin , after deactivation ) */
@@ -47,6 +77,8 @@ function sixscan_installation_install() {
 function sixscan_installation_uninstall() {
 	try {
 		if ( sixscan_installation_is_installed() ) {
+			/* Remove the verification file , htaccess data , and then all the options from db */
+			sixscan_communication_oracle_reg_remove_verification_file();
 			sixscan_htaccess_uninstall();			
 											
 			delete_option( SIXSCAN_OPTIONS_SETUP_ACCOUNT );
@@ -65,6 +97,12 @@ function sixscan_installation_uninstall() {
 		die( $e );
 	}
 }
+
+function sixscan_installation_fail_install( $err_description ){
+	sixscan_common_report_analytics( SIXSCAN_ANALYTICS_INSTALL_CATEGORY , SIXSCAN_ANALYTICS_INSTALL_INIT_ACT , $err_description );
+	die( $err_description );
+}
+
 
 function sixscan_installation_is_installed() {
 	if ( get_option( SIXSCAN_OPTIONS_SETUP_ACCOUNT ) == FALSE )

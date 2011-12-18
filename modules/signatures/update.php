@@ -28,7 +28,7 @@ function sixscan_signatures_update_request_total( $site_id , $api_token ){
 
 function sixscan_signature_engine_update_get ( $site_id , $api_token , $current_engine_version ){
 
-/*	Craft an URL to request new signature */
+	/*	Craft an URL to request new signature */
 	$version_update_url = SIXSCAN_BODYGUARD_6SCAN_UPDATE_APP_URL 	. "?site_id=" . $site_id 
 																	. "&api_token=" . $api_token 
 																	. "&current_version=" . $current_engine_version;
@@ -194,37 +194,57 @@ function sixscan_signatures_update_htaccess( $links_list ) {
 		$new_content = "";
 	}
 	
-	/*	We need the site relative path */
-	$parsed = parse_url( home_url() );	
-	$rel_path = $parsed[ 'path' ];
-	
-	$htaccess_links = "";
-	
 	/*	Those symbols have to be escaped , if written into htaccess file as RuleCond */
 	$chars_to_escape_arr = array( '.' , '^' , '$' , '+' , '{' , '}' , '[' , ']' , '(' , ')' );
 	$escaped_chars_arr = array( '\.' , '\^' , '\$' , '\+' , '\{' , '\}' , '\[' , '\]' , '\(' , '\)' );
-				
-	/*  IP's , that are allowed to see non-filtered version of scripts. This is to enable 6Scan backend's decision ,
-		whether the patch is still required , or can be removed */	 	
-	$ip_list_arr = explode( ',' , SIXSCAN_SIGNATURE_SCANNER_IP_LIST );
-	foreach ( $ip_list_arr as $one_ok_ip ){
-		$one_ok_ip = str_replace ( "." , "\\." , $one_ok_ip );
-		$htaccess_links .= "RewriteCond %{REMOTE_ADDR} !^" . trim( $one_ok_ip ) . "$\n";
-	}	
 	
+	/*	We need the site relative path */
+	$parsed = parse_url( home_url() );	
+	$rel_path = $parsed[ 'path' ];
+	$vuln_urls = "";
 	if ( strlen( $links_list ) > 0 ) {
 		$links = explode( SIXSCAN_SIGNATURE_LINKS_DELIMITER , $links_list );
 		/* Prepare rules for the htaccess */
 		foreach ( $links as $one_link ){
 			$one_link = trailingslashit( $rel_path ) .  substr( $one_link , 1 );
-			$one_link = str_replace( $chars_to_escape_arr , $escaped_chars_arr , $one_link );	
+			$one_link = str_replace( $chars_to_escape_arr , $escaped_chars_arr , $one_link );				
 			
-			$htaccess_links .= "RewriteCond %{REQUEST_URI} ^" . trim( $one_link ) . "$ [OR]\n";		
+			$vuln_urls .= "RewriteCond %{REQUEST_URI} ^" . trim( $one_link ) . "$ [OR]\n";		
 		}	
+	}	
+	
+	$vuln_urls .= "RewriteCond %{REQUEST_URI} ^" . SIXSCAN_SIGNATURE_DEFAULT_PLACEHOLDER_LINK . "$\n";
+	$vuln_urls .= "RewriteRule .* 6scan-gate.php [E=sixscaninternal:accessgranted,L]\n";	
+	
+	$htaccess_links = "#Patrol's IPs needs access, to check whether rules update is required\n";
+				
+	/*  IP's , that are allowed to see non-filtered version of scripts. This is to enable 6Scan backend's decision ,
+		whether the patch is still required , or can be removed */	 	
+	$ip_list_arr = explode( ',' , SIXSCAN_SIGNATURE_SCANNER_IP_LIST );
+		
+	foreach ( $ip_list_arr as $ip_index => $one_ok_ip ){
+		$one_ok_ip = str_replace ( "." , "\\." , $one_ok_ip );		
+		$htaccess_links .= "RewriteCond %{REMOTE_ADDR} ^" . trim( $one_ok_ip ) . "$";
+		
+		/*	Last IP should not have [OR] flag */
+		if ( $ip_index != count( $ip_list_arr ) - 1 )
+			$htaccess_links .= " [OR]\n";
+		else
+			$htaccess_links .= "\n";
 	}
 	
-	$htaccess_links .= "RewriteCond %{REQUEST_URI} ^" . SIXSCAN_SIGNATURE_DEFAULT_PLACEHOLDER_LINK . "$\n";
-	$htaccess_links .= "RewriteRule .* 6scan-gate.php [E=sixscaninternal:accessgranted,L]\n";	
+	/*	If an IP maches one of the listed , skip the next rule */
+	$htaccess_links .= "RewriteRule ^(.*)$ - [S=1]\n\n";
+
+	/*	Now add the URL rules */
+	$htaccess_links .= $vuln_urls;		
+	
+	$mixed_site_address = parse_url( get_option( 'siteurl' ) );
+	
+	if ( ( strlen( $mixed_site_address[ 'path' ] ) == 0 ) || ( $mixed_site_address[ 'path' ] == '/' ) ) 
+		$wordpress_base_dirname = "/";
+	else
+		$wordpress_base_dirname = untrailingslashit( $mixed_site_address[ 'path' ] );		
 	
 	$tmp_htaccess_file = SIXSCAN_HTACCESS_FILE . ".tmp";
 					
@@ -233,6 +253,9 @@ function sixscan_signatures_update_htaccess( $links_list ) {
 		return "Failed opening htaccess file $tmp_htaccess_file for write";
 	
 	$new_content = "# Created by 6Scan plugin\n" .
+					"#Those are used by 6Scan Gateway\n" .
+					"SetEnv SIXSCAN_HTACCESS_VERSION	" . SIXSCAN_HTACCESS_VERSION . "\n" .
+					"SetEnv SIXSCAN_WP_BASEDIR			" . $wordpress_base_dirname . "\n\n" .
 					"<IfModule mod_rewrite.c>\n" .
 					"RewriteEngine On\n" .
 					"\n#avoid direct access to the 6scan-gate.php file\n" .

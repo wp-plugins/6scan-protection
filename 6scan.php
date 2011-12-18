@@ -27,7 +27,6 @@ require_once( 'modules/signatures/update.php' );
 require_once( 'admin/includes/6scan-menu.php' );
 require_once( 'modules/stat/analytics.php' );
 
-
 if ( is_admin() ) { 
 	register_activation_hook( __FILE__ , 	'sixscan_events_activation' );
 	register_deactivation_hook( __FILE__ , 	'sixscan_events_deactivation' );

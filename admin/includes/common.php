@@ -3,7 +3,8 @@
 if ( ! defined( 'ABSPATH' ) ) 
 	die( 'No direct access allowed' );
 
-define ( 'SIXSCAN_VERSION',								'1.0.3' );
+define ( 'SIXSCAN_VERSION' ,							'1.0.4' );
+define ( 'SIXSCAN_HTACCESS_VERSION' ,					'1' );
 
 if( empty( $_SERVER[ "HTTPS" ] ) )
 	define( 'SERVER_HTTP_PREFIX',						'http://' );
@@ -20,9 +21,10 @@ define ( 'SIXSCAN_BODYGUARD_REGISTER_FORM_URL' ,		SERVER_HTTP_PREFIX . SIXSCAN_S
 
 define ( 'SIXSCAN_BODYGUARD_ERROR_REPORT_FORM_URL' ,	SIXSCAN_SERVER .  'dashboard/v1/error_feedback' );
 define ( 'SIXSCAN_BODYGUARD_REGISTER_URL' , 			SIXSCAN_SERVER . 'wpapi/v1/register' );
-define ( 'SIXSCAN_BODYGUARD_VERIFY_URL' , 				SIXSCAN_SERVER . 'wpapi/v1/verify' );
+define ( 'SIXSCAN_BODYGUARD_VERIFY_URL' , 				SIXSCAN_SERVER . 'wpapi/v2/verify' );
 define ( 'SIXSCAN_BODYGUARD_6SCAN_UPDATE_SIG_URL' , 	SIXSCAN_SERVER . 'wpapi/v1/update-signatures' );
 define ( 'SIXSCAN_BODYGUARD_6SCAN_UPDATE_APP_URL' , 	SIXSCAN_SERVER . 'wpapi/v1/update-application-code' );
+define ( 'SIXSCAN_BODYGUARD_6SCAN_UPDATE_SEC_URL' , 	SIXSCAN_SERVER . 'wpapi/v1/update-security-environment' );
 define ( 'SIXSCAN_COMM_ORACLE_AUTH_DASHBOARD_URL' ,		SIXSCAN_SERVER . 'dashboard/v1?' );
 
 define ( 'SIXSCAN_OPTIONS_SETUP_ACCOUNT', 				'sixscan_setupaccount' );
@@ -41,9 +43,13 @@ define ( 'SIXSCAN_OPTION_LAST_ERROR_OCCURED',			'sixscan_last_error_occured' );
 define ( 'SIXSCAN_UPDATE_OK_RESPONSE_CODE',				200 );
 define ( 'SIXSCAN_UPDATE_LAST_VERSION_RESPONSE_CODE',	304 );
 define ( 'SIXSCAN_COMM_ORACLE_AUTH_SALT' , 				':ou6s:6EF{z*_,^+8_#cNg8!+u5zp)ix' );
+define ( 'SIXSCAN_VERIFICATION_FILE_PREFIX' ,			'sixscan_' );
+define ( 'SIXSCAN_VERIFICATION_DELIMITER' ,				'###############' );
 define ( 'SIXSCAN_SIGNATURE_SCHEDULER_SALT' ,			'Ia]g^X6d{PbvOmX}scMOM87.<.F1.~W' );
 define ( 'SIXSCAN_OPTION_COMM_ORACLE_NONCE' ,			'sixscan_nonce_val' );
 define ( 'SIXSCAN_OPTION_COMM_LAST_SIG_UPDATE_NONCE',	'sixscan_sig_last_update_nonce' );
+define ( 'SIXSCAN_NOTICE_UPDATE_NAME' ,					'update' );
+define ( 'SIXSCAN_NOTICE_SECURITY_ENV_NAME' ,			'update-security-environment' );
 define ( 'SIXSCAN_COMM_SIGNATURE_FILENAME', 			'6scan-signature.php' );
 define ( 'SIXSCAN_SIGNATURE_LINKS_DELIMITER',			"\n" );
 define ( 'SIXSCAN_SIGNATURE_MULTIPART_DELIMITER',		'###UZhup3v1ENMefI7Wy44QNppgZmp0cu6RPenZewotclc2ZCWUDE4zAfXIJX354turrscbFBL2pOiKpiNLYosm6Z1Qp8b3PNjgd1xqtuskjcT9MC4fZvQfx7FPUDF11oTiTrMeayQr7JHk3UuEK7fR0###' );
@@ -166,6 +172,46 @@ function sixscan_common_is_writable_htaccess(){
 	return TRUE;
 }	
 
+function sixscan_common_is_fopen_working(){
+
+	$url = SIXSCAN_BODYGUARD_REGISTER_URL;
+	$arrContext = array( 'http' =>
+			array(
+				'method' => 'GET' ,
+				'user_agent' => 'SIXSCAN_SUBMITTER' ,
+				'max_redirects' => 6 ,
+				'protocol_version' => (float) '1.1' ,
+				'header' => '' ,
+				'ignore_errors' => true ,
+				'timeout' => 30 ,
+				'ssl' => array(
+						'verify_peer' => false ,
+						'verify_host' => false
+				)
+			)
+		);
+		
+	$proxy = new WP_HTTP_Proxy();	
+	if ( $proxy->is_enabled() && $proxy->send_through_proxy( $url ) ) {
+		$arrContext[ 'http' ][ 'proxy' ] = 'tcp://' . $proxy->host() . ':' . $proxy->port();
+		$arrContext[ 'http' ][ 'request_fulluri' ] = true;
+
+		if ( $proxy->use_authentication() )
+			$arrContext[ 'http' ][ 'header' ] .= $proxy->authentication_header() . "\r\n";
+	}
+	$context = stream_context_create( $arrContext );	
+	
+	$handle = @fopen( $url , 'r' , false , $context );
+	if ( ! $handle ){
+		$last_error = error_get_last();
+		$fopen_info = "failed. Last error: " . print_r( $last_error , TRUE ) . "\n";
+		return $fopen_info;
+	}
+	else{		
+		fclose( $handle );
+		return TRUE;
+	}
+}
 
 function sixscan_common_report_analytics( $category , $action , $label ){
 	/*
@@ -246,42 +292,7 @@ function sixscan_common_gather_system_information_for_anonymous_support_ticket()
 		$is_through_proxy = "false";
 	$submission_data .= "Is access through proxy: $is_through_proxy\n";
 	
-	$arrContext = array( 'http' =>
-			array(
-				'method' => 'GET' ,
-				'user_agent' => 'SIXSCAN_SUBMITTER' ,
-				'max_redirects' => 6 ,
-				'protocol_version' => (float) '1.1' ,
-				'header' => '' ,
-				'ignore_errors' => true ,
-				'timeout' => 30 ,
-				'ssl' => array(
-						'verify_peer' => false ,
-						'verify_host' => false
-				)
-			)
-		);
-
-	/*	Please note , that proxy details are NOT sent in submission. They are ONLY used to access public URL , just like Wordpress uses them.
-		This is done , in order to check , whether connection is possible. This code is copy-pasted from class-http.php */
-	if ( $proxy->is_enabled() && $proxy->send_through_proxy( $url ) ) {
-		$arrContext[ 'http' ][ 'proxy' ] = 'tcp://' . $proxy->host() . ':' . $proxy->port();
-		$arrContext[ 'http' ][ 'request_fulluri' ] = true;
-
-		if ( $proxy->use_authentication() )
-			$arrContext[ 'http' ][ 'header' ] .= $proxy->authentication_header() . "\r\n";
-	}
-	$context = stream_context_create( $arrContext );	
-	
-	$handle = @fopen( $url , 'r' , false , $context );
-	if ( ! $handle ){
-		$last_error = error_get_last();
-		$fopen_info = "failed. Last error: " . print_r( $last_error , TRUE ) . "\n";
-	}
-	else{
-		$fopen_info = "works\n";
-		fclose( $handle );
-	}
+	$fopen_info = sixscan_common_is_fopen_working();
 	$submission_data .= "fopen() status: $fopen_info\n";
 	
 	$htaccess_contents = file_get_contents( SIXSCAN_HTACCESS_FILE );

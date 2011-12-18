@@ -35,7 +35,7 @@ function sixscan_communication_oracle_reg_register( $site_url , $user_email , $n
 			return $error_string;			
 		}
 		else if ( 200 != wp_remote_retrieve_response_code( $response ) ) {
-			$error_string = "wp_remote_post returned httpd status " . wp_remote_retrieve_response_code( $response ) . ", data:" . $raw_register_data;
+			$error_string = "wp_remote_post returned httpd status " . wp_remote_retrieve_response_code( $response ) . ", data:" . urldecode( $raw_register_data );
 			sixscan_stat_analytics_log_action( SIXSCAN_ANALYTICS_INSTALL_CATEGORY , SIXSCAN_ANALYTICS_INSTALL_REG_ACT , SIXSCAN_ANALYTICS_FAIL_PREFIX_STRING . $error_string );	
 			return $error_string;
 		}
@@ -86,19 +86,9 @@ function sixscan_communication_oracle_reg_verification(){
 		if ( ( sixscan_common_get_verification_token() == FALSE ) || ( sixscan_common_get_site_id() == FALSE ) || ( sixscan_common_get_api_token() == FALSE ) )
 			return "6Scan was not registered properly.Data from DB is missing";
 						
-		/*	Create temporary verification url */														
-		$verification_file_name = ABSPATH . "/" . sixscan_common_get_verification_token() . ".php";				
-		
-		$file_handle = fopen( $verification_file_name , "w" ); 	
-		if ( $file_handle == FALSE){
-			$error_desc = error_get_last();
-			sixscan_stat_analytics_log_action( SIXSCAN_ANALYTICS_INSTALL_CATEGORY , SIXSCAN_ANALYTICS_INSTALL_VERIF_ACT , SIXSCAN_ANALYTICS_FAIL_PREFIX_STRING . "_verification_file_creation_" . $error_desc[ 'message' ] . '_' . $error_desc[ 'type' ]);
-			return "Failed creating file " . $verification_file_name . " for verification purposes. Reason:" . $error_desc[ 'message' ] . ' Type:' . $error_desc[ 'type' ];	
-		}
-		
-		$verificiation_data = '<?php print " ' . sixscan_common_get_site_id() . '"; ?>';
-		fwrite( $file_handle , $verificiation_data  );
-		fclose( $file_handle );
+		$verif_file = sixscan_communication_oracle_reg_create_verification_file();
+		if ($verif_file != TRUE)
+			return $verif_file;
 					
 		$request_verification_url = SIXSCAN_BODYGUARD_VERIFY_URL . "?site_id=" . sixscan_common_get_site_id() . "&api_token=" . sixscan_common_get_api_token();
 		$response = wp_remote_get( $request_verification_url ,  array(
@@ -111,9 +101,8 @@ function sixscan_communication_oracle_reg_verification(){
 			'headers' => array(),		
 			'cookies' => array()
 			)); 
-			
-		/*	Remove verification url */
-		unlink( $verification_file_name );
+					
+		/*	We do not remove the verification url, since the server wants to check the site's ownership once in a while */		
 		
 		if ( is_wp_error( $response ) ) {
 			$error_string = $response->get_error_message();
@@ -124,7 +113,7 @@ function sixscan_communication_oracle_reg_verification(){
 			return $error_string;
 		}
 		else if ( 200 != wp_remote_retrieve_response_code( $response ) ) {
-			$error_string = "_verification_process_server_response_" . wp_remote_retrieve_response_code( $response ) . " data:" .  wp_remote_retrieve_body( $response );
+			$error_string = "_verification_process_server_response_" . wp_remote_retrieve_response_code( $response ) . " data:" .  urldecode( wp_remote_retrieve_body( $response ) );
 			sixscan_stat_analytics_log_action( SIXSCAN_ANALYTICS_INSTALL_CATEGORY , SIXSCAN_ANALYTICS_INSTALL_REG_ACT , SIXSCAN_ANALYTICS_FAIL_PREFIX_STRING . $error_string );
 			return $error_string;
 		}
@@ -136,6 +125,32 @@ function sixscan_communication_oracle_reg_verification(){
 		sixscan_stat_analytics_log_action( SIXSCAN_ANALYTICS_INSTALL_CATEGORY , SIXSCAN_ANALYTICS_INSTALL_REG_ACT , SIXSCAN_ANALYTICS_FAIL_PREFIX_STRING . "sixscan_communication_oracle_reg_verification" . $e );
 		die( $e );
 	}
+}
+
+function sixscan_communication_oracle_reg_create_verification_file(){
+	
+	/*	Create verification url */														
+	$verification_file_name = ABSPATH . "/" . SIXSCAN_VERIFICATION_FILE_PREFIX . sixscan_common_get_verification_token() . ".gif";	
+		
+	$file_handle = fopen( $verification_file_name , "w" ); 	
+	
+	if ( $file_handle == FALSE){
+		$error_desc = error_get_last();
+		sixscan_stat_analytics_log_action( SIXSCAN_ANALYTICS_INSTALL_CATEGORY , SIXSCAN_ANALYTICS_INSTALL_VERIF_ACT , SIXSCAN_ANALYTICS_FAIL_PREFIX_STRING . "_verification_file_creation_" . $error_desc[ 'message' ] . '_' . $error_desc[ 'type' ]);
+		return "Failed creating file " . $verification_file_name . " for verification purposes. Reason:" . $error_desc[ 'message' ] . ' Type:' . $error_desc[ 'type' ];	
+	}
+	
+	$verificiation_data = SIXSCAN_VERIFICATION_DELIMITER . sixscan_common_get_site_id() . SIXSCAN_VERIFICATION_DELIMITER;
+	fwrite( $file_handle , $verificiation_data  );
+	fclose( $file_handle );
+	
+	return TRUE;
+}
+
+function sixscan_communication_oracle_reg_remove_verification_file(){
+	$verification_file_name = ABSPATH . "/" . SIXSCAN_VERIFICATION_FILE_PREFIX . sixscan_common_get_verification_token() . ".gif";	
+	
+	unlink( $verification_file_name );
 }
 
 ?>

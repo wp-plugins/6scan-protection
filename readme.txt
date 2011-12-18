@@ -1,6 +1,6 @@
 === 6Scan Security ===
 Contributors: 6Scan
-Version: 1.0.3
+Version: 1.0.4
 Tags: security,secure,6scan,protection,anti-hack,hack,attack,scan,sql injection,xss,file inclusion,exploit,automatic,bodyguard,patrol
 Requires at least: 3.0.0
 Tested up to: 3.3
@@ -51,6 +51,10 @@ We work with all standard hosting packages that support Wordpress.  We have spec
 
 Please read an extensive explanation on this matter [here](http://6scan.freshdesk.com/solution/articles/2681-i-am-seeing-an-error-that-is-similar-to-could-not-open-handle-for-fopen-)
 
+= What webservers does 6Scan support? =
+
+6Scan Security currently works with any server that has .htaccess and mod_rewrite support such as Apache and IIS, but we plan to support Nginx in our later releases.
+
 == Screenshots ==
 
 1. Your dashboard shows the vulnerabilities you are being protected against.
@@ -68,6 +72,12 @@ Please read an extensive explanation on this matter [here](http://6scan.freshdes
 
 = 1.0.3 =
 * Bugfix, regarding access to 6Scan's SSL server.
+
+= 1.0.4 =
+* Gate script now works correctly with servers, that have DOCUMENT_ROOT different from the real document root (like 000webhost).
+* More sanity checks before installing (checking for openssl_* functions, required php.ini flags, and more).
+* Added helpful links to errors that might occur while installing.
+* Now verification file resides on server as long as 6Scan Security is installed.
 
 == Upgrade Notice ==
 
