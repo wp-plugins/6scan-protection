@@ -47,6 +47,12 @@ if ( file_exists( '6scan-signature.php' ) ) {
 }
 /*	We continue to the requested file , or to index.php , if we were redirected by permalinks (and does not really exist) */
 if ( is_file( $path ) ){
+	/* Update the server environment so the PHP script thinks it was called
+	 right off the bat. */
+	$_SERVER[ 'SCRIPT_FILENAME' ] = $path;
+	$_SERVER[ 'SCRIPT_NAME' ] = $path_from_cwd;
+	$_SERVER[ 'PHP_SELF' ] = $path_from_cwd;
+
 	chdir( dirname( $path ) );
 	require $path;
 }

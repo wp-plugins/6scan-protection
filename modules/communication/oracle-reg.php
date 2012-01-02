@@ -4,7 +4,7 @@ if ( ! defined( 'ABSPATH' ) )
 	die( 'No direct access allowed' );
 
 /*	Register new user/site */
-function sixscan_communication_oracle_reg_register( $site_url , $user_email , $notice_script_url , $registration_form_data , & $sixscan_oracle_auth_struct ){	
+function sixscan_communication_oracle_reg_register( $site_url , $user_email , $notice_script_url , & $sixscan_oracle_auth_struct ){	
 		
 	$expected = array( "site_id" , "api_token" , "dashboard_token" , "verification_token" );
 	
@@ -13,7 +13,7 @@ function sixscan_communication_oracle_reg_register( $site_url , $user_email , $n
 		$relative_notice_url = substr( $notice_script_url , strlen( $site_url ) + 1 );
 		
 		/*	Sending registration data to server, using GET */
-		$request_register_url = SIXSCAN_BODYGUARD_REGISTER_URL ."?url=$site_url&email=$user_email&notice_script_url=$relative_notice_url&registration_form_data=$registration_form_data";
+		$request_register_url = SIXSCAN_BODYGUARD_REGISTER_URL ."?url=$site_url&email=$user_email&notice_script_url=$relative_notice_url";
 		$response = wp_remote_get( $request_register_url , array(		
 			'timeout' => 30,
 			'redirection' => 5,
@@ -151,6 +151,61 @@ function sixscan_communication_oracle_reg_remove_verification_file(){
 	$verification_file_name = ABSPATH . "/" . SIXSCAN_VERIFICATION_FILE_PREFIX . sixscan_common_get_verification_token() . ".gif";	
 	
 	unlink( $verification_file_name );
+}
+
+function sixscan_communication_oracle_reg_reactivate( $site_id , $api_token ){
+
+	$request_register_url = SIXSCAN_BODYGUARD_REACTIVATE_URL . "?site_id=$site_id&api_token=$api_token";	
+	$response = wp_remote_get( $request_register_url , array(		
+		'timeout' => 30,
+		'redirection' => 5,
+		'httpversion' => '1.1',
+		'blocking' => true,
+		'sslverify' => false,
+		'headers' => array(),
+		'cookies' => array()
+		)
+	);
+	
+	if ( 200 != wp_remote_retrieve_response_code( $response ) ) {
+		return FALSE;
+	}
+	
+	return TRUE;		
+}
+
+function sixscan_communication_oracle_reg_deactivate( $site_id , $api_token ){
+	
+	$request_deactivation_url = SIXSCAN_BODYGUARD_DEACTIVATE_ACCOUNT . "?site_id=$site_id&api_token=$api_token";	
+	$response = wp_remote_get( $request_deactivation_url , array(		
+		'timeout' => 30,
+		'redirection' => 5,
+		'httpversion' => '1.1',
+		'blocking' => true,
+		'sslverify' => false,
+		'headers' => array(),
+		'cookies' => array()
+		)
+	);
+	
+	return TRUE;
+}
+
+function sixscan_communication_oracle_reg_uninstall( $site_id , $api_token ){
+	
+	$request_uninstall_url = SIXSCAN_BODYGUARD_UNINSTALL_ACCOUNT . "?site_id=$site_id&api_token=$api_token";	
+	$response = wp_remote_get( $request_uninstall_url , array(		
+		'timeout' => 30,
+		'redirection' => 5,
+		'httpversion' => '1.1',
+		'blocking' => true,
+		'sslverify' => false,
+		'headers' => array(),
+		'cookies' => array()
+		)
+	);
+	
+	return TRUE;
 }
 
 ?>

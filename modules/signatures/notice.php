@@ -15,13 +15,13 @@ if ( defined( 'SIXSCAN_VERSION' ) == FALSE ){
 	exit( 0 );
 }
 	
-if ( get_option( SIXSCAN_OPTIONS_SETUP_ACCOUNT ) == SIXSCAN_ACCOUNT_NOT_ACTIVE ) {
-	header( "HTTP/1.1 500 6Scan not installed" );
+if ( sixscan_common_is_regdata_present() != TRUE ){
+	header( "HTTP/1.1 500 6Scan not registered" );
 	exit( 0 );
 }
 
-if ( sixscan_common_is_oracle_verified() != TRUE ){
-	header( "HTTP/1.1 500 6Scan account is not yet verified" );
+if ( sixscan_common_is_account_active() != TRUE ) {
+	header( "HTTP/1.1 500 6Scan not active" );
 	exit( 0 );
 }
 
@@ -43,12 +43,22 @@ if ( $expected_token != $received_token ){
 	exit( 0 );
 }
 
+/*	From now on, all errors will be caught and shown */
+sixscan_common_show_all_errors();
+
 /*	Mark this nonce as already used */
 update_option( SIXSCAN_OPTION_COMM_LAST_SIG_UPDATE_NONCE , $oracle_nonce );	
 	
 /*	Include the update functionality */
 require_once( ABSPATH . 'wp-admin/includes/upgrade.php' );
 require_once( 'update.php' );
+
+/* Activated this blog with 6Scan server */
+if ( isset( $_GET[ SIXSCAN_NOTICE_ACCOUNT_ENABLED ] ) ){
+	if ( intval( $_GET[ SIXSCAN_NOTICE_ACCOUNT_ENABLED ] ) == 1 ){
+		sixscan_common_set_account_operational( TRUE );
+	}	
+}
 
 /*	Default value, in case we don't need to send security env */
 $security_result = TRUE;

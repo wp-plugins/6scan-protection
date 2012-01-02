@@ -3,7 +3,7 @@
 if ( ! defined( 'ABSPATH' ) ) 
 	die( 'No direct access allowed' );
 
-define ( 'SIXSCAN_VERSION' ,							'1.0.4' );
+define ( 'SIXSCAN_VERSION' ,							'1.0.5' );
 define ( 'SIXSCAN_HTACCESS_VERSION' ,					'1' );
 
 if( empty( $_SERVER[ "HTTPS" ] ) )
@@ -16,29 +16,24 @@ define ( 'SIXSCAN_SERVER_ADDRESS',						'api.wp.6scan.com' );
 /*	The server communication is always through SSL */
 define ( 'SIXSCAN_SERVER',								'https://' . SIXSCAN_SERVER_ADDRESS . '/' );	
 
-/*	User registration form url depends on the blog being on https/http */
-define ( 'SIXSCAN_BODYGUARD_REGISTER_FORM_URL' ,		SERVER_HTTP_PREFIX . SIXSCAN_SERVER_ADDRESS .  '/dashboard/v1/register' );
-
-define ( 'SIXSCAN_BODYGUARD_ERROR_REPORT_FORM_URL' ,	SIXSCAN_SERVER .  'dashboard/v1/error_feedback' );
+define ( 'SIXSCAN_BODYGUARD_ERROR_REPORT_FORM_URL' ,	SIXSCAN_SERVER . 'dashboard/v1/error_feedback' );
 define ( 'SIXSCAN_BODYGUARD_REGISTER_URL' , 			SIXSCAN_SERVER . 'wpapi/v1/register' );
+define ( 'SIXSCAN_BODYGUARD_REACTIVATE_URL',			SIXSCAN_SERVER . 'wpapi/v1/reactivate' );
 define ( 'SIXSCAN_BODYGUARD_VERIFY_URL' , 				SIXSCAN_SERVER . 'wpapi/v2/verify' );
 define ( 'SIXSCAN_BODYGUARD_6SCAN_UPDATE_SIG_URL' , 	SIXSCAN_SERVER . 'wpapi/v1/update-signatures' );
 define ( 'SIXSCAN_BODYGUARD_6SCAN_UPDATE_APP_URL' , 	SIXSCAN_SERVER . 'wpapi/v1/update-application-code' );
 define ( 'SIXSCAN_BODYGUARD_6SCAN_UPDATE_SEC_URL' , 	SIXSCAN_SERVER . 'wpapi/v1/update-security-environment' );
+define ( 'SIXSCAN_BODYGUARD_DEACTIVATE_ACCOUNT' ,		SIXSCAN_SERVER . 'wpapi/v1/deactivate' );
+define ( 'SIXSCAN_BODYGUARD_UNINSTALL_ACCOUNT' ,		SIXSCAN_SERVER . 'wpapi/v1/uninstall' );
+define ( 'SIXSCAN_BODYGUARD_PING_URL' ,					SIXSCAN_SERVER . 'wpapi/v1/ping' );
 define ( 'SIXSCAN_COMM_ORACLE_AUTH_DASHBOARD_URL' ,		SIXSCAN_SERVER . 'dashboard/v1?' );
 
-define ( 'SIXSCAN_OPTIONS_SETUP_ACCOUNT', 				'sixscan_setupaccount' );
-define ( 'SIXSCAN_ACCOUNT_NOT_ACTIVE',					'SETUP_STAGE_NON_ACTIVE' );
-define ( 'SIXSCAN_ACCOUNT_SETUP_STAGE_INSTALLED',		'SETUP_STAGE_INSTALLED' );
-define ( 'SIXSCAN_ACCOUNT_SETUP_STAGE_WORKING',			'SETUP_STAGE_RUNNING' );
-
-define ( 'SIXSCAN_OPTION_MENU_IS_BLOG_REGISTERED' ,		'sixscan_is_blog_registered' );
-define ( 'SIXSCAN_OPTION_MENU_IS_BLOG_VERIFIED' ,		'sixscan_is_blog_verified' );
+define ( 'SIXSCAN_OPTIONS_SETUP_ACCOUNT', 				'sixscan_is_account_active' );
+define ( 'SIXSCAN_OPTION_MENU_IS_ACCOUNT_OPERATIONAL',	'sixscan_is_account_operational' );
 define ( 'SIXSCAN_OPTION_MENU_SITE_ID' , 				'sixscan_registered_site_id' );
 define ( 'SIXSCAN_OPTION_MENU_API_TOKEN' , 				'sixscan_registered_api_token' );
 define ( 'SIXSCAN_OPTION_MENU_VERIFICATION_TOKEN' , 	'sixscan_registered_verification_token' );
 define ( 'SIXSCAN_OPTION_MENU_DASHBOARD_TOKEN' , 		'sixscan_registered_dashboard_token' );
-define ( 'SIXSCAN_OPTION_LAST_ERROR_OCCURED',			'sixscan_last_error_occured' );
 
 define ( 'SIXSCAN_UPDATE_OK_RESPONSE_CODE',				200 );
 define ( 'SIXSCAN_UPDATE_LAST_VERSION_RESPONSE_CODE',	304 );
@@ -50,6 +45,7 @@ define ( 'SIXSCAN_OPTION_COMM_ORACLE_NONCE' ,			'sixscan_nonce_val' );
 define ( 'SIXSCAN_OPTION_COMM_LAST_SIG_UPDATE_NONCE',	'sixscan_sig_last_update_nonce' );
 define ( 'SIXSCAN_NOTICE_UPDATE_NAME' ,					'update' );
 define ( 'SIXSCAN_NOTICE_SECURITY_ENV_NAME' ,			'update-security-environment' );
+define ( 'SIXSCAN_NOTICE_ACCOUNT_ENABLED' ,				'update-account-enabled' );
 define ( 'SIXSCAN_COMM_SIGNATURE_FILENAME', 			'6scan-signature.php' );
 define ( 'SIXSCAN_SIGNATURE_LINKS_DELIMITER',			"\n" );
 define ( 'SIXSCAN_SIGNATURE_MULTIPART_DELIMITER',		'###UZhup3v1ENMefI7Wy44QNppgZmp0cu6RPenZewotclc2ZCWUDE4zAfXIJX354turrscbFBL2pOiKpiNLYosm6Z1Qp8b3PNjgd1xqtuskjcT9MC4fZvQfx7FPUDF11oTiTrMeayQr7JHk3UuEK7fR0###' );
@@ -71,13 +67,19 @@ define ( 'SIXSCAN_ANALYTICS_OK_STRING',					'ok' );
 define ( 'SIXSCAN_ANALYTICS_FAIL_PREFIX_STRING',		'error_' );
 
 define( 'SIXSCAN_HTACCESS_FILE',  						ABSPATH . '/.htaccess' );
-define( 'SIXSCAN_HTACCESS_6SCAN', 						SIXSCAN_PLUGIN_DIR . '/data/.htaccess.dat' );	
-define( 'SIXSCAN_SIGNATURE_SRC',						SIXSCAN_PLUGIN_DIR . '/data/' . SIXSCAN_COMM_SIGNATURE_FILENAME );
 define( 'SIXSCAN_HTACCESS_6SCAN_GATE_FILE_NAME', 		'6scan-gate.php' );
-define( 'SIXSCAN_HTACCESS_6SCAN_GATE_SOURCE',  			SIXSCAN_PLUGIN_DIR . '/data/' . SIXSCAN_HTACCESS_6SCAN_GATE_FILE_NAME );
+
+/*	If this script is included from outside, we will not have SIXSCAN_PLUGIN_DIR defined, but we do not really need it */
+if ( defined( 'SIXSCAN_PLUGIN_DIR' ) ){
+	define( 'SIXSCAN_HTACCESS_6SCAN', 						SIXSCAN_PLUGIN_DIR . '/data/.htaccess.dat' );
+	define( 'SIXSCAN_SIGNATURE_SRC',						SIXSCAN_PLUGIN_DIR . '/data/' . SIXSCAN_COMM_SIGNATURE_FILENAME );
+	define( 'SIXSCAN_HTACCESS_6SCAN_GATE_SOURCE',  			SIXSCAN_PLUGIN_DIR . '/data/' . SIXSCAN_HTACCESS_6SCAN_GATE_FILE_NAME );
+}
+
 define( 'SIXSCAN_HTACCESS_6SCAN_GATE_DEST', 			ABSPATH . SIXSCAN_HTACCESS_6SCAN_GATE_FILE_NAME );
 define( 'SIXSCAN_SIGNATURE_DEST',						ABSPATH . SIXSCAN_COMM_SIGNATURE_FILENAME );
 define( 'SIXSCAN_COMMON_DASHBOARD_URL',					'six-scan-dashboard' );
+define( 'SIXSCAN_COMMON_SUPPORT_URL',					'six-scan-support' );
 
 define( 'SIXSCAN_SIGNATURE_HEADER_NAME',				'x-6scan-signature' );
 
@@ -126,21 +128,41 @@ function sixscan_common_get_dashboard_token(){
 	return get_option( SIXSCAN_OPTION_MENU_DASHBOARD_TOKEN );
 }
 
-function sixscan_common_is_oracle_registered(){
-	return get_option( SIXSCAN_OPTION_MENU_IS_BLOG_REGISTERED );
+function sixscan_common_is_account_operational(){
+	return get_option( SIXSCAN_OPTION_MENU_IS_ACCOUNT_OPERATIONAL );
 }
 
-function sixscan_common_set_oracle_registered_true(){
-	update_option( SIXSCAN_OPTION_MENU_IS_BLOG_REGISTERED , TRUE );
+function sixscan_common_set_account_operational( $reg_val ){
+	update_option( SIXSCAN_OPTION_MENU_IS_ACCOUNT_OPERATIONAL , $reg_val );
 }
 
-function sixscan_common_is_oracle_verified(){
-	return get_option( SIXSCAN_OPTION_MENU_IS_BLOG_VERIFIED );
+function sixscan_common_is_account_active(){
+	return get_option( SIXSCAN_OPTIONS_SETUP_ACCOUNT );
 }
 
-function sixscan_common_set_oracle_verified_true(){
-	update_option( SIXSCAN_OPTION_MENU_IS_BLOG_VERIFIED , TRUE );
+function sixscan_common_set_account_active( $active_val ){
+	update_option( SIXSCAN_OPTIONS_SETUP_ACCOUNT , $active_val );
 }
+
+
+/*	Checks whether user is registered with the server */
+function sixscan_common_is_regdata_present() {
+	if ( ( sixscan_common_get_site_id() == FALSE ) || 
+		( sixscan_common_get_api_token() == FALSE ) || 
+		( sixscan_common_get_verification_token() == FALSE ) || 
+		( sixscan_common_get_dashboard_token() == FALSE ) )
+			return FALSE;
+		
+	return TRUE;
+}
+
+function sixscan_common_erase_regdata(){
+	sixscan_common_set_site_id( FALSE );
+	sixscan_common_set_api_token( FALSE );
+	sixscan_common_set_verification_token( FALSE );
+	sixscan_common_set_dashboard_token( FALSE );
+}
+
 
 function sixscan_common_remove_special_chars( $src_str ){
 	return preg_replace( "/[^a-zA-Z0-9.-]/" , "_" , $src_str );
@@ -174,7 +196,7 @@ function sixscan_common_is_writable_htaccess(){
 
 function sixscan_common_is_fopen_working(){
 
-	$url = SIXSCAN_BODYGUARD_REGISTER_URL;
+	$url = SIXSCAN_BODYGUARD_PING_URL;
 	$arrContext = array( 'http' =>
 			array(
 				'method' => 'GET' ,
@@ -211,6 +233,11 @@ function sixscan_common_is_fopen_working(){
 		fclose( $handle );
 		return TRUE;
 	}
+}
+
+/*	Windows servers sometimes require special handling */
+function sixscan_common_is_windows_os(){
+	return (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN');    
 }
 
 function sixscan_common_report_analytics( $category , $action , $label ){
@@ -268,14 +295,16 @@ function sixscan_common_report_analytics( $category , $action , $label ){
 	@$ret_data = file_get_contents( $analytics_get_request );
 }
 
+
+
 function sixscan_common_gather_system_information_for_anonymous_support_ticket(){
 	$submission_data = "\n";		
 	
-	$register_status = sixscan_common_is_oracle_registered();
-	$submission_data .= "Register status: $register_status\n";
+	$sumission_data .= "OS: " . PHP_OS . " \n";
+	$sumission_data .= "Server: " . $_SERVER['SERVER_SIGNATURE'] . " \n";	
 	
-	$verif_status = sixscan_common_is_oracle_verified();
-	$submission_data .= "Verification status: $verif_status\n";
+	$regdata_status = sixscan_common_is_regdata_present();
+	$submission_data .= "Regdata present: $regdata_status\n";
 	
 	$root_dir_writable =  sixscan_common_is_writable_directory( ABSPATH );
 	$submission_data .= "Is root writable: $root_dir_writable\n";
@@ -309,4 +338,25 @@ function sixscan_common_gather_system_information_for_anonymous_support_ticket()
 	
 	return $submission_data;
 }
+
+function sixscan_common_error_handler( $error_level , $error_message , $error_file , $error_line ){
+	print "Error level $error_level: Message: $error_message. Occured in file $error_file:$error_line\n";
+}
+
+function sixscan_common_fatal_error(){
+	$error = error_get_last();
+    if ( isset( $error ) ){
+		if ( $error[ 'type' ] == E_ERROR || $error[ 'type' ] == E_PARSE || $error[ 'type' ] == E_COMPILE_ERROR || $error[ 'type' ] == E_CORE_ERROR ){
+			print_r( $error );
+		}
+	}
+}
+
+function sixscan_common_show_all_errors(){
+	
+	/*	Enable reporting of all errors. (Except E_SCTRICT, which we don't need) */
+	set_error_handler( 'sixscan_common_error_handler' , E_ALL );    
+	register_shutdown_function( 'sixscan_common_fatal_error' );
+}
+
 ?>

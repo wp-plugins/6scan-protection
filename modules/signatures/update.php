@@ -174,9 +174,8 @@ function sixscan_signatures_update_parse( $raw_data ) {
 	/*	Update the signatures file */
 	if ( file_put_contents( $signature_filename_tmp , $signature_data ) === FALSE )
 		return "Failed writing signature data to $signature_filename_tmp";
-	
-	/*	We want the update signatures change to be atomic. Calling rename() is the best option  */
-	if ( rename( $signature_filename_tmp , $signature_filename ) == FALSE )
+		
+	if ( sixscan_signatures_update_copy_file( $signature_filename_tmp , $signature_filename ) == FALSE )
 		return "Failed moving signature data from $signature_filename_tmp to $signature_filename";
 	
 	/*	Update the htaccess with new signatures. When finished, return TRUE if OK, or error description , if failed */
@@ -194,13 +193,22 @@ function sixscan_signatures_update_htaccess( $links_list ) {
 		$new_content = "";
 	}
 	
-	/*	Those symbols have to be escaped , if written into htaccess file as RuleCond */
-	$chars_to_escape_arr = array( '.' , '^' , '$' , '+' , '{' , '}' , '[' , ']' , '(' , ')' );
-	$escaped_chars_arr = array( '\.' , '\^' , '\$' , '\+' , '\{' , '\}' , '\[' , '\]' , '\(' , '\)' );
+	$mixed_site_address = parse_url( home_url() );
+	
+	if ( ( ! isset( $mixed_site_address[ 'path' ] ) ) || ( strlen( $mixed_site_address[ 'path' ] ) == 0 ) || ( $mixed_site_address[ 'path' ] == '/' ) ) 
+		$wordpress_base_dirname = "/";
+	else
+		$wordpress_base_dirname = untrailingslashit( $mixed_site_address[ 'path' ] );	
+		
+	/*	Those symbols have to be escaped , if written into htaccess file as RuleCond 
+		We also change / to /+ , so that any path with multiple slashes will be treated ( "dir///path" = "dir/path" )
+	*/
+	$chars_to_escape_arr = array( '/' , '.' , '^' , '$' , '+' , '{' , '}' , '[' , ']' , '(' , ')' );
+	$escaped_chars_arr = array( '/+' , '\.' , '\^' , '\$' , '\+' , '\{' , '\}' , '\[' , '\]' , '\(' , '\)' );
 	
 	/*	We need the site relative path */
-	$parsed = parse_url( home_url() );	
-	$rel_path = $parsed[ 'path' ];
+	$rel_path = isset( $mixed_site_address[ 'path' ] ) ? $mixed_site_address[ 'path' ] : "";	
+		
 	$vuln_urls = "";
 	if ( strlen( $links_list ) > 0 ) {
 		$links = explode( SIXSCAN_SIGNATURE_LINKS_DELIMITER , $links_list );
@@ -209,12 +217,12 @@ function sixscan_signatures_update_htaccess( $links_list ) {
 			$one_link = trailingslashit( $rel_path ) .  substr( $one_link , 1 );
 			$one_link = str_replace( $chars_to_escape_arr , $escaped_chars_arr , $one_link );				
 			
-			$vuln_urls .= "RewriteCond %{REQUEST_URI} ^" . trim( $one_link ) . "$ [OR]\n";		
+			$vuln_urls .= "RewriteCond %{REQUEST_URI} ^" . trim( $one_link ) . " [OR]\n";		
 		}	
 	}	
 	
-	$vuln_urls .= "RewriteCond %{REQUEST_URI} ^" . SIXSCAN_SIGNATURE_DEFAULT_PLACEHOLDER_LINK . "$\n";
-	$vuln_urls .= "RewriteRule .* 6scan-gate.php [E=sixscaninternal:accessgranted,L]\n";	
+	$vuln_urls .= "RewriteCond %{REQUEST_URI} ^" . SIXSCAN_SIGNATURE_DEFAULT_PLACEHOLDER_LINK . "\n";
+	$vuln_urls .= "RewriteRule .* " . trailingslashit( $wordpress_base_dirname ) . "6scan-gate.php [E=sixscaninternal:accessgranted,L]\n";	
 	
 	$htaccess_links = "#Patrol's IPs needs access, to check whether rules update is required\n";
 				
@@ -238,13 +246,6 @@ function sixscan_signatures_update_htaccess( $links_list ) {
 
 	/*	Now add the URL rules */
 	$htaccess_links .= $vuln_urls;		
-	
-	$mixed_site_address = parse_url( get_option( 'siteurl' ) );
-	
-	if ( ( strlen( $mixed_site_address[ 'path' ] ) == 0 ) || ( $mixed_site_address[ 'path' ] == '/' ) ) 
-		$wordpress_base_dirname = "/";
-	else
-		$wordpress_base_dirname = untrailingslashit( $mixed_site_address[ 'path' ] );		
 	
 	$tmp_htaccess_file = SIXSCAN_HTACCESS_FILE . ".tmp";
 					
@@ -272,9 +273,8 @@ function sixscan_signatures_update_htaccess( $links_list ) {
 	
 	fwrite( $htaccess_file, $new_content );
 	fclose( $htaccess_file );
-	
-	/*	We want the htaccess change to be atomic. Calling rename() is the best option  */
-	if ( rename( $tmp_htaccess_file , SIXSCAN_HTACCESS_FILE ) == FALSE )
+		
+	if ( sixscan_signatures_update_copy_file( $tmp_htaccess_file , SIXSCAN_HTACCESS_FILE ) == FALSE )
 		return "Failed moving htaccess from $tmp_htaccess_file to " . SIXSCAN_HTACCESS_FILE;
 		
 	return TRUE;
@@ -302,7 +302,10 @@ function sixscan_signatures_update_move_dir_recursive( $source , $dest ){
 	
 	if( is_dir( $source ) ) {
 	/* Source is a directory , and we need to go over it , copying all files inside */
-		@mkdir( $dest );
+		
+		if ( ! is_dir( $dest ) )
+			mkdir( $dest );
+			
 		$file_list = scandir( $source );
 
 		foreach( $file_list as $current_file ) {
@@ -319,14 +322,14 @@ function sixscan_signatures_update_move_dir_recursive( $source , $dest ){
 			}
 			else {
 				/*just a file - simply move it */				
-				rename( $source. "/" .$current_file , $dest . "/" . $current_file );
+				sixscan_signatures_update_copy_file( $source. "/" .$current_file , $dest . "/" . $current_file );
 			}
 		}
 		return;
 	}
 	else if( is_file( $source ) ) {
 		/*	Source is just a file - move it */
-		return rename( $source , $dest );
+		return sixscan_signatures_update_copy_file( $source , $dest );
 	}
 	
 	/* Not a directory or a file */
@@ -355,4 +358,15 @@ function sixscan_signatures_update_check_ssl_signature( $response_data , $respon
 	
 	return TRUE;
 }
+
+function sixscan_signatures_update_copy_file( $src_file , $dst_file ){
+	
+	/*	Windows does not overwrite files, while calling rename, we have to tidy up by ourselves */
+	if ( sixscan_common_is_windows_os() && file_exists( $dst_file ) ){
+		@unlink ( $dst_file );
+	}
+	
+	return rename( $src_file , $dst_file );
+}
+
 ?>

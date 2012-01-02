@@ -28,8 +28,10 @@ function sixscan_htaccess_install() {
 		fwrite( $htaccess_file , $htaccess_sixscan );
 		fclose( $htaccess_file );
 	} catch( Exception $e ) {
-		die( $e );
+		return( $e );
 	}			
+	
+	return TRUE;
 }
 	
 function sixscan_htaccess_uninstall() {
@@ -42,7 +44,7 @@ function sixscan_htaccess_uninstall() {
 		$htaccess_file = @fopen( SIXSCAN_HTACCESS_FILE, 'w' );
 		
 		if (! $htaccess_file)
-			throw new Exception( 'Failed to open htaccess during installation' );
+			return 'Failed to open htaccess during installation' ;
 			
 		fwrite( $htaccess_file, $a );
 		fclose( $htaccess_file );
@@ -50,9 +52,16 @@ function sixscan_htaccess_uninstall() {
 		if ( filesize( SIXSCAN_HTACCESS_FILE ) == 1 ) 
 			unlink( SIXSCAN_HTACCESS_FILE );
 			
-		unlink( SIXSCAN_HTACCESS_6SCAN_GATE_DEST );			
+		if ( file_exists( SIXSCAN_HTACCESS_6SCAN_GATE_DEST ) )
+			unlink( SIXSCAN_HTACCESS_6SCAN_GATE_DEST );	
+			
+		if ( file_exists( SIXSCAN_SIGNATURE_DEST ) )
+			unlink ( SIXSCAN_SIGNATURE_DEST ) ;
+		
 	} catch( Exception $e ) {
-		die( $e );
-	}			
+		return( $e );
+	}
+	
+	return TRUE;
 }
 ?>
