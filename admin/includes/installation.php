@@ -53,21 +53,15 @@ OpenSSL functions for increased security.".
 			"<br/><br/>If you have additional questions, please visit our <a href='http://getsatisfaction.com/6scan' target='_blank'>community</a>";
 			return sixscan_menu_wrap_error_msg( $err_message );
 		}
-				
-		if ( ini_get( "allow_url_fopen" ) == FALSE ){
-			$err_message = "6Scan Install <b>Error</b>: \"allow_url_fopen\" in your php.ini is disabled. 6Scan needs this option to be enabled, in order to contact its server for automatic updates." . 
-			"Please see <a href='http://6scan.freshdesk.com/solution/categories/3294/folders/6728/articles/2681-i-am-seeing-an-error-that-is-similar-to-could-not-open-handle-for-fopen-' target='_blank'>this FAQ entry</a> for instructions on how to fix this." .
+		
+		
+		if ( ( ini_get( "allow_url_fopen" ) == FALSE ) && ( ! function_exists( 'curl_init' ) ) ) {
+			$err_message = "6Scan Install <b>Error</b>: No libcurl found <b>and</b> \"allow_url_fopen\" in your php.ini is disabled. 6Scan needs at least <b>one</b> transport layer to be enabled, in order to contact its server for automatic updates.<br>" . 
+			"*Please see <a href='http://6scan.freshdesk.com/solution/articles/3257-installing-curl-extension-on-a-system' target='_blank'> this FAQ entry</a> in order to enable Curl<br>" .
+			"*Please see <a href='http://6scan.freshdesk.com/solution/categories/3294/folders/6728/articles/2681-i-am-seeing-an-error-that-is-similar-to-could-not-open-handle-for-fopen-' target='_blank'>this FAQ entry</a> for instructions on how to enable the \"allow_url_fopen\" flag<br>" .
 			"<br/><br/>If you have additional questions, please visit our <a href='http://getsatisfaction.com/6scan' target='_blank'>community</a>";
 			return sixscan_menu_wrap_error_msg( $err_message );
-		}
-		else{
-			$fopen_status = sixscan_common_is_fopen_working();
-			if ( $fopen_status !== TRUE ){
-				$err_message = "6Scan Install <b>Error</b>: failed opening connection to its server. fopen() failed with message: $fopen_status." . 
-				"<br/><br/>If you have additional questions, please visit our <a href='http://getsatisfaction.com/6scan' target='_blank'>community</a>";
-				return sixscan_menu_wrap_error_msg( $err_message );
-			}
-		}
+		}		
 		
 		/*	Rewrite the htaccess and 6scan-gate file */
 		$htaccess_install_result = sixscan_htaccess_install();

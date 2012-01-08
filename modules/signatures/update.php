@@ -34,17 +34,8 @@ function sixscan_signature_engine_update_get ( $site_id , $api_token , $current_
 																	. "&current_version=" . $current_engine_version;
 	
 	/*Request the new version from server */
-	$response = wp_remote_get( $version_update_url , array(		
-		'timeout' => 30,
-		'redirection' => 5,
-		'httpversion' => '1.1',
-		'sslverify' => false,
-		'blocking' => true,
-		'headers' => array(),
-		'cookies' => array()
-		)
-	);	
-		
+	$response = sixscan_common_request_network( $version_update_url , "" , "GET" );
+			
 	if ( is_wp_error( $response ) ) {
 		return "wp_remote_get() failed : " . $response->get_error_message();		
 	}
@@ -117,17 +108,7 @@ function sixscan_signatures_update_get( $site_id , $api_token , $current_signatu
 																	. "&current_sig_md5=" . $current_signature_md5sum;														
 	
 	/*	Request signatures from the server */
-	$response = wp_remote_get( $version_update_url , array(		
-		'timeout' => 30,
-		'redirection' => 5,
-		'httpversion' => '1.1',
-		'sslverify' => false,
-		'blocking' => true,
-		'headers' => array(),
-		'cookies' => array()
-		)
-	);
-	
+	$response = sixscan_common_request_network( $version_update_url , "" , "GET" );
 	
 	if ( is_wp_error( $response ) )
 		return "wp_remote_get() failed : " . $response->get_error_message();
@@ -200,11 +181,10 @@ function sixscan_signatures_update_htaccess( $links_list ) {
 	else
 		$wordpress_base_dirname = untrailingslashit( $mixed_site_address[ 'path' ] );	
 		
-	/*	Those symbols have to be escaped , if written into htaccess file as RuleCond 
-		We also change / to /+ , so that any path with multiple slashes will be treated ( "dir///path" = "dir/path" )
+	/*	Those symbols have to be escaped , if written into htaccess file as RuleCond 		
 	*/
-	$chars_to_escape_arr = array( '/' , '.' , '^' , '$' , '+' , '{' , '}' , '[' , ']' , '(' , ')' );
-	$escaped_chars_arr = array( '/+' , '\.' , '\^' , '\$' , '\+' , '\{' , '\}' , '\[' , '\]' , '\(' , '\)' );
+	$chars_to_escape_arr = array( '.' , '^' , '$' , '+' , '{' , '}' , '[' , ']' , '(' , ')' );
+	$escaped_chars_arr = array( '\.' , '\^' , '\$' , '\+' , '\{' , '\}' , '\[' , '\]' , '\(' , '\)' );		
 	
 	/*	We need the site relative path */
 	$rel_path = isset( $mixed_site_address[ 'path' ] ) ? $mixed_site_address[ 'path' ] : "";	
@@ -216,6 +196,9 @@ function sixscan_signatures_update_htaccess( $links_list ) {
 		foreach ( $links as $one_link ){
 			$one_link = trailingslashit( $rel_path ) .  substr( $one_link , 1 );
 			$one_link = str_replace( $chars_to_escape_arr , $escaped_chars_arr , $one_link );				
+			
+			/* We also change / to /+ , so that any path with multiple slashes will be treated ( "dir///path" = "dir/path" ) */
+			$one_link = str_replace( '/' , '/+' , $one_link );				
 			
 			$vuln_urls .= "RewriteCond %{REQUEST_URI} ^" . trim( $one_link ) . " [OR]\n";		
 		}	

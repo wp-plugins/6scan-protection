@@ -14,28 +14,20 @@ function sixscan_communication_oracle_reg_register( $site_url , $user_email , $n
 		
 		/*	Sending registration data to server, using GET */
 		$request_register_url = SIXSCAN_BODYGUARD_REGISTER_URL ."?url=$site_url&email=$user_email&notice_script_url=$relative_notice_url";
-		$response = wp_remote_get( $request_register_url , array(		
-			'timeout' => 30,
-			'redirection' => 5,
-			'httpversion' => '1.1',
-			'blocking' => true,
-			'sslverify' => false,
-			'headers' => array(),
-			'cookies' => array()
-			)
-		);
+		
+		$response = sixscan_common_request_network( $request_register_url , "" , "GET" );
 
 		$raw_register_data =  wp_remote_retrieve_body( $response ) ;	
 		
 		if ( is_wp_error( $response ) ) {
 			$error_string = $response->get_error_message();
-			sixscan_stat_analytics_log_action( SIXSCAN_ANALYTICS_INSTALL_CATEGORY , SIXSCAN_ANALYTICS_INSTALL_REG_ACT , SIXSCAN_ANALYTICS_FAIL_PREFIX_STRING . "wp_remote_post " . $error_string );		
+			sixscan_stat_analytics_log_action( SIXSCAN_ANALYTICS_INSTALL_CATEGORY , SIXSCAN_ANALYTICS_INSTALL_REG_ACT , SIXSCAN_ANALYTICS_FAIL_PREFIX_STRING . "wp_remote_get " . $error_string );		
 			
 			$error_string = str_replace( $request_register_url , SIXSCAN_BODYGUARD_REGISTER_URL , $error_string );
 			return $error_string;			
 		}
 		else if ( 200 != wp_remote_retrieve_response_code( $response ) ) {
-			$error_string = "wp_remote_post returned httpd status " . wp_remote_retrieve_response_code( $response ) . ", data:" . urldecode( $raw_register_data );
+			$error_string = "wp_remote_get returned httpd status " . wp_remote_retrieve_response_code( $response ) . ", data:" . urldecode( $raw_register_data );
 			sixscan_stat_analytics_log_action( SIXSCAN_ANALYTICS_INSTALL_CATEGORY , SIXSCAN_ANALYTICS_INSTALL_REG_ACT , SIXSCAN_ANALYTICS_FAIL_PREFIX_STRING . $error_string );	
 			return $error_string;
 		}
@@ -91,16 +83,7 @@ function sixscan_communication_oracle_reg_verification(){
 			return $verif_file;
 					
 		$request_verification_url = SIXSCAN_BODYGUARD_VERIFY_URL . "?site_id=" . sixscan_common_get_site_id() . "&api_token=" . sixscan_common_get_api_token();
-		$response = wp_remote_get( $request_verification_url ,  array(
-			'timeout' => 30,
-			'redirection' => 5,
-			'httpversion' => '1.1',
-			'sslverify' => false,	/*	We have found out , that there are lots of users , who don't have their ca-certificates configured , and SSL connect fails.
-										If you want to force SSL CA verification , change this rule to 'true' */
-			'blocking' => true,
-			'headers' => array(),		
-			'cookies' => array()
-			)); 
+		$response = sixscan_common_request_network( $request_verification_url , "" , "GET" );
 					
 		/*	We do not remove the verification url, since the server wants to check the site's ownership once in a while */		
 		
@@ -155,18 +138,10 @@ function sixscan_communication_oracle_reg_remove_verification_file(){
 
 function sixscan_communication_oracle_reg_reactivate( $site_id , $api_token ){
 
-	$request_register_url = SIXSCAN_BODYGUARD_REACTIVATE_URL . "?site_id=$site_id&api_token=$api_token";	
-	$response = wp_remote_get( $request_register_url , array(		
-		'timeout' => 30,
-		'redirection' => 5,
-		'httpversion' => '1.1',
-		'blocking' => true,
-		'sslverify' => false,
-		'headers' => array(),
-		'cookies' => array()
-		)
-	);
+	$request_reactivate_url = SIXSCAN_BODYGUARD_REACTIVATE_URL . "?site_id=$site_id&api_token=$api_token";	
 	
+	$response = sixscan_common_request_network( $request_reactivate_url , "" , "GET" );
+		
 	if ( 200 != wp_remote_retrieve_response_code( $response ) ) {
 		return FALSE;
 	}
@@ -177,34 +152,16 @@ function sixscan_communication_oracle_reg_reactivate( $site_id , $api_token ){
 function sixscan_communication_oracle_reg_deactivate( $site_id , $api_token ){
 	
 	$request_deactivation_url = SIXSCAN_BODYGUARD_DEACTIVATE_ACCOUNT . "?site_id=$site_id&api_token=$api_token";	
-	$response = wp_remote_get( $request_deactivation_url , array(		
-		'timeout' => 30,
-		'redirection' => 5,
-		'httpversion' => '1.1',
-		'blocking' => true,
-		'sslverify' => false,
-		'headers' => array(),
-		'cookies' => array()
-		)
-	);
-	
+	$response = sixscan_common_request_network( $request_deactivation_url , "" , "GET" );
+		
 	return TRUE;
 }
 
 function sixscan_communication_oracle_reg_uninstall( $site_id , $api_token ){
 	
 	$request_uninstall_url = SIXSCAN_BODYGUARD_UNINSTALL_ACCOUNT . "?site_id=$site_id&api_token=$api_token";	
-	$response = wp_remote_get( $request_uninstall_url , array(		
-		'timeout' => 30,
-		'redirection' => 5,
-		'httpversion' => '1.1',
-		'blocking' => true,
-		'sslverify' => false,
-		'headers' => array(),
-		'cookies' => array()
-		)
-	);
-	
+	$response = sixscan_common_request_network( $request_uninstall_url , "" , "GET" );
+		
 	return TRUE;
 }
 

@@ -20,7 +20,15 @@ if ( sixscan_common_is_regdata_present() != TRUE ){
 	exit( 0 );
 }
 
-if ( sixscan_common_is_account_active() != TRUE ) {
+/*	Backwards compatibility. Plugins of versions <1.0.5 had another "active" indication */
+$backward_compat_active = get_option( 'sixscan_setupaccount' );
+if ( ( $backward_compat_active == 'SETUP_STAGE_RUNNING' ) || ( $backward_compat_active == 'SETUP_STAGE_INSTALLED' ) ){
+	/*	Cleanup and activate for new version */
+	delete_option( 'sixscan_setupaccount' );
+	sixscan_common_set_account_active( TRUE );	
+}
+		
+if ( sixscan_common_is_account_active() != TRUE ){
 	header( "HTTP/1.1 500 6Scan not active" );
 	exit( 0 );
 }
@@ -124,18 +132,8 @@ function sixscan_send_security_environment( $site_id ,  $api_token ){
 	
 	$version_update_url = SIXSCAN_BODYGUARD_6SCAN_UPDATE_SEC_URL 	. "?site_id=" . $site_id 
 																	. "&api_token=" . $api_token;
-		
-	$response = wp_remote_post( $version_update_url , array(		
-		'timeout' => 30,
-		'redirection' => 5,
-		'httpversion' => '1.1',
-		'sslverify' => false,
-		'blocking' => true,
-		'headers' => array(),
-		'body' => $enc_data,
-		'cookies' => array()
-		)
-	);	
+
+	$response = sixscan_common_request_network( $version_update_url , $enc_data , "POST" );																	
 	
 	if ( is_wp_error( $response ) ) {
 		return $response->get_error_message();

@@ -1,9 +1,9 @@
 === 6Scan Security ===
 Contributors: 6Scan
-Version: 1.0.5
+Version: 1.0.6
 Tags: security,secure,6scan,protection,anti-hack,hack,attack,scan,sql injection,xss,file inclusion,exploit,automatic,bodyguard,patrol
 Requires at least: 3.0.0
-Tested up to: 3.3
+Tested up to: 3.3.1
 Stable tag: trunk
 
 6Scan Security protects your website against hackers destroying, stealing or manipulating your data using constantly updated attack signatures.
@@ -79,11 +79,15 @@ Please read an extensive explanation on this matter [here](http://6scan.freshdes
 * Added helpful links to errors that might occur while installing.
 * Now verification file resides on server as long as 6Scan Security is installed.
 
-= 1.0.5
+= 1.0.5 =
 * 6Scan Security Plugin has an easier to use activation feature
 * Support submenu added
 * Htaccess rules have been changed to tighten the security even more
 * Fixed few bugs, which could occur under Windows server environment
+
+= 1.0.6 =
+* Now supports curl transport, if fopen() fails
+* Improved communication with 6Scan server
 
 == Upgrade Notice ==
 

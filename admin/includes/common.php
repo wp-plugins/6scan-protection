@@ -3,7 +3,7 @@
 if ( ! defined( 'ABSPATH' ) ) 
 	die( 'No direct access allowed' );
 
-define ( 'SIXSCAN_VERSION' ,							'1.0.5' );
+define ( 'SIXSCAN_VERSION' ,							'1.0.6' );
 define ( 'SIXSCAN_HTACCESS_VERSION' ,					'1' );
 
 if( empty( $_SERVER[ "HTTPS" ] ) )
@@ -27,6 +27,9 @@ define ( 'SIXSCAN_BODYGUARD_DEACTIVATE_ACCOUNT' ,		SIXSCAN_SERVER . 'wpapi/v1/de
 define ( 'SIXSCAN_BODYGUARD_UNINSTALL_ACCOUNT' ,		SIXSCAN_SERVER . 'wpapi/v1/uninstall' );
 define ( 'SIXSCAN_BODYGUARD_PING_URL' ,					SIXSCAN_SERVER . 'wpapi/v1/ping' );
 define ( 'SIXSCAN_COMM_ORACLE_AUTH_DASHBOARD_URL' ,		SIXSCAN_SERVER . 'dashboard/v1?' );
+
+define ( 'SIXSCAN_COMM_REQUEST_TIMEOUT_SEC' ,			10 );
+define ( 'SIXSCAN_COMM_REQUEST_RETRIES' ,				4 );
 
 define ( 'SIXSCAN_OPTIONS_SETUP_ACCOUNT', 				'sixscan_is_account_active' );
 define ( 'SIXSCAN_OPTION_MENU_IS_ACCOUNT_OPERATIONAL',	'sixscan_is_account_operational' );
@@ -295,13 +298,12 @@ function sixscan_common_report_analytics( $category , $action , $label ){
 	@$ret_data = file_get_contents( $analytics_get_request );
 }
 
-
-
 function sixscan_common_gather_system_information_for_anonymous_support_ticket(){
 	$submission_data = "\n";		
 	
-	$sumission_data .= "OS: " . PHP_OS . " \n";
-	$sumission_data .= "Server: " . $_SERVER['SERVER_SIGNATURE'] . " \n";	
+	$submission_data .= "OS: " . PHP_OS . " \n";
+		
+	$submission_data .= "Server info: " . print_r( $_SERVER , TRUE );
 	
 	$regdata_status = sixscan_common_is_regdata_present();
 	$submission_data .= "Regdata present: $regdata_status\n";
@@ -320,9 +322,6 @@ function sixscan_common_gather_system_information_for_anonymous_support_ticket()
 	else
 		$is_through_proxy = "false";
 	$submission_data .= "Is access through proxy: $is_through_proxy\n";
-	
-	$fopen_info = sixscan_common_is_fopen_working();
-	$submission_data .= "fopen() status: $fopen_info\n";
 	
 	$htaccess_contents = file_get_contents( SIXSCAN_HTACCESS_FILE );
 	if ( $htaccess_contents == FALSE )
@@ -358,5 +357,33 @@ function sixscan_common_show_all_errors(){
 	set_error_handler( 'sixscan_common_error_handler' , E_ALL );    
 	register_shutdown_function( 'sixscan_common_fatal_error' );
 }
+
+function sixscan_common_request_network( $request_url , $request_data , $request_type = "GET" ){
+	
+	$request_params = array(
+			'timeout' => SIXSCAN_COMM_REQUEST_TIMEOUT_SEC ,
+			'redirection' => 5 ,
+			'httpversion' => '1.1' ,
+			'blocking' => true ,
+			'sslverify' => false ,			 /*	We have found out , that there are lots of users , who don't have their ca-certificates configured , and SSL connect fails.
+										If you want to force SSL CA verification , change this rule to 'true' */
+			'headers' => array() ,
+			'body' => $request_data ,
+			'cookies' => array()
+			);
+	
+	$req_function = ( $request_type == "GET" ) ? 'wp_remote_get' : 'wp_remote_post';
+		
+	/*	Retry the request several times, until failing */
+	for ( $retry_counter = 0 ; $retry_counter < SIXSCAN_COMM_REQUEST_RETRIES ; $retry_counter++ ){		
+		$response = $req_function( $request_url , $request_params );
+		
+		if ( is_wp_error( $response ) == FALSE )
+			return $response;
+	}
+	
+	return $response;
+}
+
 
 ?>
