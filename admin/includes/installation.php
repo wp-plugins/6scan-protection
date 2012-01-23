@@ -16,7 +16,17 @@ function sixscan_installation_manager()
 		$sixscan_plugin_name = plugin_basename( realpath( dirname( __FILE__ ) . "/../../6scan.php" ) );
 		/*	deactivate myself */			
 		deactivate_plugins( $sixscan_plugin_name );
-	}	
+	}
+	else{
+		/*	If the install has succeeded - forward user to the registration page */		
+		$reg_page_address = bloginfo( "siteurl" ) . "/wp-admin/admin.php?page=" . SIXSCAN_COMMON_DASHBOARD_URL;
+		
+		print 'Redirecting to 6Scan registration page.<a href="' . $reg_page_address . '">Click here</a> if the redirect didn\'t work<br>';
+		print( '<script type="text/javascript">
+				window.location = "' . $reg_page_address . '"
+				</script>' );		
+	}
+	
 }
 
 function sixscan_installation_install() {	
@@ -109,7 +119,7 @@ OpenSSL functions for increased security.".
 		
 	/*	We have completed the registration. Now we have to remind user to register */
 	sixscan_installation_account_setup_required_notice();
-	
+		
 	return TRUE;
 }
 

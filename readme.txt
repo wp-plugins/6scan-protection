@@ -1,6 +1,6 @@
 === 6Scan Security ===
 Contributors: 6Scan
-Version: 1.0.6
+Version: 1.0.7
 Tags: security,secure,6scan,protection,anti-hack,hack,attack,scan,sql injection,xss,file inclusion,exploit,automatic,bodyguard,patrol
 Requires at least: 3.0.0
 Tested up to: 3.3.1
@@ -89,8 +89,13 @@ Please read an extensive explanation on this matter [here](http://6scan.freshdes
 * Now supports curl transport, if fopen() fails
 * Improved communication with 6Scan server
 
+= 1.0.7 =
+* Installation process improved.
+* Added settings menu
+* Added support for more Patrol servers
+
 == Upgrade Notice ==
 
 * Support menu, if user encounters a problem
 * Security tightened up even more
-* Easy to install
+* Easier to install

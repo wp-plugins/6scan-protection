@@ -96,8 +96,10 @@ function sixscan_communication_oracle_reg_verification(){
 			return $error_string;
 		}
 		else if ( 200 != wp_remote_retrieve_response_code( $response ) ) {
-			$error_string = "_verification_process_server_response_" . wp_remote_retrieve_response_code( $response ) . " data:" .  urldecode( wp_remote_retrieve_body( $response ) );
-			sixscan_stat_analytics_log_action( SIXSCAN_ANALYTICS_INSTALL_CATEGORY , SIXSCAN_ANALYTICS_INSTALL_REG_ACT , SIXSCAN_ANALYTICS_FAIL_PREFIX_STRING . $error_string );
+			$server_response = "";
+			parse_str( wp_remote_retrieve_body( $response ), $server_response );
+			$error_string = "<br><br>" . $server_response['reason'];			
+			sixscan_stat_analytics_log_action( SIXSCAN_ANALYTICS_INSTALL_CATEGORY , SIXSCAN_ANALYTICS_INSTALL_REG_ACT , SIXSCAN_ANALYTICS_FAIL_PREFIX_STRING . "_verification_process_server_response_" . $error_string );
 			return $error_string;
 		}
 		

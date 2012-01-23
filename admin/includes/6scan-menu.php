@@ -6,6 +6,8 @@ if ( ! defined( 'ABSPATH' ) )
 function sixscan_menu_install(){
 	add_menu_page( '6Scan' , '6Scan' , 'manage_options' , SIXSCAN_COMMON_DASHBOARD_URL , '' , SIXSCAN_PLUGIN_URL . 'data/img/logo_small.png' );
 	add_submenu_page( SIXSCAN_COMMON_DASHBOARD_URL , '6Scan Dashboard' , 'Dashboard' , 'manage_options' , SIXSCAN_COMMON_DASHBOARD_URL , 'sixscan_menu_dashboard' );
+	if ( sixscan_common_is_account_operational() == TRUE )
+		add_submenu_page( SIXSCAN_COMMON_DASHBOARD_URL , '6Scan Settings' , 'Settings' , 'manage_options' , SIXSCAN_COMMON_SETTINGS_URL , 'sixscan_menu_settings' );
 	add_submenu_page( SIXSCAN_COMMON_DASHBOARD_URL , '6Scan Support' , 'Support' , 'manage_options' , SIXSCAN_COMMON_SUPPORT_URL , 'sixscan_menu_support' );
 }
 
@@ -23,8 +25,20 @@ function sixscan_menu_support(){
 	print $err_form;
 }
 
-function sixscan_menu_dashboard() {
-	print "<iframe id='sixscan_dashboard_iframe' src=\"" . sixscan_communication_oracle_auth_get_link() . "\" width='100%' height='100%'>\n";
+function sixscan_menu_settings(){
+	
+	/*	Create dashboard frame with settings redirect request */
+	sixscan_menu_create_dashboard_frame( SIXSCAN_COMMON_DASHBOARD_URL_SETTINGS );
+}
+
+function sixscan_menu_dashboard(){
+
+	/* Create dashboard frame with default redirect request (to the main dashboard) */
+	sixscan_menu_create_dashboard_frame();
+}
+
+function sixscan_menu_create_dashboard_frame( $redirect_request = SIXSCAN_COMMON_DASHBOARD_URL_MAIN ){
+	print "<iframe id='sixscan_dashboard_iframe' src=\"" . sixscan_communication_oracle_auth_get_link( $redirect_request ) . "\" width='100%' height='100%'>\n";
 	print "</iframe>\n";
 ?>	
 	<script language='javascript'>
@@ -70,7 +84,7 @@ function sixscan_menu_get_error_submission_form( $err_data = "" , $custom_form_m
 	$result_html .= "<tr><td width='80'></td><td><input type=submit value='Submit error log'></td>\n";
 	$result_html .= "</table>";
 	$result_html .= "</form>\n";
-	$result_html .= "<span style='font-size:0.8em'>We will automatically send <b>non-identifying</b> troubleshooting information along with your ticket.  6Scan respects your privacy and will never use your information except to help you with your problem.</span>\n";
+	$result_html .= "<span style='font-size:0.8em'>We will automatically send troubleshooting information along with your ticket.  6Scan respects your privacy and will never use your information except to help you with your problem.</span>\n";
 	$result_html .= "</div>\n";	
 	$result_html .= "</center>\n";
 	

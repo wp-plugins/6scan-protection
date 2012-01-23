@@ -3,7 +3,7 @@
 if ( ! defined( 'ABSPATH' ) ) 
 	die( 'No direct access allowed' );
 
-define ( 'SIXSCAN_VERSION' ,							'1.0.6' );
+define ( 'SIXSCAN_VERSION' ,							'1.0.7' );
 define ( 'SIXSCAN_HTACCESS_VERSION' ,					'1' );
 
 if( empty( $_SERVER[ "HTTPS" ] ) )
@@ -28,7 +28,7 @@ define ( 'SIXSCAN_BODYGUARD_UNINSTALL_ACCOUNT' ,		SIXSCAN_SERVER . 'wpapi/v1/uni
 define ( 'SIXSCAN_BODYGUARD_PING_URL' ,					SIXSCAN_SERVER . 'wpapi/v1/ping' );
 define ( 'SIXSCAN_COMM_ORACLE_AUTH_DASHBOARD_URL' ,		SIXSCAN_SERVER . 'dashboard/v1?' );
 
-define ( 'SIXSCAN_COMM_REQUEST_TIMEOUT_SEC' ,			10 );
+define ( 'SIXSCAN_COMM_REQUEST_TIMEOUT_SEC' ,			12 );
 define ( 'SIXSCAN_COMM_REQUEST_RETRIES' ,				4 );
 
 define ( 'SIXSCAN_OPTIONS_SETUP_ACCOUNT', 				'sixscan_is_account_active' );
@@ -52,7 +52,7 @@ define ( 'SIXSCAN_NOTICE_ACCOUNT_ENABLED' ,				'update-account-enabled' );
 define ( 'SIXSCAN_COMM_SIGNATURE_FILENAME', 			'6scan-signature.php' );
 define ( 'SIXSCAN_SIGNATURE_LINKS_DELIMITER',			"\n" );
 define ( 'SIXSCAN_SIGNATURE_MULTIPART_DELIMITER',		'###UZhup3v1ENMefI7Wy44QNppgZmp0cu6RPenZewotclc2ZCWUDE4zAfXIJX354turrscbFBL2pOiKpiNLYosm6Z1Qp8b3PNjgd1xqtuskjcT9MC4fZvQfx7FPUDF11oTiTrMeayQr7JHk3UuEK7fR0###' );
-define ( 'SIXSCAN_SIGNATURE_SCANNER_IP_LIST',			'108.59.1.37, 108.59.2.209, 107.22.183.61' );
+define ( 'SIXSCAN_SIGNATURE_SCANNER_IP_LIST',			'108.59.1.37, 108.59.5.197, 108.59.2.209, 95.211.58.114, 95.211.70.82, 107.22.183.61' );
 define ( 'SIXSCAN_SIGNATURE_DEFAULT_PLACEHOLDER_LINK',	'/just/a/random/dir/to/avoid/htaccess/mixups\.php' );
 
 define ( 'SIXSCAN_ANALYTICS_INSTALL_CATEGORY',			'install' );
@@ -82,7 +82,13 @@ if ( defined( 'SIXSCAN_PLUGIN_DIR' ) ){
 define( 'SIXSCAN_HTACCESS_6SCAN_GATE_DEST', 			ABSPATH . SIXSCAN_HTACCESS_6SCAN_GATE_FILE_NAME );
 define( 'SIXSCAN_SIGNATURE_DEST',						ABSPATH . SIXSCAN_COMM_SIGNATURE_FILENAME );
 define( 'SIXSCAN_COMMON_DASHBOARD_URL',					'six-scan-dashboard' );
+define( 'SIXSCAN_COMMON_SETTINGS_URL',					'six-scan-settings' );
 define( 'SIXSCAN_COMMON_SUPPORT_URL',					'six-scan-support' );
+
+define( 'SIXSCAN_COMMON_DASHBOARD_URL_MAIN',			'dashboard' );
+define( 'SIXSCAN_COMMON_DASHBOARD_URL_SETTINGS',		'dashboard_settings' );
+
+
 
 define( 'SIXSCAN_SIGNATURE_HEADER_NAME',				'x-6scan-signature' );
 
