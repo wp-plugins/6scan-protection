@@ -1,6 +1,6 @@
 === 6Scan Security ===
 Contributors: 6Scan
-Version: 1.0.8
+Version: 1.0.9
 Tags: security,secure,6scan,protection,anti-hack,hack,attack,scan,sql injection,xss,file inclusion,exploit,automatic,bodyguard,patrol
 Requires at least: 3.0.0
 Tested up to: 3.3.1
@@ -97,6 +97,9 @@ Please read an extensive explanation on this matter [here](http://6scan.freshdes
 = 1.0.8 =
 * Security tightened even more
 * Small bugfixes
+
+= 1.0.9 =
+* Adjusted signature update protocol for new API 
 
 == Upgrade Notice ==
 

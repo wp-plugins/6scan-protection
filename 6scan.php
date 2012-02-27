@@ -4,7 +4,7 @@ Plugin Name: 6Scan
 Plugin URI: http://www.6scan.com/
 Description: 6Scan protects your website against hackers destroying, stealing or defacing your website's precious and vulnerable data.
 Author: 6Scan
-Version: 1.0.8
+Version: 1.0.9
 Author URI: http://www.6scan.com
 */
 
@@ -47,13 +47,12 @@ if ( is_admin() ) {
 	add_action( 'admin_menu' , 'sixscan_menu_install' );
 	
 	/*	Setting auth cookie */
-	if ( ! isset ( $_COOKIE[ SIXSCAN_ADMIN_ACCESS_COOKIE_NAME ] ) )
-		setcookie( SIXSCAN_ADMIN_ACCESS_COOKIE_NAME , sixscan_common_get_auth_cookie_val() , time()+3600 , "/" , str_replace( 'http://' , '' , get_bloginfo('url') ) );	
+	add_action('init', 'sixscan_wordpress_admin_set_cookie_callback');
+	
 }
 else{
 	/*	Clear auth cookie */
-	if ( isset ( $_COOKIE[ SIXSCAN_ADMIN_ACCESS_COOKIE_NAME ] ) )
-		setcookie( SIXSCAN_ADMIN_ACCESS_COOKIE_NAME , sixscan_common_get_auth_cookie_val() , 0 , "/" , str_replace( 'http://' , '' , get_bloginfo('url') ) );	
+	add_action('init', 'sixscan_wordpress_admin_clear_cookie_callback');	
 }
 
 	sixscan_signatures_analyzer_suspicious_request();

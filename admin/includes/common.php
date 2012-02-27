@@ -3,7 +3,7 @@
 if ( ! defined( 'ABSPATH' ) ) 
 	die( 'No direct access allowed' );
 
-define ( 'SIXSCAN_VERSION' ,							'1.0.8' );
+define ( 'SIXSCAN_VERSION' ,							'1.0.9' );
 define ( 'SIXSCAN_HTACCESS_VERSION' ,					'1' );
 
 if( empty( $_SERVER[ "HTTPS" ] ) )
@@ -47,10 +47,10 @@ define ( 'SIXSCAN_VERIFICATION_DELIMITER' ,				'###############' );
 define ( 'SIXSCAN_SIGNATURE_SCHEDULER_SALT' ,			'Ia]g^X6d{PbvOmX}scMOM87.<.F1.~W' );
 define ( 'SIXSCAN_OPTION_COMM_ORACLE_NONCE' ,			'sixscan_nonce_val' );
 define ( 'SIXSCAN_OPTION_COMM_LAST_SIG_UPDATE_NONCE',	'sixscan_sig_last_update_nonce' );
-define ( 'SIXSCAN_NOTICE_UPDATE_NAME' ,					'update' );
-define ( 'SIXSCAN_NOTICE_SECURITY_ENV_NAME' ,			'update-security-environment' );
-define ( 'SIXSCAN_NOTICE_SECURITY_LOG_NAME' ,			'update-security-logs' );
-define ( 'SIXSCAN_NOTICE_ACCOUNT_ENABLED' ,				'update-account-enabled' );
+define ( 'SIXSCAN_NOTICE_UPDATE_NAME' ,					'upd' );
+define ( 'SIXSCAN_NOTICE_SECURITY_ENV_NAME' ,			'upd-security-environment' );
+define ( 'SIXSCAN_NOTICE_SECURITY_LOG_NAME' ,			'upd-security-logs' );
+define ( 'SIXSCAN_NOTICE_ACCOUNT_ENABLED' ,				'upd-account-enabled' );
 define ( 'SIXSCAN_COMM_SIGNATURE_FILENAME', 			'6scan-signature.php' );
 define ( 'SIXSCAN_SIGNATURE_LINKS_DELIMITER',			"\n" );
 define ( 'SIXSCAN_SIGNATURE_MULTIPART_DELIMITER',		'###UZhup3v1ENMefI7Wy44QNppgZmp0cu6RPenZewotclc2ZCWUDE4zAfXIJX354turrscbFBL2pOiKpiNLYosm6Z1Qp8b3PNjgd1xqtuskjcT9MC4fZvQfx7FPUDF11oTiTrMeayQr7JHk3UuEK7fR0###' );
@@ -158,6 +158,16 @@ function sixscan_common_is_account_active(){
 
 function sixscan_common_set_account_active( $active_val ){
 	update_option( SIXSCAN_OPTIONS_SETUP_ACCOUNT , $active_val );
+}
+
+function sixscan_wordpress_admin_set_cookie_callback(){
+	if ( ! isset ( $_COOKIE[ SIXSCAN_ADMIN_ACCESS_COOKIE_NAME ] ) )
+		setcookie( SIXSCAN_ADMIN_ACCESS_COOKIE_NAME , sixscan_common_get_auth_cookie_val() , time() + 3600 , COOKIEPATH , COOKIE_DOMAIN , false);	
+}
+
+function sixscan_wordpress_admin_clear_cookie_callback(){
+	if ( isset ( $_COOKIE[ SIXSCAN_ADMIN_ACCESS_COOKIE_NAME ] ) )
+		setcookie( SIXSCAN_ADMIN_ACCESS_COOKIE_NAME , sixscan_common_get_auth_cookie_val() , time() - 3600 , COOKIEPATH , COOKIE_DOMAIN , false);
 }
 
 function sixscan_common_get_auth_cookie_val(){
