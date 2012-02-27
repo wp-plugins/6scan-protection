@@ -74,6 +74,16 @@ if ( isset( $_GET[ SIXSCAN_NOTICE_SECURITY_ENV_NAME ] ) && ( $_GET[ SIXSCAN_NOTI
 	$security_result = sixscan_send_security_environment( $site_id , $api_token );
 }
 
+if ( isset( $_GET[ SIXSCAN_NOTICE_SECURITY_LOG_NAME ] ) && ( $_GET[ SIXSCAN_NOTICE_SECURITY_LOG_NAME ] == 1 ) ){
+	$tmp_result = sixscan_send_security_log( $site_id ,  $api_token );
+	
+	/* Checking result values, and appending  error message, if needed */
+	if ( $security_result === TRUE )
+		$security_result = $tmp_result;
+	else
+		$security_result .= "  " . $tmp_result;	
+}
+
 /* Update signatures, if needed */
 $error_list = "";
 if ( isset( $_GET[ SIXSCAN_NOTICE_UPDATE_NAME ] ) && ( $_GET[ SIXSCAN_NOTICE_UPDATE_NAME ] == 1 ) ){
@@ -139,6 +149,30 @@ function sixscan_send_security_environment( $site_id ,  $api_token ){
 		return $response->get_error_message();
 	}
 		
+	return TRUE;
+}
+
+function sixscan_send_security_log( $site_id ,  $api_token ){
+	$version_update_url = SIXSCAN_BODYGUARD_6SCAN_UPDATE_LOG_URL 	. "?site_id=" . $site_id 
+																	. "&api_token=" . $api_token;	
+	
+	$log_fname = "../../" . SIXSCAN_SECURITY_LOG_FILENAME;
+	if ( is_file( $log_fname ) === FALSE)
+		return TRUE;
+		
+	$log_data = file_get_contents( $log_fname );
+	
+	if ( $log_data === FALSE )
+		$log_data = "";	#empty
+	
+	$response = sixscan_common_request_network( $version_update_url , $log_data , "POST" );	
+	
+	if ( is_wp_error( $response ) ) {
+		return $response->get_error_message();
+	}
+	
+	unlink( $log_fname );
+	
 	return TRUE;
 }
 

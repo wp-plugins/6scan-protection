@@ -60,7 +60,7 @@ function sixscan_communication_oracle_reg_register( $site_url , $user_email , $n
 			sixscan_stat_analytics_log_action( SIXSCAN_ANALYTICS_INSTALL_CATEGORY , SIXSCAN_ANALYTICS_INSTALL_REG_ACT , SIXSCAN_ANALYTICS_FAIL_PREFIX_STRING . "oracle_response_failed_" . $request_error_log );
 			return "Bad value received from 6Scan server.";		
 		}
-		
+				
 		sixscan_stat_analytics_log_action( SIXSCAN_ANALYTICS_INSTALL_CATEGORY , SIXSCAN_ANALYTICS_INSTALL_REG_ACT , SIXSCAN_ANALYTICS_OK_STRING );
 		/*	Return the data from registration server */
 		return TRUE;

@@ -3,7 +3,7 @@
 if ( ! defined( 'ABSPATH' ) ) 
 	die( 'No direct access allowed' );
 
-define ( 'SIXSCAN_VERSION' ,							'1.0.7' );
+define ( 'SIXSCAN_VERSION' ,							'1.0.8' );
 define ( 'SIXSCAN_HTACCESS_VERSION' ,					'1' );
 
 if( empty( $_SERVER[ "HTTPS" ] ) )
@@ -23,6 +23,7 @@ define ( 'SIXSCAN_BODYGUARD_VERIFY_URL' , 				SIXSCAN_SERVER . 'wpapi/v2/verify'
 define ( 'SIXSCAN_BODYGUARD_6SCAN_UPDATE_SIG_URL' , 	SIXSCAN_SERVER . 'wpapi/v1/update-signatures' );
 define ( 'SIXSCAN_BODYGUARD_6SCAN_UPDATE_APP_URL' , 	SIXSCAN_SERVER . 'wpapi/v1/update-application-code' );
 define ( 'SIXSCAN_BODYGUARD_6SCAN_UPDATE_SEC_URL' , 	SIXSCAN_SERVER . 'wpapi/v1/update-security-environment' );
+define ( 'SIXSCAN_BODYGUARD_6SCAN_UPDATE_LOG_URL' , 	SIXSCAN_SERVER . 'wpapi/v1/update-security-log' );
 define ( 'SIXSCAN_BODYGUARD_DEACTIVATE_ACCOUNT' ,		SIXSCAN_SERVER . 'wpapi/v1/deactivate' );
 define ( 'SIXSCAN_BODYGUARD_UNINSTALL_ACCOUNT' ,		SIXSCAN_SERVER . 'wpapi/v1/uninstall' );
 define ( 'SIXSCAN_BODYGUARD_PING_URL' ,					SIXSCAN_SERVER . 'wpapi/v1/ping' );
@@ -48,6 +49,7 @@ define ( 'SIXSCAN_OPTION_COMM_ORACLE_NONCE' ,			'sixscan_nonce_val' );
 define ( 'SIXSCAN_OPTION_COMM_LAST_SIG_UPDATE_NONCE',	'sixscan_sig_last_update_nonce' );
 define ( 'SIXSCAN_NOTICE_UPDATE_NAME' ,					'update' );
 define ( 'SIXSCAN_NOTICE_SECURITY_ENV_NAME' ,			'update-security-environment' );
+define ( 'SIXSCAN_NOTICE_SECURITY_LOG_NAME' ,			'update-security-logs' );
 define ( 'SIXSCAN_NOTICE_ACCOUNT_ENABLED' ,				'update-account-enabled' );
 define ( 'SIXSCAN_COMM_SIGNATURE_FILENAME', 			'6scan-signature.php' );
 define ( 'SIXSCAN_SIGNATURE_LINKS_DELIMITER',			"\n" );
@@ -65,18 +67,23 @@ define ( 'SIXSCAN_ANALYTICS_UNINSTALL_RM_ACT',			'remove' );
 define ( 'SIXSCAN_ANALYTICS_NORMAL_CATEGORY',			'normal' );
 define ( 'SIXSCAN_ANALYTICS_NORMAL_UPDATING_ACT',		'updating' );
 
-
 define ( 'SIXSCAN_ANALYTICS_OK_STRING',					'ok' );
 define ( 'SIXSCAN_ANALYTICS_FAIL_PREFIX_STRING',		'error_' );
 
 define( 'SIXSCAN_HTACCESS_FILE',  						ABSPATH . '/.htaccess' );
 define( 'SIXSCAN_HTACCESS_6SCAN_GATE_FILE_NAME', 		'6scan-gate.php' );
 
+define( 'SIXSCAN_ADMIN_ACCESS_COOKIE_NAME',				'sixscan_wpblog_admin' );
+
+define( 'SIXSCAN_ANALYZER_MAX_LOG_FILESIZE',			512000 );	
+define( 'SIXSCAN_SECURITY_LOG_FILENAME',				'/data/security_log/logger.txt' );
+define( 'SIXSCAN_SECURITY_LOG_SEPARATOR',				"\n" );
 /*	If this script is included from outside, we will not have SIXSCAN_PLUGIN_DIR defined, but we do not really need it */
 if ( defined( 'SIXSCAN_PLUGIN_DIR' ) ){
 	define( 'SIXSCAN_HTACCESS_6SCAN', 						SIXSCAN_PLUGIN_DIR . '/data/.htaccess.dat' );
 	define( 'SIXSCAN_SIGNATURE_SRC',						SIXSCAN_PLUGIN_DIR . '/data/' . SIXSCAN_COMM_SIGNATURE_FILENAME );
 	define( 'SIXSCAN_HTACCESS_6SCAN_GATE_SOURCE',  			SIXSCAN_PLUGIN_DIR . '/data/' . SIXSCAN_HTACCESS_6SCAN_GATE_FILE_NAME );
+	define( 'SIXSCAN_ANALYZER_LOG_FILEPATH',				SIXSCAN_PLUGIN_DIR . SIXSCAN_SECURITY_LOG_FILENAME );
 }
 
 define( 'SIXSCAN_HTACCESS_6SCAN_GATE_DEST', 			ABSPATH . SIXSCAN_HTACCESS_6SCAN_GATE_FILE_NAME );
@@ -153,6 +160,19 @@ function sixscan_common_set_account_active( $active_val ){
 	update_option( SIXSCAN_OPTIONS_SETUP_ACCOUNT , $active_val );
 }
 
+function sixscan_common_get_auth_cookie_val(){
+	return 'cgcNkBEFpLrw82pgObc1' . md5 ( 'saltZ4uhPMtFYs6Ldn3jsxNS' . sixscan_common_get_verification_token() . sixscan_common_get_api_token() );
+}
+
+function sixscan_common_get_auth_cookie_code (){
+		$reg_key = sixscan_common_get_auth_cookie_val();
+		return '<?php function sixscan_is_admin() {
+		if ( isset( $_COOKIE["' . SIXSCAN_ADMIN_ACCESS_COOKIE_NAME . '"] ) )
+			if ( $_COOKIE["' . SIXSCAN_ADMIN_ACCESS_COOKIE_NAME . '"]  == "' . $reg_key . '" )
+				return TRUE;
+		return FALSE;
+		}?>';
+}
 
 /*	Checks whether user is registered with the server */
 function sixscan_common_is_regdata_present() {
@@ -334,8 +354,7 @@ function sixscan_common_gather_system_information_for_anonymous_support_ticket()
 		$htaccess_contents = "Empty";
 	$submission_data .= "Htaccess contents: $htaccess_contents\n";
 	
-	$plugin_list = get_plugins();	
-	$plugin_information = 
+	$plugin_list = get_plugins();		
 	$submission_data .= "Plugins: " . print_r( $plugin_list , TRUE ) . "\n";
 	
 	$phpinif_info = ini_get_all();

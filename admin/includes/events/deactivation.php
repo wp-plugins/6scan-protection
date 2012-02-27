@@ -6,7 +6,7 @@ if ( ! defined( 'ABSPATH' ) )
 function sixscan_events_deactivation() {
 	sixscan_common_report_analytics( SIXSCAN_ANALYTICS_UNINSTALL_CATEGORY , SIXSCAN_ANALYTICS_DEACTIVATE_ACT , SIXSCAN_ANALYTICS_OK_STRING );
 	
-	if ( sixscan_common_is_account_active == TRUE ) {
+	if ( sixscan_common_is_account_active() == TRUE ) {
 		sixscan_communication_oracle_reg_deactivate( sixscan_common_get_site_id() , sixscan_common_get_api_token() );
 		
 		/*	"Not active" , this will disallow scanner to work on this host */

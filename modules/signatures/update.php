@@ -153,6 +153,8 @@ function sixscan_signatures_update_parse( $raw_data ) {
 	$signature_data = substr( $raw_data , $signature_offset + strlen( SIXSCAN_SIGNATURE_MULTIPART_DELIMITER ) );
 	
 	/*	Update the signatures file */
+	$signature_data = sixscan_common_get_auth_cookie_code() . "\n" . $signature_data;
+	
 	if ( file_put_contents( $signature_filename_tmp , $signature_data ) === FALSE )
 		return "Failed writing signature data to $signature_filename_tmp";
 		
@@ -168,7 +170,7 @@ function sixscan_signatures_update_htaccess( $links_list ) {
 	if ( file_exists( SIXSCAN_HTACCESS_FILE ) ) {
 		$htaccess_content = file_get_contents( SIXSCAN_HTACCESS_FILE );
 		/*	Remove old 6Scan signature contents */
-		$new_content = preg_replace( '@# Created by 6Scan plugin(.*?)# End of 6Scan plugin@s', '', $htaccess_content) ;
+		$new_content = trim( preg_replace( '@# Created by 6Scan plugin(.*?)# End of 6Scan plugin@s', '', $htaccess_content) );
 	}
 	else {
 		$new_content = "";
@@ -189,7 +191,23 @@ function sixscan_signatures_update_htaccess( $links_list ) {
 	/*	We need the site relative path */
 	$rel_path = isset( $mixed_site_address[ 'path' ] ) ? $mixed_site_address[ 'path' ] : "";	
 		
-	$vuln_urls = "";
+	$vuln_urls = "#Broad-spectrum protection: User agent/referrer injections. XSS,RFI and SQLI prevention
+#skip the rfi rule, if accessing wp-login page
+RewriteCond %{REQUEST_URI} ^" . trailingslashit( $wordpress_base_dirname ) . "wp-login [NC]
+RewriteRule ^(.*)$ - [S=1]
+
+RewriteCond %{QUERY_STRING} (http(s)?(:|%3A)(/|%2F)(/|%2F)|ftp(:|%3A)(/|%2F)(/|%2F)|zlib(:|%3A)|bzip2(:|%3A)) [NC]
+RewriteRule .*  - [E=sixscansecuritylog:1] -
+
+RewriteCond %{HTTP_USER_AGENT} (<|%3c|>|%3e|'|%27|%00) [NC,OR]
+RewriteCond %{HTTP_REFERER} (<|%3c|>|%3e|'|%27|%00) [NC,OR]
+RewriteCond %{QUERY_STRING} (<|%3c).*(script|iframe|src).*(>|%3e) [NC,OR]
+RewriteCond %{QUERY_STRING} union.*select [NC,OR]
+RewriteCond %{QUERY_STRING} (concat|delete|right|ascii|left|mid|version|substring|extractvalue|benchmark|load_file).*\(.*\)	[NC,OR]
+RewriteCond %{QUERY_STRING} (into.*outfile) [NC,OR]
+RewriteCond %{QUERY_STRING} (having.*--) [NC]
+RewriteRule .*  - [E=sixscansecuritylog:1] -\n\n";
+
 	if ( strlen( $links_list ) > 0 ) {
 		$links = explode( SIXSCAN_SIGNATURE_LINKS_DELIMITER , $links_list );
 		/* Prepare rules for the htaccess */
@@ -200,7 +218,7 @@ function sixscan_signatures_update_htaccess( $links_list ) {
 			/* We also change / to /+ , so that any path with multiple slashes will be treated ( "dir///path" = "dir/path" ) */
 			$one_link = str_replace( '/' , '/+' , $one_link );				
 			
-			$vuln_urls .= "RewriteCond %{REQUEST_URI} ^" . trim( $one_link ) . " [OR]\n";		
+			$vuln_urls .= "RewriteCond %{REQUEST_URI} ^" . trim( $one_link ) . " [NC,OR]\n";		
 		}	
 	}	
 	
@@ -224,8 +242,8 @@ function sixscan_signatures_update_htaccess( $links_list ) {
 			$htaccess_links .= "\n";
 	}
 	
-	/*	If an IP maches one of the listed , skip the next rule */
-	$htaccess_links .= "RewriteRule ^(.*)$ - [S=1]\n\n";
+	/*	If an IP maches one of the listed , skip the next two rules (automatic exploit detection/6scan_gate forwarding) */
+	$htaccess_links .= "RewriteRule ^(.*)$ - [S=4]\n\n";
 
 	/*	Now add the URL rules */
 	$htaccess_links .= $vuln_urls;		
@@ -236,22 +254,29 @@ function sixscan_signatures_update_htaccess( $links_list ) {
 	if ( $htaccess_file == FALSE )
 		return "Failed opening htaccess file $tmp_htaccess_file for write";
 	
-	$new_content = "# Created by 6Scan plugin\n" .
-					"#Those are used by 6Scan Gateway\n" .
-					"SetEnv SIXSCAN_HTACCESS_VERSION	" . SIXSCAN_HTACCESS_VERSION . "\n" .
-					"SetEnv SIXSCAN_WP_BASEDIR			" . $wordpress_base_dirname . "\n\n" .
-					"<IfModule mod_rewrite.c>\n" .
-					"RewriteEngine On\n" .
-					"\n#avoid direct access to the 6scan-gate.php file\n" .
-					"RewriteCond %{ENV:REDIRECT_sixscaninternal} !^accessgranted$\n" .
-					"RewriteCond %{ENV:sixscaninternal} !^accessgranted$\n" .
-					"RewriteCond %{REQUEST_URI} 6scan-gate\.php$\n" . 
-					"RewriteRule ^(.*)$ - [F]\n\n" .
-					"#This is not really a must, but speeds things up a bit\n" .
-					"RewriteRule ^6scan-gate\.php$ - [L]\n\n" .
-					$htaccess_links . 
-					"</IfModule>\n" .
-					"# End of 6Scan plugin\n\n" .
+	$new_content = "# Created by 6Scan plugin
+#Those are used by 6Scan Gateway
+SetEnv SIXSCAN_HTACCESS_VERSION	" . SIXSCAN_HTACCESS_VERSION . "
+SetEnv SIXSCAN_WP_BASEDIR			" . $wordpress_base_dirname . "
+
+#don't show directory listing and apache information
+Options -Indexes
+ServerSignature Off
+
+<IfModule mod_rewrite.c>
+RewriteEngine On
+
+#avoid direct access to the 6scan-gate.php file
+RewriteCond %{ENV:REDIRECT_sixscaninternal} !^accessgranted$
+RewriteCond %{ENV:sixscaninternal} !^accessgranted$
+RewriteCond %{REQUEST_URI} 6scan-gate\.php$
+RewriteRule ^(.*)$ - [F]
+					
+#This is not really a must, but speeds things up a bit
+RewriteRule ^6scan-gate\.php$ - [L]\n\n" . 
+$htaccess_links . 
+"</IfModule>
+# End of 6Scan plugin\n\n" .
 					$new_content;
 	
 	fwrite( $htaccess_file, $new_content );

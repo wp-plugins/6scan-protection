@@ -4,7 +4,7 @@ Plugin Name: 6Scan
 Plugin URI: http://www.6scan.com/
 Description: 6Scan protects your website against hackers destroying, stealing or defacing your website's precious and vulnerable data.
 Author: 6Scan
-Version: 1.0.7
+Version: 1.0.8
 Author URI: http://www.6scan.com
 */
 
@@ -23,6 +23,7 @@ require_once( 'admin/includes/events/deactivation.php' );
 require_once( 'admin/includes/events/uninstall.php' );
 require_once( 'modules/communication/oracle-reg.php' );
 require_once( 'modules/communication/oracle-auth.php' );
+require_once( 'modules/signatures/analyzer.php' );
 require_once( 'modules/signatures/update.php' );
 require_once( 'admin/includes/6scan-menu.php' );
 require_once( 'modules/stat/analytics.php' );
@@ -30,7 +31,7 @@ require_once( 'modules/stat/analytics.php' );
 if ( is_admin() ) { 
 	/*	We do not use the usual activation hook, since we want to show extended error message, if something went sideways */
 	register_deactivation_hook( __FILE__ , 	'sixscan_events_deactivation' );
-	register_uninstall_hook( __FILE__ , 	'sixscan_events_uninstall' );	
+	register_uninstall_hook( __FILE__ , 	'sixscan_events_uninstall' );		
 	
 	/*	This action installs the plugin */
 	if ( sixscan_common_is_account_active() == FALSE ){
@@ -44,9 +45,17 @@ if ( is_admin() ) {
 	
 	/*	6Scan menu in Wordpress toolbar */
 	add_action( 'admin_menu' , 'sixscan_menu_install' );
-
 	
+	/*	Setting auth cookie */
+	if ( ! isset ( $_COOKIE[ SIXSCAN_ADMIN_ACCESS_COOKIE_NAME ] ) )
+		setcookie( SIXSCAN_ADMIN_ACCESS_COOKIE_NAME , sixscan_common_get_auth_cookie_val() , time()+3600 , "/" , str_replace( 'http://' , '' , get_bloginfo('url') ) );	
+}
+else{
+	/*	Clear auth cookie */
+	if ( isset ( $_COOKIE[ SIXSCAN_ADMIN_ACCESS_COOKIE_NAME ] ) )
+		setcookie( SIXSCAN_ADMIN_ACCESS_COOKIE_NAME , sixscan_common_get_auth_cookie_val() , 0 , "/" , str_replace( 'http://' , '' , get_bloginfo('url') ) );	
 }
 
+	sixscan_signatures_analyzer_suspicious_request();
 
 ?>
