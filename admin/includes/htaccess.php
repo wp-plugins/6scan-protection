@@ -5,7 +5,7 @@ if ( ! defined( 'ABSPATH' ) )
 function sixscan_htaccess_install() {
 
 	try { 
-		$htaccess_sixscan = file_get_contents( SIXSCAN_HTACCESS_6SCAN );
+		$htaccess_sixscan = trim ( file_get_contents( SIXSCAN_HTACCESS_6SCAN ) ) . "\n\n";		
 		
 		if ( ! copy( SIXSCAN_HTACCESS_6SCAN_GATE_SOURCE, SIXSCAN_HTACCESS_6SCAN_GATE_DEST ) ) {
 			throw new Exception( 'Failed to find ' . SIXSCAN_HTACCESS_6SCAN_GATE_FILE_NAME . ' during installation' );
