@@ -4,7 +4,7 @@ if ( ! defined( 'ABSPATH' ) )
 	die( 'No direct access allowed' );
 
 /*	Register new user/site */
-function sixscan_communication_oracle_reg_register( $site_url , $user_email , $notice_script_url , & $sixscan_oracle_auth_struct ){	
+function sixscan_communication_oracle_reg_register( $site_url , $user_email , $notice_script_url , & $sixscan_oracle_auth_struct , $partner_id , $partner_key ){
 		
 	$expected = array( "site_id" , "api_token" , "dashboard_token" , "verification_token" );
 	
@@ -13,7 +13,12 @@ function sixscan_communication_oracle_reg_register( $site_url , $user_email , $n
 		$relative_notice_url = substr( $notice_script_url , strlen( $site_url ) + 1 );
 		
 		/*	Sending registration data to server, using GET */
-		$request_register_url = SIXSCAN_BODYGUARD_REGISTER_URL ."?url=$site_url&email=$user_email&notice_script_url=$relative_notice_url";
+		$request_register_url = SIXSCAN_BODYGUARD_REGISTER_URL ."?platform=wordpress&platform_version=" . get_bloginfo( 'version' ) . "&platform_locale=" . get_locale() . "&url=$site_url&email=$user_email&notice_script_url=$relative_notice_url";
+		
+		/*	If partner ID and Key exists, add it to registration request. */		
+		if ( ( $partner_id != "" ) && ( $partner_key != "" ) ){
+			$request_register_url .= "&partner_id=$partner_id&partner_key=$partner_key";
+		}
 		
 		$response = sixscan_common_request_network( $request_register_url , "" , "GET" );
 
@@ -88,6 +93,7 @@ function sixscan_communication_oracle_reg_verification(){
 		/*	We do not remove the verification url, since the server wants to check the site's ownership once in a while */		
 		
 		if ( is_wp_error( $response ) ) {
+			sixscan_communication_oracle_reg_remove_verification_file();
 			$error_string = $response->get_error_message();
 			sixscan_stat_analytics_log_action( SIXSCAN_ANALYTICS_INSTALL_CATEGORY , SIXSCAN_ANALYTICS_INSTALL_REG_ACT , SIXSCAN_ANALYTICS_FAIL_PREFIX_STRING . "_verification_process_" . $error_string );
 			
@@ -96,6 +102,7 @@ function sixscan_communication_oracle_reg_verification(){
 			return $error_string;
 		}
 		else if ( 200 != wp_remote_retrieve_response_code( $response ) ) {
+			sixscan_communication_oracle_reg_remove_verification_file();
 			$server_response = "";
 			parse_str( wp_remote_retrieve_body( $response ), $server_response );
 			$error_string = "<br><br>" . $server_response['reason'];			
@@ -135,7 +142,7 @@ function sixscan_communication_oracle_reg_create_verification_file(){
 function sixscan_communication_oracle_reg_remove_verification_file(){
 	$verification_file_name = ABSPATH . "/" . SIXSCAN_VERIFICATION_FILE_PREFIX . sixscan_common_get_verification_token() . ".gif";	
 	
-	unlink( $verification_file_name );
+	@unlink( $verification_file_name );
 }
 
 function sixscan_communication_oracle_reg_reactivate( $site_id , $api_token ){

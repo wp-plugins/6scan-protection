@@ -11,10 +11,15 @@ function sixscan_menu_install(){
 	add_submenu_page( SIXSCAN_COMMON_DASHBOARD_URL , '6Scan Support' , 'Support' , 'manage_options' , SIXSCAN_COMMON_SUPPORT_URL , 'sixscan_menu_support' );
 }
 
+function sixscan_menu_is_ticket_requested(){
+
+	return ( ( isset( $_GET[ 'ticket_submitted' ] ) ) && ( $_GET[ 'ticket_submitted' ] == 1 ) )	;
+}
+
 function sixscan_menu_support(){
 	
 	/*	If user has already submitted a ticket, show him a "Thank you" */
-	if ( isset( $_GET[ 'ticket_submitted' ] ) && ( $_GET[ 'ticket_submitted' ] == 1 ) ){
+	if ( sixscan_menu_is_ticket_requested() ){
 		print "<center>\nThank you for your submission.  6Scan support will be in touch shortly.\n</center>\n";		
 		return;
 	}
@@ -38,6 +43,13 @@ function sixscan_menu_dashboard(){
 }
 
 function sixscan_menu_create_dashboard_frame( $redirect_request = SIXSCAN_COMMON_DASHBOARD_URL_MAIN ){
+
+	/*	If user has already submitted a ticket, show him a "Thank you" */
+	if ( sixscan_menu_is_ticket_requested() ){
+		print "<center>\nThank you for your submission.  6Scan support will be in touch shortly.\n</center>\n";		
+		return;
+	}
+	
 	print "<iframe id='sixscan_dashboard_iframe' src=\"" . sixscan_communication_oracle_auth_get_link( $redirect_request ) . "\" width='100%' height='100%'>\n";
 	print "</iframe>\n";
 ?>	

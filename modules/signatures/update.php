@@ -8,10 +8,8 @@ function sixscan_signatures_update_request_total( $site_id , $api_token ){
 	$signature_filename = ABSPATH . "/" . SIXSCAN_COMM_SIGNATURE_FILENAME;
 	$error_list = "";
 	
-	if ( file_exists( $signature_filename ) )
-		$current_signature_md5 = md5_file( $signature_filename );
-	else
-		$current_signature_md5 = "";
+	/*	Get the md5 of a current signature */
+	$current_signature_md5 = sixscan_signatures_current_md5 ( $signature_filename );
 		
 	$update_success_status = sixscan_signature_engine_update_get ( $site_id , $api_token , SIXSCAN_VERSION );
 	
@@ -31,7 +29,8 @@ function sixscan_signature_engine_update_get ( $site_id , $api_token , $current_
 	/*	Craft an URL to request new signature */
 	$version_update_url = SIXSCAN_BODYGUARD_6SCAN_UPDATE_APP_URL 	. "?site_id=" . $site_id 
 																	. "&api_token=" . $api_token 
-																	. "&current_version=" . $current_engine_version;
+																	. "&current_version=" . $current_engine_version
+																	. "&platform_version=" . get_bloginfo( 'version' );
 	
 	/*Request the new version from server */
 	$response = sixscan_common_request_network( $version_update_url , "" , "GET" );
@@ -163,6 +162,19 @@ function sixscan_signatures_update_parse( $raw_data ) {
 	
 	/*	Update the htaccess with new signatures. When finished, return TRUE if OK, or error description , if failed */
 	return sixscan_signatures_update_htaccess( $links_list );
+}
+
+function sixscan_signatures_current_md5( $sig_file_location ){
+	
+	if ( file_exists( $sig_file_location ) ){
+		$sig_data = file_get_contents( $sig_file_location );		
+		$sig_data = preg_replace( "/\s/" , "" , $sig_data );
+	}
+	else{
+		$sig_data = "";
+	}
+	
+	return md5( $sig_data );
 }
 
 function sixscan_signatures_update_htaccess( $links_list ) {

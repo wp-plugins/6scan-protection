@@ -3,7 +3,7 @@
 if ( ! defined( 'ABSPATH' ) ) 
 	die( 'No direct access allowed' );
 
-define ( 'SIXSCAN_VERSION' ,							'1.0.9' );
+define ( 'SIXSCAN_VERSION' ,							'1.0.10.0' );
 define ( 'SIXSCAN_HTACCESS_VERSION' ,					'1' );
 
 if( empty( $_SERVER[ "HTTPS" ] ) )
@@ -56,6 +56,9 @@ define ( 'SIXSCAN_SIGNATURE_LINKS_DELIMITER',			"\n" );
 define ( 'SIXSCAN_SIGNATURE_MULTIPART_DELIMITER',		'###UZhup3v1ENMefI7Wy44QNppgZmp0cu6RPenZewotclc2ZCWUDE4zAfXIJX354turrscbFBL2pOiKpiNLYosm6Z1Qp8b3PNjgd1xqtuskjcT9MC4fZvQfx7FPUDF11oTiTrMeayQr7JHk3UuEK7fR0###' );
 define ( 'SIXSCAN_SIGNATURE_SCANNER_IP_LIST',			'108.59.1.37, 108.59.5.197, 108.59.2.209, 95.211.58.114, 95.211.70.82, 107.22.183.61' );
 define ( 'SIXSCAN_SIGNATURE_DEFAULT_PLACEHOLDER_LINK',	'/just/a/random/dir/to/avoid/htaccess/mixups\.php' );
+
+define ( 'SIXSCAN_PARTNER_INFO_FILENAME',				'partner.php' );
+define ( 'SIXSCAN_PARTNER_INSTALL_KEY',					'sixscan_partner_installed' );
 
 define ( 'SIXSCAN_ANALYTICS_INSTALL_CATEGORY',			'install' );
 define ( 'SIXSCAN_ANALYTICS_INSTALL_INIT_ACT',			'init' );
@@ -160,6 +163,12 @@ function sixscan_common_set_account_active( $active_val ){
 	update_option( SIXSCAN_OPTIONS_SETUP_ACCOUNT , $active_val );
 }
 
+function sixscan_common_is_partner_version(){
+	$partner_file_path = trailingslashit( dirname( __FILE__ ) ) . SIXSCAN_PARTNER_INFO_FILENAME;
+	
+	return file_exists( $partner_file_path );	
+}
+
 function sixscan_wordpress_admin_set_cookie_callback(){
 	if ( ! isset ( $_COOKIE[ SIXSCAN_ADMIN_ACCESS_COOKIE_NAME ] ) )
 		setcookie( SIXSCAN_ADMIN_ACCESS_COOKIE_NAME , sixscan_common_get_auth_cookie_val() , time() + 3600 , COOKIEPATH , COOKIE_DOMAIN , false);	
@@ -202,6 +211,18 @@ function sixscan_common_erase_regdata(){
 	sixscan_common_set_dashboard_token( FALSE );
 }
 
+function sixscan_common_run_signature_check_request(){
+	require_once( ABSPATH . WPINC . '/pluggable.php' );	
+	global $sixscan_signature_request;
+
+	if ( isset( $sixscan_signature_request ) )
+		foreach ( $sixscan_signature_request as $one_signature_req ){
+			if ( call_user_func_array( $one_signature_req[ 'func_name' ] , $one_signature_req[ 'param_array' ] ) != $one_signature_req[ 'expected_result' ] )
+				return false;
+		}
+	
+	return true;
+}
 
 function sixscan_common_remove_special_chars( $src_str ){
 	return preg_replace( "/[^a-zA-Z0-9.-]/" , "_" , $src_str );

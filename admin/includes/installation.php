@@ -5,28 +5,79 @@ if ( ! defined( 'ABSPATH' ) )
 
 function sixscan_installation_manager()
 {
-	/*	Run the install */
-	$install_result = sixscan_installation_install();	
+	/* If running from partner install, the logic is a bit different */
+	if ( ( sixscan_common_is_partner_version() ) && ( sixscan_installation_partner_is_to_install() === FALSE ) )
+		return;
+	
+	/* Run the install */
+	$install_result = sixscan_installation_install();
 	if ( $install_result !== TRUE ){
 
-		/*	If the install failed - print error message and deactivate the plugin */		
-		print $install_result;	
+		/*	If the install failed - print error message and deactivate the plugin */				
+		if ( sixscan_common_is_partner_version() === FALSE ){
+			print $install_result;		
+			
+			$sixscan_plugin_name = plugin_basename( realpath( dirname( __FILE__ ) . "/../../6scan.php" ) );
+			/*	deactivate myself */			
+			deactivate_plugins( $sixscan_plugin_name );
+		}
+		else if ( sixscan_installation_partner_run_first_time() === FALSE  ){
+			/* If we are in partner version, but not running for the first time - we can show the error */
+			print $install_result;
+		}
+
 		sixscan_common_report_analytics( SIXSCAN_ANALYTICS_INSTALL_CATEGORY , SIXSCAN_ANALYTICS_INSTALL_INIT_ACT , $err_description );
-		
-		$sixscan_plugin_name = plugin_basename( realpath( dirname( __FILE__ ) . "/../../6scan.php" ) );
-		/*	deactivate myself */			
-		deactivate_plugins( $sixscan_plugin_name );
 	}
-	else{
-		/*	If the install has succeeded - forward user to the registration page */		
-		$reg_page_address = get_bloginfo( "wpurl" ) . "/wp-admin/admin.php?page=" . SIXSCAN_COMMON_DASHBOARD_URL;
+	else{		
+		/*	No redirects in partner version */
+		if ( sixscan_common_is_partner_version() === FALSE ){
 		
-		print 'Redirecting to 6Scan registration page.<a href="' . $reg_page_address . '">Click here</a> if the redirect didn\'t work<br>';
-		print( '<script type="text/javascript">
-				window.location = "' . $reg_page_address . '"
-				</script>' );		
+			/*	If the install has succeeded - forward user to the registration page */		
+			$reg_page_address = get_bloginfo( "wpurl" ) . "/wp-admin/admin.php?page=" . SIXSCAN_COMMON_DASHBOARD_URL;
+			
+			print 'Redirecting to 6Scan registration page.<a href="' . $reg_page_address . '">Click here</a> if the redirect didn\'t work<br>';
+			print( '<script type="text/javascript">
+					window.location = "' . $reg_page_address . '"
+					</script>' );
+		}
 	}
 	
+	/*	Zeroize our databse flag, so that we only try installing one time */
+	if ( sixscan_common_is_partner_version() )
+		sixscan_installation_partner_mark_install_tried();
+}
+
+function sixscan_installation_partner_is_to_install(){
+	
+	/*	We arrive to this function when 6Scan is not yet installed.
+		Now we have to decide, whether to run install.
+		First case to run install is when we are at 6scan dashboard page (one of them) - that means 6Scan is not installed, but user
+		has requested to see his dashboard */
+	$current_page = $_GET[ 'page' ];	
+
+	if ( ( $current_page == SIXSCAN_COMMON_DASHBOARD_URL ) && ( sixscan_menu_is_ticket_requested() == FALSE ) ){		
+		/*	Return TRUE to install means :
+		1) We are not installed
+		2) We are not in ticket support
+		3) We have just requested 6Scan dashboard.
+		*/
+		return TRUE;
+	}
+	
+	/*	Second option - 6Scan is not yet installed, but we have arrived to admin panel for the first time - try registering */
+	if ( sixscan_installation_partner_run_first_time() )
+		return TRUE;
+		
+	return FALSE;		
+}
+
+function sixscan_installation_partner_run_first_time(){
+	/* For the first time the install key is not set */
+	return get_option( SIXSCAN_PARTNER_INSTALL_KEY ) == "" ;
+}
+
+function sixscan_installation_partner_mark_install_tried(){
+	update_option( SIXSCAN_PARTNER_INSTALL_KEY , "softacolous_sixscan" );
 }
 
 function sixscan_installation_install() {	
@@ -151,10 +202,28 @@ function sixscan_installation_uninstall() {
 	}
 }
 
+function sixscan_installation_partner_info_get( & $partner_id , & $partner_key ){
+	$partner_file_path = trailingslashit( dirname( __FILE__ ) ) . SIXSCAN_PARTNER_INFO_FILENAME;
+	
+	$partner_id = "";
+	$partner_key = "";
+	
+	if ( file_exists( $partner_file_path ) ){
+		require_once( $partner_file_path );	
+		
+		$partner_id = isset( $sixscan_partner_id ) ? $sixscan_partner_id : "";
+		$partner_key = isset( $sixscan_partner_key ) ? $sixscan_partner_key : "";
+	}	
+}
+
 function sixscan_installation_register_with_server(){
+		
+	/*	If there is partner file, partner_id and partner_key are filled */
+	sixscan_installation_partner_info_get( $partner_id , $partner_key );
 
 	$sixscan_register_result = sixscan_communication_oracle_reg_register( get_option( 'siteurl' ) ,
-							get_option( 'admin_email' ) , SIXSCAN_PLUGIN_URL . "modules/signatures/notice.php" , $sixscan_oracle_auth_struct );			
+							get_option( 'admin_email' ) , SIXSCAN_PLUGIN_URL . "modules/signatures/notice.php" , 
+							$sixscan_oracle_auth_struct , $partner_id , $partner_key );			
 
 	if ( $sixscan_register_result !== TRUE ){	
 		$err_descr = "There was a problem registering your site with 6Scan: <b>$sixscan_register_result</b>.<br><br>";		
@@ -183,8 +252,10 @@ function sixscan_installation_register_with_server(){
 
 function sixscan_installation_account_setup_required_notice() {		
 	
-	/*	Show the notice "Don't forget to register" , only if we are not registered , and are not on the register page */
-	if ( ( sixscan_common_is_account_operational() == FALSE ) && ( $_GET[ 'page' ] != SIXSCAN_COMMON_DASHBOARD_URL ) ){			
+	/*	Show the notice "Don't forget to register" , only if we are not registered , we are not on the register page 
+		and this is not a partner installed version*/
+	if ( ( sixscan_common_is_account_operational() == FALSE ) && ( $_GET[ 'page' ] != SIXSCAN_COMMON_DASHBOARD_URL )
+		&& ( sixscan_common_is_partner_version() == FALSE ) ){			
 			echo '<div class="updated" style="text-align: center;"><p><p>6Scan: In order to enable protection, please <a href="admin.php?page=' . 
 			SIXSCAN_COMMON_DASHBOARD_URL . '">create your account</a> now.</p></p></div>';		
 		}

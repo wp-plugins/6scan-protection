@@ -38,7 +38,7 @@ function sixscan_htaccess_uninstall() {
 	try {
 		if ( file_exists( SIXSCAN_HTACCESS_FILE ) ) {
 			$htaccess_content = file_get_contents(SIXSCAN_HTACCESS_FILE);
-			$a .= preg_replace( '@# Created by 6Scan plugin(.*?)# End of 6Scan plugin@s', '', $htaccess_content) ;
+			$a = preg_replace( '@# Created by 6Scan plugin(.*?)# End of 6Scan plugin@s', '', $htaccess_content) ;
 		}
 	
 		$htaccess_file = @fopen( SIXSCAN_HTACCESS_FILE, 'w' );
