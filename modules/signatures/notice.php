@@ -27,6 +27,22 @@ if ( ( $backward_compat_active == 'SETUP_STAGE_RUNNING' ) || ( $backward_compat_
 	delete_option( 'sixscan_setupaccount' );
 	sixscan_common_set_account_active( TRUE );	
 }
+
+/*	Verify process. Make sure that sites belongs to the user that registered it */
+if ( isset( $_GET[ SIXSCAN_NOTICE_VERIFICATION_NAME ] ) && ( isset( $_GET[ SIXSCAN_NOTICE_AUTH_NAME ] ) ) ){
+	
+	$expected_auth_id = md5( sixscan_common_get_api_token() . sixscan_common_get_site_id() );
+	if ( ( $_GET[ SIXSCAN_NOTICE_VERIFICATION_NAME ] == sixscan_common_get_site_id() ) &&
+		( $_GET[ SIXSCAN_NOTICE_AUTH_NAME ] == $expected_auth_id ) ){
+		
+		echo SIXSCAN_VERIFICATION_DELIMITER . sixscan_common_get_verification_token() . SIXSCAN_VERIFICATION_DELIMITER;		
+	}
+	else{
+		header( "HTTP/1.1 500 Bad verification token" );		
+	}
+	
+	exit( 0 );
+}
 		
 if ( sixscan_common_is_account_active() != TRUE ){
 	header( "HTTP/1.1 500 6Scan not active" );

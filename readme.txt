@@ -101,6 +101,8 @@ Please read an extensive explanation on this matter [here](http://6scan.freshdes
 = 1.0.9 =
 * Adjusted signature update protocol for new API 
 
+= 1.0.10 =
+* Site verification process improved
 
 == Upgrade Notice ==
 

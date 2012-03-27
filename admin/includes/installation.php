@@ -178,10 +178,7 @@ function sixscan_installation_uninstall() {
 	try {		
 		/*	Notify the server, to disable account */
 		sixscan_communication_oracle_reg_uninstall( sixscan_common_get_site_id() , sixscan_common_get_api_token() );
-		
-		/* Remove the verification file , htaccess data , and then all the options from db */
-		sixscan_communication_oracle_reg_remove_verification_file();
-		
+				
 		/* Remove lines from htaccess */
 		sixscan_htaccess_uninstall();			
 
