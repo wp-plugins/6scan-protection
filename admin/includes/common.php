@@ -3,7 +3,7 @@
 if ( ! defined( 'ABSPATH' ) ) 
 	die( 'No direct access allowed' );
 
-define ( 'SIXSCAN_VERSION' ,							'1.0.10.1' );
+define ( 'SIXSCAN_VERSION' ,							'1.0.10.2' );
 define ( 'SIXSCAN_HTACCESS_VERSION' ,					'1' );
 
 if( empty( $_SERVER[ "HTTPS" ] ) )
@@ -20,6 +20,7 @@ define ( 'SIXSCAN_BODYGUARD_ERROR_REPORT_FORM_URL' ,	SIXSCAN_SERVER . 'dashboard
 define ( 'SIXSCAN_BODYGUARD_REGISTER_URL' , 			SIXSCAN_SERVER . 'wpapi/v1/register' );
 define ( 'SIXSCAN_BODYGUARD_REACTIVATE_URL',			SIXSCAN_SERVER . 'wpapi/v1/reactivate' );
 define ( 'SIXSCAN_BODYGUARD_VERIFY_URL' , 				SIXSCAN_SERVER . 'wpapi/v3/verify' );
+define ( 'SIXSCAN_BODYGUARD_FALLBACK_VERIFY_URL' , 		SIXSCAN_SERVER . 'wpapi/v2/verify' );
 define ( 'SIXSCAN_BODYGUARD_6SCAN_UPDATE_SIG_URL' , 	SIXSCAN_SERVER . 'wpapi/v1/update-signatures' );
 define ( 'SIXSCAN_BODYGUARD_6SCAN_UPDATE_APP_URL' , 	SIXSCAN_SERVER . 'wpapi/v1/update-application-code' );
 define ( 'SIXSCAN_BODYGUARD_6SCAN_UPDATE_SEC_URL' , 	SIXSCAN_SERVER . 'wpapi/v1/update-security-environment' );
@@ -172,13 +173,16 @@ function sixscan_common_is_partner_version(){
 }
 
 function sixscan_wordpress_admin_set_cookie_callback(){
-	if ( ! isset ( $_COOKIE[ SIXSCAN_ADMIN_ACCESS_COOKIE_NAME ] ) )
-		setcookie( SIXSCAN_ADMIN_ACCESS_COOKIE_NAME , sixscan_common_get_auth_cookie_val() , time() + 3600 , COOKIEPATH , COOKIE_DOMAIN , false);	
-}
-
-function sixscan_wordpress_admin_clear_cookie_callback(){
-	if ( isset ( $_COOKIE[ SIXSCAN_ADMIN_ACCESS_COOKIE_NAME ] ) )
-		setcookie( SIXSCAN_ADMIN_ACCESS_COOKIE_NAME , sixscan_common_get_auth_cookie_val() , time() - 3600 , COOKIEPATH , COOKIE_DOMAIN , false);
+	
+	/*	Admin is getting auth cookie, other users do not */
+	if ( current_user_can( 'administrator' ) ){
+		if ( ! isset ( $_COOKIE[ SIXSCAN_ADMIN_ACCESS_COOKIE_NAME ] ) )
+			setcookie( SIXSCAN_ADMIN_ACCESS_COOKIE_NAME , sixscan_common_get_auth_cookie_val() , time() + 3600 , COOKIEPATH , COOKIE_DOMAIN , false);	
+	}
+	else{
+		if ( isset ( $_COOKIE[ SIXSCAN_ADMIN_ACCESS_COOKIE_NAME ] ) )
+			setcookie( SIXSCAN_ADMIN_ACCESS_COOKIE_NAME , '' , time() - 3600 , COOKIEPATH , COOKIE_DOMAIN , false);
+	}	
 }
 
 function sixscan_common_get_auth_cookie_val(){

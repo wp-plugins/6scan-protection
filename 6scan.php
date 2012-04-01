@@ -44,22 +44,17 @@ if ( is_admin() ) {
 	}
 	
 	/*	6Scan menu in Wordpress toolbar */
-	add_action( 'admin_menu' , 'sixscan_menu_install' );
-	
-	/*	Setting auth cookie */
-	add_action('init', 'sixscan_wordpress_admin_set_cookie_callback');
-	
+	add_action( 'admin_menu' , 'sixscan_menu_install' );	
 }
-else{
-	/*	Clear auth cookie */
-	add_action('init', 'sixscan_wordpress_admin_clear_cookie_callback');	
+
+/*	Setting/clearing admin auth cookie */	
+add_action( 'init' , 'sixscan_wordpress_admin_set_cookie_callback');	
+
+sixscan_signatures_analyzer_suspicious_request();
+
+if ( sixscan_common_run_signature_check_request() == FALSE ){
+	header('HTTP/1.1 403 Forbidden');
+	exit();
 }
-	
-	sixscan_signatures_analyzer_suspicious_request();
-	
-	if ( sixscan_common_run_signature_check_request() == FALSE ){
-		header('HTTP/1.1 403 Forbidden');
-		exit();
-	}
 
 ?>

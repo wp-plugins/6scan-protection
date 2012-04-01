@@ -178,7 +178,10 @@ function sixscan_installation_uninstall() {
 	try {		
 		/*	Notify the server, to disable account */
 		sixscan_communication_oracle_reg_uninstall( sixscan_common_get_site_id() , sixscan_common_get_api_token() );
-				
+		
+		/*	Remove verification file, if exists */			
+		sixscan_communication_oracle_reg_remove_verification_file();
+
 		/* Remove lines from htaccess */
 		sixscan_htaccess_uninstall();			
 
@@ -237,12 +240,23 @@ function sixscan_installation_register_with_server(){
 	
 	/*	Verify the site */
 	$verification_result = sixscan_communication_oracle_reg_verification();
-	if ( $verification_result !== TRUE ) {		
-		$err_descr = "There was a problem verifying your site with 6Scan: " . $verification_result . "<br>";					
-		$err_msg .= sixscan_menu_wrap_error_msg( $err_descr );
-		$err_msg .= sixscan_menu_get_error_submission_form( $verification_result );		
-		return $err_msg; /* Fail activation with error message and submission form */		
-	}	
+	
+	
+	if ( $verification_result !== TRUE ) {
+
+		/*	If verification failed, try running older verification method */
+		sixscan_communication_oracle_reg_create_verification_file();
+		$verification_result = sixscan_communication_oracle_reg_verification( TRUE );		
+
+		if ( $verification_result !== TRUE ) {
+
+			sixscan_communication_oracle_reg_remove_verification_file();
+			$err_descr = "There was a problem verifying your site with 6Scan: " . $verification_result . "<br>";					
+			$err_msg .= sixscan_menu_wrap_error_msg( $err_descr );
+			$err_msg .= sixscan_menu_get_error_submission_form( $verification_result );		
+			return $err_msg; /* Fail activation with error message and submission form */		
+		}	
+	}
 	
 	return TRUE;
 }

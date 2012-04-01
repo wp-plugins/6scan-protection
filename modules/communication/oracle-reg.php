@@ -77,13 +77,19 @@ function sixscan_communication_oracle_reg_register( $site_url , $user_email , $n
 }
 
 /* Prove to server , that we are indeed here */
-function sixscan_communication_oracle_reg_verification(){
+function sixscan_communication_oracle_reg_verification( $is_to_use_fallback_verify = FALSE ){
 
 	try{
 		if ( ( sixscan_common_get_verification_token() == FALSE ) || ( sixscan_common_get_site_id() == FALSE ) || ( sixscan_common_get_api_token() == FALSE ) )
 			return "6Scan was not registered properly.Data from DB is missing";
 					
-		$request_verification_url = SIXSCAN_BODYGUARD_VERIFY_URL . "?site_id=" . sixscan_common_get_site_id() . "&api_token=" . sixscan_common_get_api_token();
+		if ( $is_to_use_fallback_verify == FALSE)
+			$request_verification_url = SIXSCAN_BODYGUARD_VERIFY_URL;
+		else
+			$request_verification_url = SIXSCAN_BODYGUARD_FALLBACK_VERIFY_URL;
+
+		$request_verification_url .= "?site_id=" . sixscan_common_get_site_id() . "&api_token=" . sixscan_common_get_api_token();
+
 		$response = sixscan_common_request_network( $request_verification_url , "" , "GET" );
 		
 		if ( is_wp_error( $response ) ) {
@@ -140,4 +146,30 @@ function sixscan_communication_oracle_reg_uninstall( $site_id , $api_token ){
 	return TRUE;
 }
 
+function sixscan_communication_oracle_reg_create_verification_file(){
+	
+	/*	Create verification url */														
+	$verification_file_name = ABSPATH . "/" . SIXSCAN_VERIFICATION_FILE_PREFIX . sixscan_common_get_verification_token() . ".gif";	
+		
+	$file_handle = fopen( $verification_file_name , "w" ); 	
+	
+	if ( $file_handle == FALSE){
+		$error_desc = error_get_last();
+		sixscan_stat_analytics_log_action( SIXSCAN_ANALYTICS_INSTALL_CATEGORY , SIXSCAN_ANALYTICS_INSTALL_VERIF_ACT , SIXSCAN_ANALYTICS_FAIL_PREFIX_STRING . "_verification_file_creation_" . $error_desc[ 'message' ] . '_' . $error_desc[ 'type' ]);
+		return "Failed creating file " . $verification_file_name . " for verification purposes. Reason:" . $error_desc[ 'message' ] . ' Type:' . $error_desc[ 'type' ];	
+	}
+	
+	$verificiation_data = SIXSCAN_VERIFICATION_DELIMITER . sixscan_common_get_site_id() . SIXSCAN_VERIFICATION_DELIMITER;
+	fwrite( $file_handle , $verificiation_data  );
+	fclose( $file_handle );
+	
+	return TRUE;
+}
+
+function sixscan_communication_oracle_reg_remove_verification_file(){
+	$verification_file_name = ABSPATH . "/" . SIXSCAN_VERIFICATION_FILE_PREFIX . sixscan_common_get_verification_token() . ".gif";	
+	
+	if ( is_file( $verification_file_name ) )
+		@unlink( $verification_file_name );
+}
 ?>
