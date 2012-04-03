@@ -3,7 +3,7 @@
 if ( ! defined( 'ABSPATH' ) ) 
 	die( 'No direct access allowed' );
 
-define ( 'SIXSCAN_VERSION' ,							'1.0.10.2' );
+define ( 'SIXSCAN_VERSION' ,							'1.0.10.3' );
 define ( 'SIXSCAN_HTACCESS_VERSION' ,					'1' );
 
 if( empty( $_SERVER[ "HTTPS" ] ) )
@@ -17,6 +17,7 @@ define ( 'SIXSCAN_SERVER_ADDRESS',						'api.wp.6scan.com' );
 define ( 'SIXSCAN_SERVER',								'https://' . SIXSCAN_SERVER_ADDRESS . '/' );	
 
 define ( 'SIXSCAN_BODYGUARD_ERROR_REPORT_FORM_URL' ,	SIXSCAN_SERVER . 'dashboard/v1/error_feedback' );
+define ( 'SIXSCAN_BODYGUARD_INTERNAL_ERROR_URL' ,		SIXSCAN_SERVER . 'dashboard/v1/error_feedback_internal' );
 define ( 'SIXSCAN_BODYGUARD_REGISTER_URL' , 			SIXSCAN_SERVER . 'wpapi/v1/register' );
 define ( 'SIXSCAN_BODYGUARD_REACTIVATE_URL',			SIXSCAN_SERVER . 'wpapi/v1/reactivate' );
 define ( 'SIXSCAN_BODYGUARD_VERIFY_URL' , 				SIXSCAN_SERVER . 'wpapi/v3/verify' );
