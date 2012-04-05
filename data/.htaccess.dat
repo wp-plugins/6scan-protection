@@ -1,6 +1,5 @@
 # Created by 6Scan plugin
 #don't show directory listing and apache information
-Options -Indexes
 ServerSignature Off
 
 <IfModule mod_rewrite.c>

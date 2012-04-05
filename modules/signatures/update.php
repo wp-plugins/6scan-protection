@@ -272,7 +272,6 @@ SetEnv SIXSCAN_HTACCESS_VERSION	" . SIXSCAN_HTACCESS_VERSION . "
 SetEnv SIXSCAN_WP_BASEDIR			" . $wordpress_base_dirname . "
 
 #don't show directory listing and apache information
-Options -Indexes
 ServerSignature Off
 
 <IfModule mod_rewrite.c>
