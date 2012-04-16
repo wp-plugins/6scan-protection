@@ -10,7 +10,7 @@ Stable tag: trunk
 
 == Description ==
 
-6Scan is the most comprehensive *automatic* protection your Wordpress site can get against hackers. 
+6Scan Security is the most comprehensive *automatic* protection your Wordpress site can get against hackers. 
 Our Patrol scanner goes beyond the rule-based protection of all other Wordpress security plugins, employing active penetration testing algorithms to find security vulnerabilities, which are then automatically fixed before hackers can exploit them. Our team of website security experts ensures your protection is always up-to-date and airtight.
 
 * Patrol finds and protects against:
