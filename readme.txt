@@ -6,7 +6,7 @@ Requires at least: 3.0.0
 Tested up to: 3.3.1
 Stable tag: trunk
 
-6Scan Security protects your website against hackers destroying, stealing or manipulating your data using constantly updated attack signatures.
+6Scan Security goes beyond the rule-based protection of all other Wordpress security plugins to provide the most comprehensive automatic protection against hackers.
 
 == Description ==
 
@@ -16,13 +16,17 @@ Our Patrol scanner goes beyond the rule-based protection of all other Wordpress 
 * Patrol finds and protects against:
  * SQL Injection
  * Cross-Site Scripting (XSS)
+ * CSRF attacks
  * Directory traversals
  * Remote file inclusion
+ * DOS conditions
  * And many more, including all of the OWASP Top Ten security vulnerabilities.
 * Bodyguard: 6Scan's Bodyguard acts on your server to rapidly fix all security vulnerabilities found by Patrol.
 * Constantly updated: Our team of security experts constantly finds new vulnerabilities and attack strategies, and integrates them into Patrol so you are immediately protected.
 * Install and forget: once 6Scan Security is installed, no further action is required to keep your site protected.
 * Invisibility: 6Scan Security is specifically engineered not to affect your site's performance or interfere with your site's legitimate users.
+
+It is very important to take note of the difference between various Wordpress security plugins.  Most of these are based on a ruleset which recognizes and blocks certain attack signatures. This approach is effective for protecting against some common SQL injection attacks, but fails to detect or prevent hackers from exploiting flawed logic.  For example, it could not protect against an authorization bug in a file upload plugin, potentially allowing unauthorized users to upload malware and viruses to your site.  6Scan’s security response team constantly updates your blog’s protection to deal with the latest threats found on all major exploit databases on the Internet.
 
 If you have any questions, please feel free to contact us using our [support area](http://6scan.com/support).
 
