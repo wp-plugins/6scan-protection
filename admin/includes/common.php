@@ -3,7 +3,7 @@
 if ( ! defined( 'ABSPATH' ) ) 
 	die( 'No direct access allowed' );
 
-define ( 'SIXSCAN_VERSION' ,							'1.0.10.4' );
+define ( 'SIXSCAN_VERSION' ,							'2.0.1.0' );
 define ( 'SIXSCAN_HTACCESS_VERSION' ,					'1' );
 
 if( empty( $_SERVER[ "HTTPS" ] ) )
@@ -40,6 +40,7 @@ define ( 'SIXSCAN_OPTION_MENU_SITE_ID' , 				'sixscan_registered_site_id' );
 define ( 'SIXSCAN_OPTION_MENU_API_TOKEN' , 				'sixscan_registered_api_token' );
 define ( 'SIXSCAN_OPTION_MENU_VERIFICATION_TOKEN' , 	'sixscan_registered_verification_token' );
 define ( 'SIXSCAN_OPTION_MENU_DASHBOARD_TOKEN' , 		'sixscan_registered_dashboard_token' );
+define ( 'SIXSCAN_OPTION_VULNERABITILY_COUNT' ,			'sixscan_vulnerability_count' );
 
 define ( 'SIXSCAN_UPDATE_OK_RESPONSE_CODE',				200 );
 define ( 'SIXSCAN_UPDATE_LAST_VERSION_RESPONSE_CODE',	304 );
@@ -55,10 +56,11 @@ define ( 'SIXSCAN_NOTICE_AUTH_NAME' ,					'verification_auth_id' );
 define ( 'SIXSCAN_NOTICE_SECURITY_ENV_NAME' ,			'upd-security-environment' );
 define ( 'SIXSCAN_NOTICE_SECURITY_LOG_NAME' ,			'upd-security-logs' );
 define ( 'SIXSCAN_NOTICE_ACCOUNT_ENABLED' ,				'upd-account-enabled' );
+define ( 'SIXSCAN_NOTICE_VULN_COUNT' ,					'vuln-count' );
 define ( 'SIXSCAN_COMM_SIGNATURE_FILENAME', 			'6scan-signature.php' );
 define ( 'SIXSCAN_SIGNATURE_LINKS_DELIMITER',			"\n" );
 define ( 'SIXSCAN_SIGNATURE_MULTIPART_DELIMITER',		'###UZhup3v1ENMefI7Wy44QNppgZmp0cu6RPenZewotclc2ZCWUDE4zAfXIJX354turrscbFBL2pOiKpiNLYosm6Z1Qp8b3PNjgd1xqtuskjcT9MC4fZvQfx7FPUDF11oTiTrMeayQr7JHk3UuEK7fR0###' );
-define ( 'SIXSCAN_SIGNATURE_SCANNER_IP_LIST',			'108.59.1.37, 108.59.5.197, 108.59.2.209, 95.211.58.114, 95.211.70.82, 107.22.183.61' );
+define ( 'SIXSCAN_SIGNATURE_SCANNER_IP_LIST',			'108.59.1.37, 108.59.5.197, 108.59.2.209, 95.211.58.114, 95.211.70.82, 107.22.183.61, 78.47.11.131' );
 define ( 'SIXSCAN_SIGNATURE_DEFAULT_PLACEHOLDER_LINK',	'/just/a/random/dir/to/avoid/htaccess/mixups\.php' );
 
 define ( 'SIXSCAN_PARTNER_INFO_FILENAME',				'partner.php' );
@@ -231,10 +233,6 @@ function sixscan_common_run_signature_check_request(){
 	return true;
 }
 
-function sixscan_common_remove_special_chars( $src_str ){
-	return preg_replace( "/[^a-zA-Z0-9.-]/" , "_" , $src_str );
-}
-
 function sixscan_common_is_writable_directory( $dir_to_check ){	
 	$test_fname = $dir_to_check . SIXSCAN_COMM_SIGNATURE_FILENAME;
 	
@@ -305,61 +303,6 @@ function sixscan_common_is_fopen_working(){
 /*	Windows servers sometimes require special handling */
 function sixscan_common_is_windows_os(){
 	return (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN');    
-}
-
-function sixscan_common_report_analytics( $category , $action , $label ){
-	/*
-	This is custom request for google analytics. Based on
-	http://code.google.com/apis/analytics/docs/tracking/gaTrackingTroubleshooting.html#gifParameters
-	*/
-
-	$google_analytics_url = "http://www.google-analytics.com/__utm.gif?";
-
-	/*	analytics version */
-	$utmwv = "5.2.0";
-
-	/*	Unique value , to avoid caching */
-	$utmn = mt_rand ( 1000000000 , 9999999999 );
-	/* Another random number for Analytics */
-	$utmhid = mt_rand( 1000000000, 9999999999 );
-
-	$utmhn = $_SERVER[ 'SERVER_NAME' ];
-
-	/*	Request type: */
-	$utmt = "event";
-
-	/* Event parameters described at http://code.google.com/apis/analytics/docs/tracking/gaTrackingTroubleshooting.html#pageNotAppearing  
-	5(object*action*label) */
-	$utme = '5(' . $category . '*' . $action . '*' . sixscan_common_remove_special_chars( $label ) . ')'; 
-
-	/*	Charset and language */
-	$utmcs = "UTF-8";
-	$utmul = "en-us";
-
-	/*	Account ID */
-	$utmac = "UA-21559206-3";
-
-	/*	Prepare the $utmcc data , which is "cookie" information */
-	$utm_rand_val1 = mt_rand( 100000 , 999999 );
-	$utm_rand_val2 = mt_rand( 1000000 , 9999999 );
-	$now_time = time();	
-	
-	$utmcc ='__utma%3D' . $utm_rand_val1 . '.' . $utm_rand_val2 . '.' . $now_time . '.' . $now_time . '.' . $now_time . '.5';
-	
-	$utm_rand_val1 = mt_rand( 100000000 , 999999999 );
-	$utm_rand_val2 = mt_rand( 1000000000 , 9999999999 );
-	$utm_rand_val3 = mt_rand( 10 , 99 );
-
-	$utmcc = $utmcc . '%3B%2B__utmz%3D' . $utm_rand_val1 . '.' . $utm_rand_val2 . '.' . $utm_rand_val3 . '.10.utmcsr%3D(direct)%7Cutmccn%3D(direct)7Cutmcmd%3D(none)%3B';
-	
-	$utmp = urlencode( $_SERVER[ 'REQUEST_URI' ] );
-
-	/*	Prepare the final GET request */
-	$analytics_get_request	= "utmac=$utmac&utmcc=$utmcc&utmcs=$utmcs&utme=$utme&utmhn=$utmhn&utmhid=$utmhid&utmn=$utmn&utmt=$utmt&utmul=$utmul&utmwv=$utmwv&utmp=$utmp&utmu=4~";
-	$analytics_get_request = $google_analytics_url . $analytics_get_request;
-
-	/*	Send the request to Google server */
-	@$ret_data = file_get_contents( $analytics_get_request );
 }
 
 function sixscan_common_gather_system_information_for_anonymous_support_ticket(){

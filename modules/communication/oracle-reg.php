@@ -25,15 +25,13 @@ function sixscan_communication_oracle_reg_register( $site_url , $user_email , $n
 		$raw_register_data =  wp_remote_retrieve_body( $response ) ;	
 		
 		if ( is_wp_error( $response ) ) {
-			$error_string = $response->get_error_message();
-			sixscan_stat_analytics_log_action( SIXSCAN_ANALYTICS_INSTALL_CATEGORY , SIXSCAN_ANALYTICS_INSTALL_REG_ACT , SIXSCAN_ANALYTICS_FAIL_PREFIX_STRING . "wp_remote_get " . $error_string );		
+			$error_string = $response->get_error_message();			
 			
 			$error_string = str_replace( $request_register_url , SIXSCAN_BODYGUARD_REGISTER_URL , $error_string );
 			return $error_string;			
 		}
 		else if ( 200 != wp_remote_retrieve_response_code( $response ) ) {
-			$error_string = "wp_remote_get returned httpd status " . wp_remote_retrieve_response_code( $response ) . ", data:" . urldecode( $raw_register_data );
-			sixscan_stat_analytics_log_action( SIXSCAN_ANALYTICS_INSTALL_CATEGORY , SIXSCAN_ANALYTICS_INSTALL_REG_ACT , SIXSCAN_ANALYTICS_FAIL_PREFIX_STRING . $error_string );	
+			$error_string = "wp_remote_get returned httpd status " . wp_remote_retrieve_response_code( $response ) . ", data:" . urldecode( $raw_register_data );			
 			return $error_string;
 		}
 		
@@ -48,8 +46,7 @@ function sixscan_communication_oracle_reg_register( $site_url , $user_email , $n
 			$arr_location = array_search( $key , $expected );
 			
 			/*	If there was some mistake in the way, and we have received a key , which is not in our array. */
-			if ( $arr_location === FALSE ){	
-				sixscan_stat_analytics_log_action( SIXSCAN_ANALYTICS_INSTALL_CATEGORY , SIXSCAN_ANALYTICS_INSTALL_REG_ACT , SIXSCAN_ANALYTICS_FAIL_PREFIX_STRING . "oracle_response_failed_unknown_parameter" . $request_error_log );
+			if ( $arr_location === FALSE ){					
 				return "Bad value received from 6Scan server.";		
 			}
 							
@@ -61,17 +58,14 @@ function sixscan_communication_oracle_reg_register( $site_url , $user_email , $n
 		
 		/*	If we have not updated all the required values there was some error during registration */
 		if ( ! empty( $expected ) )
-		{
-			sixscan_stat_analytics_log_action( SIXSCAN_ANALYTICS_INSTALL_CATEGORY , SIXSCAN_ANALYTICS_INSTALL_REG_ACT , SIXSCAN_ANALYTICS_FAIL_PREFIX_STRING . "oracle_response_failed_" . $request_error_log );
+		{			
 			return "Bad value received from 6Scan server.";		
 		}
-				
-		sixscan_stat_analytics_log_action( SIXSCAN_ANALYTICS_INSTALL_CATEGORY , SIXSCAN_ANALYTICS_INSTALL_REG_ACT , SIXSCAN_ANALYTICS_OK_STRING );
+						
 		/*	Return the data from registration server */
 		return TRUE;
 	}
-	catch( Exception $e ) {
-		sixscan_stat_analytics_log_action( SIXSCAN_ANALYTICS_INSTALL_CATEGORY , SIXSCAN_ANALYTICS_INSTALL_REG_ACT , SIXSCAN_ANALYTICS_FAIL_PREFIX_STRING . "sixscan_communication_oracle_reg_register_" . $e );
+	catch( Exception $e ) {		
 		die( $e );
 	}
 }
@@ -93,8 +87,7 @@ function sixscan_communication_oracle_reg_verification( $is_to_use_fallback_veri
 		$response = sixscan_common_request_network( $request_verification_url , "" , "GET" );
 		
 		if ( is_wp_error( $response ) ) {
-			$error_string = $response->get_error_message();
-			sixscan_stat_analytics_log_action( SIXSCAN_ANALYTICS_INSTALL_CATEGORY , SIXSCAN_ANALYTICS_INSTALL_REG_ACT , SIXSCAN_ANALYTICS_FAIL_PREFIX_STRING . "_verification_process_" . $error_string );
+			$error_string = $response->get_error_message();			
 			
 			/*	Make the error message simplier for user */
 			$error_string = str_replace( $request_verification_url , SIXSCAN_BODYGUARD_VERIFY_URL , $error_string );
@@ -103,16 +96,13 @@ function sixscan_communication_oracle_reg_verification( $is_to_use_fallback_veri
 		else if ( 200 != wp_remote_retrieve_response_code( $response ) ) {
 			$server_response = "";
 			parse_str( wp_remote_retrieve_body( $response ), $server_response );
-			$error_string = "<br><br>" . $server_response['reason'];			
-			sixscan_stat_analytics_log_action( SIXSCAN_ANALYTICS_INSTALL_CATEGORY , SIXSCAN_ANALYTICS_INSTALL_REG_ACT , SIXSCAN_ANALYTICS_FAIL_PREFIX_STRING . "_verification_process_server_response_" . $error_string );
+			$error_string = "<br><br>" . $server_response['reason'];						
 			return $error_string;
 		}
-		
-		sixscan_stat_analytics_log_action( SIXSCAN_ANALYTICS_INSTALL_CATEGORY , SIXSCAN_ANALYTICS_INSTALL_VERIF_ACT , SIXSCAN_ANALYTICS_OK_STRING );
+				
 		return TRUE;
 	}
 	catch( Exception $e ) {
-		sixscan_stat_analytics_log_action( SIXSCAN_ANALYTICS_INSTALL_CATEGORY , SIXSCAN_ANALYTICS_INSTALL_REG_ACT , SIXSCAN_ANALYTICS_FAIL_PREFIX_STRING . "sixscan_communication_oracle_reg_verification" . $e );
 		die( $e );
 	}
 }
@@ -154,8 +144,7 @@ function sixscan_communication_oracle_reg_create_verification_file(){
 	$file_handle = fopen( $verification_file_name , "w" ); 	
 	
 	if ( $file_handle == FALSE){
-		$error_desc = error_get_last();
-		sixscan_stat_analytics_log_action( SIXSCAN_ANALYTICS_INSTALL_CATEGORY , SIXSCAN_ANALYTICS_INSTALL_VERIF_ACT , SIXSCAN_ANALYTICS_FAIL_PREFIX_STRING . "_verification_file_creation_" . $error_desc[ 'message' ] . '_' . $error_desc[ 'type' ]);
+		$error_desc = error_get_last();		
 		return "Failed creating file " . $verification_file_name . " for verification purposes. Reason:" . $error_desc[ 'message' ] . ' Type:' . $error_desc[ 'type' ];	
 	}
 	

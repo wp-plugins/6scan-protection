@@ -4,7 +4,18 @@ if ( ! defined( 'ABSPATH' ) )
 	die( 'No direct access allowed' );
 	
 function sixscan_menu_install(){
-	add_menu_page( '6Scan' , '6Scan' , 'manage_options' , SIXSCAN_COMMON_DASHBOARD_URL , '' , SIXSCAN_PLUGIN_URL . 'data/img/logo_small.png' );
+
+	/*	We show the amount of non-fixed vulnerabilities near 6Scan icon. If there are 0 - we do not show anything */
+	$vulnerability_count = get_option( SIXSCAN_OPTION_VULNERABITILY_COUNT );
+
+	if ( $vulnerability_count == 0){
+		$sixscan_menu_title = "6Scan";
+	}else{
+		/*	Only way to show number near menu is to use the same class, that is used by Plugins menu (when showing how many plugins are out of date ) */
+		$sixscan_menu_title = "6Scan<span class='update-plugins count-" . $vulnerability_count . "'><span class='plugin-count'>" . number_format_i18n( $vulnerability_count ) . "</span></span>";
+	}
+
+	add_menu_page( '6Scan' , $sixscan_menu_title , 'manage_options' , SIXSCAN_COMMON_DASHBOARD_URL , '' , SIXSCAN_PLUGIN_URL . 'data/img/logo_small.png' );
 	add_submenu_page( SIXSCAN_COMMON_DASHBOARD_URL , '6Scan Dashboard' , 'Dashboard' , 'manage_options' , SIXSCAN_COMMON_DASHBOARD_URL , 'sixscan_menu_dashboard' );
 	if ( sixscan_common_is_account_operational() == TRUE )
 		add_submenu_page( SIXSCAN_COMMON_DASHBOARD_URL , '6Scan Settings' , 'Settings' , 'manage_options' , SIXSCAN_COMMON_SETTINGS_URL , 'sixscan_menu_settings' );
@@ -55,7 +66,7 @@ function sixscan_menu_create_dashboard_frame( $redirect_request = SIXSCAN_COMMON
 ?>	
 	<script language='javascript'>
             var frame = document.getElementById('sixscan_dashboard_iframe');
-            frame.height = document.body.scrollHeight - 125;
+            frame.height = parent.document.body.clientHeight;
 	</script>
 <?php
 }

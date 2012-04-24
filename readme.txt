@@ -1,9 +1,9 @@
 === 6Scan Security ===
 Contributors: 6Scan
-Version: 1.0.10
+Version: 2.0.1
 Tags: security,secure,6scan,protection,anti-hack,hack,attack,scan,sql injection,xss,file inclusion,exploit,automatic,bodyguard,patrol
 Requires at least: 3.0.0
-Tested up to: 3.3.1
+Tested up to: 3.3.2
 Stable tag: trunk
 
 6Scan Security goes beyond the rule-based protection of all other Wordpress security plugins to provide the most comprehensive automatic protection against hackers.
@@ -108,6 +108,11 @@ Please read an extensive explanation on this matter [here](http://6scan.freshdes
 
 = 1.0.10 =
 * Site verification process improved
+
+= 2.0.1 =
+* Smoother install process
+* Displays vulnerability count
+* Added patch to work with very slow servers
 
 == Upgrade Notice ==
 

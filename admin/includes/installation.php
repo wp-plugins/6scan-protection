@@ -18,6 +18,17 @@ function sixscan_installation_manager()
 			print $install_result;		
 			
 			$sixscan_plugin_name = plugin_basename( realpath( dirname( __FILE__ ) . "/../../6scan.php" ) );
+			
+			/*	This dirty patch is required because some hostings (free?) have a short sql timeout. When it timeouts, 6Scan can't
+			disable itelf, and user gets stuck in infitie deactivate loop. 
+			We can't enlarge the timeout, since it requires sql root access. We can only reconnect to the SQL.
+			This rather dirty hack reconnects to SQL and deactivates the plugin */
+			if ( mysql_errno() != 0 ){
+				global $wpdb;
+				$wpdb = new wpdb( DB_USER, DB_PASSWORD, DB_NAME, DB_HOST );
+				wp_set_wpdb_vars();
+			}
+
 			/*	deactivate myself */			
 			deactivate_plugins( $sixscan_plugin_name );
 		}
@@ -25,8 +36,7 @@ function sixscan_installation_manager()
 			/* If we are in partner version, but not running for the first time - we can show the error */
 			print $install_result;
 		}
-
-		sixscan_common_report_analytics( SIXSCAN_ANALYTICS_INSTALL_CATEGORY , SIXSCAN_ANALYTICS_INSTALL_INIT_ACT , $err_description );
+		
 	}
 	else{		
 		/*	No redirects in partner version */
@@ -35,10 +45,15 @@ function sixscan_installation_manager()
 			/*	If the install has succeeded - forward user to the registration page */		
 			$reg_page_address = get_bloginfo( "wpurl" ) . "/wp-admin/admin.php?page=" . SIXSCAN_COMMON_DASHBOARD_URL;
 			
-			print 'Redirecting to 6Scan registration page.<a href="' . $reg_page_address . '">Click here</a> if the redirect didn\'t work<br>';
-			print( '<script type="text/javascript">
-					window.location = "' . $reg_page_address . '"
-					</script>' );
+			/* If user's JavaScript is disabled, he will see this notice to upgrade */
+			sixscan_installation_account_setup_required_notice();
+			/*	Forward user to the registration screen */
+			print <<<EOT
+				<script type="text/javascript">
+					document.getElementById('6scan_dashboard_redirect_caption').style.display = 'none';
+					window.location = "$reg_page_address";
+				</script>
+EOT;
 		}
 	}
 	
@@ -164,12 +179,10 @@ OpenSSL functions for increased security.".
 		sixscan_common_set_account_active( FALSE );
 		sixscan_common_set_account_operational( FALSE );
 		
-		sixscan_common_report_analytics( SIXSCAN_ANALYTICS_INSTALL_CATEGORY , SIXSCAN_ANALYTICS_INSTALL_INIT_ACT , "Activation failed: " . $e );
 		return $e;
 	}		
 		
-	/*	We have completed the registration. Now we have to remind user to register */
-	sixscan_installation_account_setup_required_notice();
+
 		
 	return TRUE;
 }
@@ -195,9 +208,9 @@ function sixscan_installation_uninstall() {
 		delete_option( SIXSCAN_OPTION_MENU_IS_ACCOUNT_OPERATIONAL );
 		delete_option( SIXSCAN_OPTION_COMM_ORACLE_NONCE );				
 		delete_option( SIXSCAN_OPTION_COMM_LAST_SIG_UPDATE_NONCE );		
-		
-	} catch( Exception $e ) {
-		sixscan_common_report_analytics( SIXSCAN_ANALYTICS_UNINSTALL_CATEGORY , SIXSCAN_ANALYTICS_UNINSTALL_RM_ACT , "Deactivation failed: " . $e );
+		delete_option( SIXSCAN_OPTION_VULNERABITILY_COUNT );
+
+	} catch( Exception $e ) {		
 		die( $e );
 	}
 }
@@ -313,8 +326,8 @@ function sixscan_installation_account_setup_required_notice() {
 		and this is not a partner installed version*/
 	if ( ( sixscan_common_is_account_operational() == FALSE ) && ( $_GET[ 'page' ] != SIXSCAN_COMMON_DASHBOARD_URL )
 		&& ( sixscan_common_is_partner_version() == FALSE ) ){			
-			echo '<div class="updated" style="text-align: center;"><p><p>6Scan: In order to enable protection, please <a href="admin.php?page=' . 
-			SIXSCAN_COMMON_DASHBOARD_URL . '">create your account</a> now.</p></p></div>';		
+			echo '<div id="6scan_dashboard_redirect_caption" class="updated" style="text-align: center;"><p><p>6Scan: In order to enable protection, please <a href="admin.php?page=' . 
+			SIXSCAN_COMMON_DASHBOARD_URL . '">create your account</a> now.</p></p></div>';
 		}
 }	
 	

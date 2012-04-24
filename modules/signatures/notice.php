@@ -72,6 +72,11 @@ sixscan_common_show_all_errors();
 
 /*	Mark this nonce as already used */
 update_option( SIXSCAN_OPTION_COMM_LAST_SIG_UPDATE_NONCE , $oracle_nonce );	
+
+/*	Server updates discovered vulnerability count */
+if ( isset( $_GET[ SIXSCAN_NOTICE_VULN_COUNT ] ) ){
+	update_option( SIXSCAN_OPTION_VULNERABITILY_COUNT , intval( $_GET[ SIXSCAN_NOTICE_VULN_COUNT ] ) );
+}
 	
 /*	Include the update functionality */
 require_once( ABSPATH . 'wp-admin/includes/upgrade.php' );
