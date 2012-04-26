@@ -6,7 +6,7 @@ Requires at least: 3.0.0
 Tested up to: 3.3.2
 Stable tag: trunk
 
-6Scan Security goes beyond the rule-based protection of all other Wordpress security plugins to provide the most comprehensive automatic protection against hackers.
+6Scan Security goes beyond the rule-based protection of other Wordpress security plugins to provide the most comprehensive protection against hackers.
 
 == Description ==
 
