@@ -209,6 +209,7 @@ function sixscan_installation_uninstall() {
 		delete_option( SIXSCAN_OPTION_COMM_ORACLE_NONCE );				
 		delete_option( SIXSCAN_OPTION_COMM_LAST_SIG_UPDATE_NONCE );		
 		delete_option( SIXSCAN_OPTION_VULNERABITILY_COUNT );
+		delete_option( SIXSCAN_OPTION_WAF_REQUESTED );
 
 	} catch( Exception $e ) {		
 		die( $e );

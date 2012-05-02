@@ -89,6 +89,9 @@ if ( isset( $_GET[ SIXSCAN_NOTICE_ACCOUNT_ENABLED ] ) ){
 	}	
 }
 
+/*	Change WAF options, according to request */
+sixscan_waf_set_options_confuguration();
+
 /*	Default value, in case we don't need to send security env */
 $security_result = TRUE;
 if ( isset( $_GET[ SIXSCAN_NOTICE_SECURITY_ENV_NAME ] ) && ( $_GET[ SIXSCAN_NOTICE_SECURITY_ENV_NAME ] == 1 ) ){
@@ -129,6 +132,33 @@ else{
 /*	And exit */
 exit( 0 );
 
+function sixscan_waf_set_options_confuguration(){
+	$waf_global_options = array();
+
+	if ( isset( $_GET[ 'waf_global_enable' ] ) && ( $_GET[ 'waf_global_enable' ] == 'True') )
+		$waf_global_options[] = 'waf_global_enable';
+
+	if ( isset( $_GET[ 'waf_non_standart_req_disable' ] ) && ( $_GET[ 'waf_non_standart_req_disable' ] == 'True') )	
+		$waf_global_options[] = 'waf_non_standart_req_disable';
+
+	if ( isset( $_GET[ 'waf_sql_protection_enable' ] ) && ( $_GET[ 'waf_sql_protection_enable' ] == 'True') )	
+		$waf_global_options[] = 'waf_sql_protection_enable';
+
+	if ( isset( $_GET[ 'waf_rfi_protection_enable' ] ) && ( $_GET[ 'waf_rfi_protection_enable' ] == 'True') )	
+		$waf_global_options[] = 'waf_rfi_protection_enable';
+
+	if ( isset( $_GET[ 'waf_rfi_local_access_enable' ] ) && ( $_GET[ 'waf_rfi_local_access_enable' ] == 'True') )	
+		$waf_global_options[] = 'waf_rfi_local_access_enable';
+
+	if ( isset( $_GET[ 'waf_xss_protection_enable' ] ) && ( $_GET[ 'waf_xss_protection_enable' ] == 'True') )	
+		$waf_global_options[] = 'waf_xss_protection_enable';
+
+	if ( isset( $_GET[ 'waf_post_csrf_protection_enable' ] ) && ( $_GET[ 'waf_post_csrf_protection_enable' ] == 'True') )	
+		$waf_global_options[] = 'waf_post_csrf_protection_enable';
+	
+	/*	Saves WAF options */
+	update_option( SIXSCAN_OPTION_WAF_REQUESTED, $waf_global_options);
+}
 
 function sixscan_notice_find_wp_load_location(){
 	$current_wp_load_location = "../../../../../wp-load.php";	

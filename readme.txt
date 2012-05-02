@@ -1,12 +1,12 @@
 === 6Scan Security ===
 Contributors: 6Scan
-Version: 2.0.1
+Version: 2.1.1
 Tags: security,secure,6scan,protection,anti-hack,hack,attack,scan,sql injection,xss,file inclusion,exploit,automatic,bodyguard,patrol
 Requires at least: 3.0.0
 Tested up to: 3.3.2
 Stable tag: trunk
 
-6Scan Security goes beyond the rule-based protection of other Wordpress security plugins to provide the most comprehensive protection against hackers.
+6Scan Security goes beyond the rule-based protection of all other Wordpress security plugins to provide the most comprehensive automatic protection against hackers.
 
 == Description ==
 
@@ -19,7 +19,7 @@ Our Patrol scanner goes beyond the rule-based protection of all other Wordpress 
  * CSRF attacks
  * Directory traversals
  * Remote file inclusion
- * DOS conditions
+ * Secured against several DoS conditions
  * And many more, including all of the OWASP Top Ten security vulnerabilities.
 * Bodyguard: 6Scan's Bodyguard acts on your server to rapidly fix all security vulnerabilities found by Patrol.
 * Constantly updated: Our team of security experts constantly finds new vulnerabilities and attack strategies, and integrates them into Patrol so you are immediately protected.
@@ -113,6 +113,11 @@ Please read an extensive explanation on this matter [here](http://6scan.freshdes
 * Smoother install process
 * Displays vulnerability count
 * Added patch to work with very slow servers
+
+= 2.1.1 =
+* Added WAF security settings
+* Added manual fixes instructions
+* New dashboard design
 
 == Upgrade Notice ==
 

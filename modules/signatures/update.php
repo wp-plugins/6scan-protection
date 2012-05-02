@@ -202,23 +202,39 @@ function sixscan_signatures_update_htaccess( $links_list ) {
 	
 	/*	We need the site relative path */
 	$rel_path = isset( $mixed_site_address[ 'path' ] ) ? $mixed_site_address[ 'path' ] : "";	
-		
+	
+	/*	Escape the dot of current hostname for regexps */
+	$current_hostname = str_replace( "." , "\." , $mixed_site_address[ 'host' ] );
+
 	$vuln_urls = "#Broad-spectrum protection: User agent/referrer injections. XSS,RFI and SQLI prevention
-#skip the rfi rule, if accessing wp-login page
-RewriteCond %{REQUEST_URI} ^" . trailingslashit( $wordpress_base_dirname ) . "wp-login [NC]
-RewriteRule ^(.*)$ - [S=1]
+RewriteCond %{REQUEST_METHOD} ^(OPTIONS|HEAD|PUT|DELETE|TRACE|CONNECT|PATCH|TRACK|DEBUG) [NC]\n";
+	
+	if (sixscan_signatures_is_to_block_non_standard_requests())
+		$vuln_urls .= "RewriteRule ^(.*)$ - [F,L]\n";
+	else
+		$vuln_urls .= "RewriteRule .*  - [E=sixscansecuritylog:1,E=sixscanstrangerequest:1] -\n";
+	
+	$vuln_urls.= "
 
 RewriteCond %{QUERY_STRING} (http(s)?(:|%3A)(/|%2F)(/|%2F)|ftp(:|%3A)(/|%2F)(/|%2F)|zlib(:|%3A)|bzip2(:|%3A)) [NC]
-RewriteRule .*  - [E=sixscansecuritylog:1] -
+RewriteRule .*  - [E=sixscansecuritylog:1,E=sixscanwafrfi:1] -
 
-RewriteCond %{HTTP_USER_AGENT} (<|%3c|>|%3e|'|%27|%00) [NC,OR]
-RewriteCond %{HTTP_REFERER} (<|%3c|>|%3e|'|%27|%00) [NC,OR]
-RewriteCond %{QUERY_STRING} (<|%3c).*(script|iframe|src).*(>|%3e) [NC,OR]
+RewriteCond %{REQUEST_METHOD} ^(POST) [NC]
+RewriteCond %{HTTP_REFERER} !^https?://" . $current_hostname . " [NC]
+RewriteRule .*  - [E=sixscansecuritylog:1,E=sixscanwafcsrf:1] -
+
+RewriteCond %{QUERY_STRING} (<|%3c).*(script|iframe|src).*(>|%3e) [NC]
+RewriteRule .*  - [E=sixscansecuritylog:1,E=sixscanwafxss:1] -
+
 RewriteCond %{QUERY_STRING} union.*select [NC,OR]
 RewriteCond %{QUERY_STRING} (concat|delete|right|ascii|left|mid|version|substring|extractvalue|benchmark|load_file).*\(.*\)	[NC,OR]
 RewriteCond %{QUERY_STRING} (into.*outfile) [NC,OR]
 RewriteCond %{QUERY_STRING} (having.*--) [NC]
-RewriteRule .*  - [E=sixscansecuritylog:1] -\n\n";
+RewriteRule .*  - [E=sixscansecuritylog:1,E=sixscanwafsqli:1] -\n\n";
+
+//#skip the rfi rule, if accessing wp-login page
+//RewriteCond %{REQUEST_URI} ^" . trailingslashit( $wordpress_base_dirname ) . "wp-login [NC]
+//RewriteRule ^(.*)$ - [S=1]
 
 	if ( strlen( $links_list ) > 0 ) {
 		$links = explode( SIXSCAN_SIGNATURE_LINKS_DELIMITER , $links_list );
@@ -254,8 +270,8 @@ RewriteRule .*  - [E=sixscansecuritylog:1] -\n\n";
 			$htaccess_links .= "\n";
 	}
 	
-	/*	If an IP maches one of the listed , skip the next two rules (automatic exploit detection/6scan_gate forwarding) */
-	$htaccess_links .= "RewriteRule ^(.*)$ - [S=4]\n\n";
+	/*	If an IP maches one of the listed , skip the next 6 rules (automatic exploit detection/6scan_gate forwarding) */
+	$htaccess_links .= "RewriteRule ^(.*)$ - [S=6]\n\n";
 
 	/*	Now add the URL rules */
 	$htaccess_links .= $vuln_urls;		
@@ -388,4 +404,16 @@ function sixscan_signatures_update_copy_file( $src_file , $dst_file ){
 	return rename( $src_file , $dst_file );
 }
 
+function sixscan_signatures_is_to_block_non_standard_requests(){
+	$allowed_waf_rules = get_option( SIXSCAN_OPTION_WAF_REQUESTED );
+
+	if ( in_array( 'waf_global_enable' , $allowed_waf_rules ) == FALSE )
+		return FALSE;
+
+	/* 	Filter strange requests */
+	if ( in_array( 'waf_non_standart_req_disable' , $allowed_waf_rules ) )
+		return TRUE;	
+
+	return FALSE;
+}
 ?>
