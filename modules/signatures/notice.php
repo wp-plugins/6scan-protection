@@ -208,21 +208,40 @@ function sixscan_send_security_log( $site_id ,  $api_token ){
 																	. "&api_token=" . $api_token;	
 	
 	$log_fname = "../../" . SIXSCAN_SECURITY_LOG_FILENAME;
-	if ( is_file( $log_fname ) === FALSE)
-		return TRUE;
+	
+	if ( is_file( $log_fname ) === FALSE ){
+		$log_data = "";
+	}
+	else{
+		$log_data = file_get_contents( $log_fname );
+		unlink( $log_fname );
 		
-	$log_data = file_get_contents( $log_fname );
+		if ( $log_data === FALSE )
+			$log_data = "";	#empty
+	}
 	
-	if ( $log_data === FALSE )
-		$log_data = "";	#empty
 	
+	/*	Get suspicious requests statistics from DB and reset it  */
+	$suspicious_request_count = sixscan_signatures_analyzer_requests_get();
+	sixscan_signatures_analyzer_requests_reset();
+
+	/* If there are no counter fields in databse, it means we have upgraded from version, which didn't add those fields on install */
+	if ( ( in_array( SIXSCAN_OPTION_STAT_SUSPICIOUS_REQ_COUNT , $suspicious_request_count ) === false ) ||
+			( in_array( SIXSCAN_OPTION_STAT_OK_REQ_COUNT , $suspicious_request_count ) === false ) ){
+		update_option( SIXSCAN_OPTION_STAT_SUSPICIOUS_REQ_COUNT , '0' );
+		update_option( SIXSCAN_OPTION_STAT_OK_REQ_COUNT , '0' );
+	}
+	else{
+		$version_update_url .= "&bad_requests=" . $suspicious_request_count[ SIXSCAN_OPTION_STAT_SUSPICIOUS_REQ_COUNT ] . 
+			"&good_requests=" . $suspicious_request_count[ SIXSCAN_OPTION_STAT_OK_REQ_COUNT ];	
+	}
+	
+
 	$response = sixscan_common_request_network( $version_update_url , $log_data , "POST" );	
 	
 	if ( is_wp_error( $response ) ) {
 		return $response->get_error_message();
 	}
-	
-	unlink( $log_fname );
 	
 	return TRUE;
 }

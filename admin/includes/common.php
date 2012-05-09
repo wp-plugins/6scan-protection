@@ -3,7 +3,7 @@
 if ( ! defined( 'ABSPATH' ) ) 
 	die( 'No direct access allowed' );
 
-define ( 'SIXSCAN_VERSION' ,							'2.1.1.0' );
+define ( 'SIXSCAN_VERSION' ,							'2.1.2.0' );
 define ( 'SIXSCAN_HTACCESS_VERSION' ,					'1' );
 
 if( empty( $_SERVER[ "HTTPS" ] ) )
@@ -42,6 +42,8 @@ define ( 'SIXSCAN_OPTION_MENU_VERIFICATION_TOKEN' , 	'sixscan_registered_verific
 define ( 'SIXSCAN_OPTION_MENU_DASHBOARD_TOKEN' , 		'sixscan_registered_dashboard_token' );
 define ( 'SIXSCAN_OPTION_VULNERABITILY_COUNT' ,			'sixscan_vulnerability_count' );
 define ( 'SIXSCAN_OPTION_WAF_REQUESTED' ,				'sixscan_waf_requested_options');
+define ( 'SIXSCAN_OPTION_STAT_SUSPICIOUS_REQ_COUNT' ,	'sixscan_waf_suspicious_req_count' );
+define ( 'SIXSCAN_OPTION_STAT_OK_REQ_COUNT' ,			'sixscan_waf_ok_count' );
 
 define ( 'SIXSCAN_UPDATE_OK_RESPONSE_CODE',				200 );
 define ( 'SIXSCAN_UPDATE_LAST_VERSION_RESPONSE_CODE',	304 );

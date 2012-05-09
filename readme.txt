@@ -1,7 +1,7 @@
 === 6Scan Security ===
 Contributors: 6Scan
-Version: 2.1.1
-Tags: security,secure,6scan,protection,anti-hack,hack,attack,scan,sql injection,xss,file inclusion,exploit,automatic,bodyguard,patrol
+Version: 2.1.2
+Tags: security,secure,wordpress security,firewall,antivirus,security plugin,securty,protection,anti-hack,hack,scan,exploit,anti-virus
 Requires at least: 3.0.0
 Tested up to: 3.3.2
 Stable tag: trunk
@@ -13,6 +13,7 @@ Stable tag: trunk
 6Scan Security is the most comprehensive *automatic* protection your Wordpress site can get against hackers.  Our security scanner goes beyond the rule-based protection of other Wordpress security plugins, employing active penetration testing algorithms to find security vulnerabilities.  These are then  automatically fixed before hackers can exploit them. Our team of website security experts ensures your protection is always up-to-date and airtight.
 
 Our automatic security scanner finds and protects against:
+
 * SQL Injection
 * Cross-Site Scripting (XSS)
 * CSRF
@@ -23,11 +24,17 @@ Our automatic security scanner finds and protects against:
 
 6Scan Security includes an agent that runs on your server to rapidly fix all security vulnerabilities found by the scanner.  Our team of security experts constantly finds new vulnerabilities and attack strategies, and integrates them into the scanner so you are immediately protected.
 
-6Scan Security also includes a Web Application Firewall (WAF) that uses pattern matching to block out even more security threats.  Our WAF is completely configurable so you can choose the level of security you desire for your site.
+6Scan Security also includes a Web Application Firewall (WAF) that uses pattern matching to block out even more security threats.  Our application firewall is completely configurable so you can choose the level of security you desire for your site.
 
 Once 6Scan Security is installed, no further action is required to keep your site protected.  6Scan Security is also specifically engineered not to affect your site's performance or interfere with your site's legitimate users.  Our dashboard is specifically designed to convey your security status in a clear and simple manner, so that even non-experts can understand the situation.
 
 It is very important to take note of the difference between various Wordpress security plugins.  Most of these are based on a ruleset which recognizes and blocks certain attack signatures. This approach is effective for protecting against some common SQL injection attacks, but fails to detect or prevent hackers from exploiting flawed logic.  For example, it could not protect against an authorization bug in a file upload plugin, potentially allowing unauthorized users to upload malware and viruses to your site.  6Scan's security response team constantly updates your blog's protection to deal with the latest threats found on all major exploit databases on the Internet.
+
+To make sure you are always secure, we are constantly updating 6Scan Security with new features.  The following features are in beta testing and will be released soon:
+
+* Suspicious Traffic Graphs: See a visualization over time of exactly how many hackers are attempting to exploit security vulnerabilities on your site and gain unauthorized access.  For example, we will show you bots, automated hacking tools, security audit software, etc. – anything filtered by our WAF (Web Application Firewall) or by one of the security vulnerabilities you have fixed.  You can also see how much of your traffic is not malicious.
+* Secure Login: A plethora of options you can use to protect against login attacks (such as dictionary and brute force attacks).  Lock would-be attackers out after a number of unsuccessful login attempts, receive email notifications when someone is trying to hack your site, and much more!
+* Automatic Secured Backup: 6Scan can back up your entire site and database.  If anything should ever go wrong - whether it's a security problem or just a mistake you made - you can easily download a backup and undo the change.  You don’t even need an antivirus or antimalware product!  Backups are encrypted on-the-fly and stored on our secure servers so nobody can access them but you.
 
 Let 6Scan handle the security of your Wordpress site, so you can worry about what really matters to you - your content.  If you have any questions, please feel free to contact us using our [support area](http://6scan.com/support).
 
@@ -49,7 +56,7 @@ Once installed, 6Scan Security will add three items to your Wordpress menu: Dash
 
 The dashboard shows you the list of security vulnerabilities detected by our scanner. Every security issue can be clicked for more information. There is a textual description of each vulnerability and a link to a public advisory (when available) on a Bugtraq site.
 
-The settings page allows you to configure the following WAF security options:
+The settings page allows you to configure the following Web Application Firewall security options:
 * SQL Injection - Detects and blocks database hacking attempts
 * Cross Site Scripting (XSS) - Detects and blocks identity theft attacks, which are based on stolen cookies
 * Disable Non-standard request types - Disables any non-GET/POST requests to your site
@@ -72,7 +79,7 @@ If you encounter any problems during installation, please visit our [support are
 
 = Does 6Scan Security work with other security plugins? =
 
-Yes, 6Scan Security has been tested with many other security plugins and does not conflict with them. If you suspect any compatibility problem, please contact us via our [support area](http://6scan.com/support) or email support@6scan.com.
+Yes, 6Scan Security has been tested with many other security, antivirus, firewall and backup plugins and does not conflict with them. If you suspect any compatibility problem, please contact us via our [support area](http://6scan.com/support) or email support@6scan.com.
 
 = Will 6Scan Security work with my hosting package? =
 
@@ -91,13 +98,14 @@ We work with all standard hosting packages that support Wordpress.  We have spec
 We pay specific attention to our plugin's performance because it should work seamlessly, even under heavy load.  Because our initial flagging rules are optimized to be lightning fast, and only suspicious requests undergo additional checks, your site's legigimate users will not be affected.
 
 = Does 6Scan protect against TimThumb vulnerability? =
-TimThumb is an RFI vulnerability, which is based on including a malicious PHP script as a path to your TimbThumb gallery.  It is easily filtered out by 6Scan Security's WAF feature.  One of the advantages of the WAF rules, is that they are complete generic, and will block out TimThumb wherever it is on your site, as well as automatically blocking similar vulnerabilities in the future.
+
+TimThumb is an RFI vulnerability, which is based on including a malicious PHP script as a path to your TimbThumb gallery.  It is easily filtered out by 6Scan Security's Web Application Firewall.  One of the advantages of the application firewall rules is that they are complete generic, and will block out TimThumb wherever it is on your site, as well as automatically blocking similar vulnerabilities in the future.
 
 = What is the 6Scan WAF feature? =
 
-WAF is an acronym for Web Application Firewall.  It is a set of rules which are designed to flag suspicious requests and then act accordingly (for example, by blocking the request before it reaches its target).  Our WAF is written to match a set of widespread attacks patterns, while minimizing its impact on user experience.
+WAF is an acronym for Web Application Firewall.  It is a set of rules which are designed to flag suspicious requests and then act accordingly (for example, by blocking the request before it reaches its target).  Our firewall is written to match a set of widespread attacks patterns, while minimizing its impact on user experience.
 
-= How often does 6Scan Security scan my site for newest security threats? =
+= How often does 6Scan Security scan my site for the newest security threats? =
 
 On average, your site will be scanned once every few hours, making sure your site is scanned several times every day for the latest security issues.  However, when a new vulnerability is discovered and published, 6Scan Security will scan affected sites with a higher priority to make sure the vulnerability is fixed right away.
 
@@ -113,19 +121,48 @@ First, because other plugins do not protect against all the security vulnerabili
 
 Second, because 6Scan Security is easy-to-use, so that anyone - even without a technical background - can understand and use our plugin to fix security problems.  Our plugin is easy to activate, very user-friendly but still extremely efficient.
 
+= What is a zero-day security vulnerability? =
+
+A zero-day vulnerability is a security flaw which has been found by hackers, but has not yet been patched by the vendor of the affected component, making it an easy target for hackers.  In fact, most hackers operate by taking the latest zero-day vulnerabilities and scanning the entire web for sites which have them!  A general firewall or antivirus product will not protect you against many zero-day attacks since new attacks might not match any currently known pattern.
+
+Once the vendor has released an update, the vulnerability is no longer classified as 'zero-day', but websites must still update the affected component before they are secure.  6Scan Security protects you against zero-day vulnerabilities immediately after they are found and without forcing you to update any components.
+
+= Why is it important to fix security vulnerabilities? =
+
+Hackers are constantly on the prowl for sites they can exploit.  Security vulnerabilities are the hacker's method of gaining unauthorized access to sites.  Once they do, they can steal data, deface pages, install spyware or botnets, and perform other malicious actions against the website and its users.  Only by making sure your site does not have any vulnerabilities can you secure yourself against these hackers.
+
+= What other security measures should I employ? =
+
+* Password strength: 6Scan Security protects your website against hackers, but nobody can protect against a hacker who can guess your password.  Always use a complex password that contains letters of different cases, numbers and punctuation.  Never use a dictionary word, names of loved ones, or birthdays as passwords, as hackers can easily find them out.
+* Spyware: if your computer is infected with spyware or other malware, it may steal your passwords from you without you even knowing!  Always make sure to have current versions of anti-spyware, antivirus and antimalware products active on your computer.  Never log in to your site from a public computer, such as a computer in a public library, as these are frequently compromised with malware designed especially to steal passwords as they are entered.
+* Access through HTTPS on public networks: If your website's login form does not use HTTPS, your login details can easily be intercepted as they pass through public networks, such as WiFi in a coffee shop or a public library network.  If you must log in from a public network, be sure your login form uses HTTPS encryption.
+
+= Can 6Scan Security fix a site that has already been hacked? =
+
+6Scan Security protects you from hackers attempting to compromise your site, but it cannot undo the damage a hacker has already caused - it is not an antivirus, but a preemptive protection solution.  Any damage must be manually cleaned before 6Scan can effectively secure your site.  Our backup feature, which is currently in beta testing and will be released soon, can help you ensure that even if your site is compromised, you will always be able to roll back to a clean version with a minimum of hassle - no antivirus or antimalware required.
+
 = 6Scan scanned my site and no vulnerabilities were found. What does this mean? =
 
-Good news!  This means that there are no immediate security problems with your site.  However, you should still keep 6Scan Security installed so it can continue to monitor your site.  It is quite possible that one of your siteâ€™s components has a security vulnerability which hasnâ€™t yet been discovered.  Once it is discovered (either by our security research team or by another party), 6Scan Security will notify you and allow you to patch it before hackers use it to compromise your site.
+Good news!  This means that there are no immediate security problems with your site.  However, you should still keep 6Scan Security installed so it can continue to monitor your site.  It is quite possible that one of your site’s components has a security vulnerability which hasn’t yet been discovered.  Once it is discovered (either by our security research team or by another party), 6Scan Security will notify you and allow you to patch it before hackers use it to compromise your site.
+
+= How is 6Scan Security different from an antivirus or antimalware product? =
+
+Antivirus and antimalware products are designed to let you know when your site is infected by a virus or malware, and help you remove it.  However, the existence of a virus or malware on your site means it has already been compromised by hackers!  6Scan Security prevents hackers from getting into your site in the first place, meaning you will never have malware installed.  However, 6Scan does include a malware scanner that will let you know if there is any pre-existing malicious code on your site.
 
 = I have a feature request! =
 
 We are always open to feature requests, especially for security-related features. Please contact us with a detailed description of your request at our [support area](http://6scan.com/support), and we will consider including it in our plugin.
 
+= Who is 6Scan? =
+
+We are a team of ex-military security experts who have implemented traditional expensive and complicated website security solutions.  We couldn't find a way to effectively secure small and medium websites with lower budgets and no technical expertise - which is why we decided to create a Wordpress plugin that's both comprehensive and easy-to-use.
 
 == Screenshots ==
 
-1. Your dashboard shows the security vulnerabilities you are being protected against.
-2. Security settings of 6Scan WAF together with SMS notification configured.
+1. Your dashboard shows the security vulnerabilities found on your site.  6Scan can automatically and immediately fix each of these vulnerabilities, ensuring your site is always secure.
+2. Security settings of 6Scan's WAF and notification of new security vulnerabilities by SMS.
+3. You can use our support forum to ask questions, report problems or suggest features.
+4. If you prefer to manually fix a security vulnerability, you can get detailed instructions on how to do so.
 
 == Changelog ==
 
