@@ -13,64 +13,18 @@ function sixscan_signatures_analyzer_is_env_flag_on( $flag_value ){
 	return FALSE;
 }
 
-function sixscan_signatures_analyzer_requests_count( $is_suspicious = FALSE ){
-	global $wpdb;
-	$count_option_name = SIXSCAN_OPTION_STAT_OK_REQ_COUNT;
-
-	if ( $is_suspicious )
-		$count_option_name = SIXSCAN_OPTION_STAT_SUSPICIOUS_REQ_COUNT;
-	
-	$counter_update_query = "update " . $wpdb->options . " set option_value=option_value+1 where option_name like '$count_option_name'";
-	$wpdb->query( $counter_update_query );
-}
-
-function sixscan_signatures_analyzer_requests_reset(){
-	global $wpdb;
-
-	$counter_reset_query = "update " . $wpdb->options . " set option_value=0 where option_name like '" . SIXSCAN_OPTION_STAT_OK_REQ_COUNT . 
-			"' or option_name like '" . SIXSCAN_OPTION_STAT_SUSPICIOUS_REQ_COUNT . "'";
-	$wpdb->query( $counter_reset_query );
-}
-
-function sixscan_signatures_analyzer_requests_get(){
-	global $wpdb;
-
-	$counter_get_query = "select * from " . $wpdb->options . " where option_name like '" . SIXSCAN_OPTION_STAT_OK_REQ_COUNT . 
-			"' or option_name like '" . SIXSCAN_OPTION_STAT_SUSPICIOUS_REQ_COUNT . "'";
-	
-	$analyzer_counter_array = $wpdb->get_results( $counter_get_query );
-
-	$response_array = array();
-
-	/* convert stdClass into associative array for ease of use */
-	foreach ( $analyzer_counter_array as $one_request ){
-		$response_array[ $one_request->option_name ] = $one_request->option_value;		
-	}
-
-	return $response_array;
-}
-
-
 /*	A 403 page for user */
 function sixscan_signatures_analyzer_deny_access(){
 	header("HTTP/1.0 403 Forbidden");
 	die();
 }
 
-function sixscan_signatures_analyzer_suspicious_request(){	
-	
-	/* 	If we were accessed by one of our servers, do not count this request */
-	if ( strstr( SIXSCAN_SIGNATURE_SCANNER_IP_LIST, $_SERVER[ 'REMOTE_ADDR' ] ) !== FALSE )
-		return;
+function sixscan_signatures_analyzer_suspicious_request(){
 
 	/*	Only log suspicious requests, that were triggered by .htaccess rule */
-	if ( sixscan_signatures_analyzer_is_env_flag_on( "sixscansecuritylog" ) == FALSE ){
-		sixscan_signatures_analyzer_requests_count( FALSE );
+	if ( sixscan_signatures_analyzer_is_env_flag_on( "sixscansecuritylog" ) == FALSE ){	
 		return;
 	}
-
-	/*	Suspicious request */
-	sixscan_signatures_analyzer_requests_count( TRUE );
 	
 	if ( is_writeable (dirname ( SIXSCAN_ANALYZER_LOG_FILEPATH ) . "/" ) == FALSE )
 		return;
