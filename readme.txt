@@ -1,6 +1,6 @@
 === 6Scan Security ===
 Contributors: 6Scan
-Version: 2.1.1
+Version: 2.1.2
 Tags: security,secure,wordpress security,firewall,antivirus,security plugin,securty,protection,anti-hack,hack,scan,exploit,anti-virus
 Requires at least: 3.0.0
 Tested up to: 3.3.2
@@ -32,9 +32,9 @@ It is very important to take note of the difference between various Wordpress se
 
 To make sure you are always secure, we are constantly updating 6Scan Security with new features.  The following features are in beta testing and will be released soon:
 
-* Suspicious Traffic Graphs: See a visualization over time of exactly how many hackers are attempting to exploit security vulnerabilities on your site and gain unauthorized access.  For example, we will show you bots, automated hacking tools, security audit software, etc. – anything filtered by our WAF (Web Application Firewall) or by one of the security vulnerabilities you have fixed.  You can also see how much of your traffic is not malicious.
+* Suspicious Traffic Graphs: See a visualization over time of exactly how many hackers are attempting to exploit security vulnerabilities on your site and gain unauthorized access.  For example, we will show you bots, automated hacking tools, security audit software, etc. - anything filtered by our WAF (Web Application Firewall) or by one of the security vulnerabilities you have fixed.  You can also see how much of your traffic is not malicious.
 * Secure Login: A plethora of options you can use to protect against login attacks (such as dictionary and brute force attacks).  Lock would-be attackers out after a number of unsuccessful login attempts, receive email notifications when someone is trying to hack your site, and much more!
-* Automatic Secured Backup: 6Scan can back up your entire site and database.  If anything should ever go wrong - whether it's a security problem or just a mistake you made - you can easily download a backup and undo the change.  You don’t even need an antivirus or antimalware product!  Backups are encrypted on-the-fly and stored on our secure servers so nobody can access them but you.
+* Automatic Secured Backup: 6Scan can back up your entire site and database.  If anything should ever go wrong - whether it's a security problem or just a mistake you made - you can easily download a backup and undo the change.  You don't even need an antivirus or antimalware product!  Backups are encrypted on-the-fly and stored on our secure servers so nobody can access them but you.
 
 Let 6Scan handle the security of your Wordpress site, so you can worry about what really matters to you - your content.  If you have any questions, please feel free to contact us using our [support area](http://6scan.com/support).
 
@@ -57,6 +57,7 @@ Once installed, 6Scan Security will add three items to your Wordpress menu: Dash
 The dashboard shows you the list of security vulnerabilities detected by our scanner. Every security issue can be clicked for more information. There is a textual description of each vulnerability and a link to a public advisory (when available) on a Bugtraq site.
 
 The settings page allows you to configure the following Web Application Firewall security options:
+
 * SQL Injection - Detects and blocks database hacking attempts
 * Cross Site Scripting (XSS) - Detects and blocks identity theft attacks, which are based on stolen cookies
 * Disable Non-standard request types - Disables any non-GET/POST requests to your site
@@ -143,7 +144,7 @@ Hackers are constantly on the prowl for sites they can exploit.  Security vulner
 
 = 6Scan scanned my site and no vulnerabilities were found. What does this mean? =
 
-Good news!  This means that there are no immediate security problems with your site.  However, you should still keep 6Scan Security installed so it can continue to monitor your site.  It is quite possible that one of your site’s components has a security vulnerability which hasn’t yet been discovered.  Once it is discovered (either by our security research team or by another party), 6Scan Security will notify you and allow you to patch it before hackers use it to compromise your site.
+Good news!  This means that there are no immediate security problems with your site.  However, you should still keep 6Scan Security installed so it can continue to monitor your site.  It is quite possible that one of your site's components has a security vulnerability which hasn't yet been discovered.  Once it is discovered (either by our security research team or by another party), 6Scan Security will notify you and allow you to patch it before hackers use it to compromise your site.
 
 = How is 6Scan Security different from an antivirus or antimalware product? =
 

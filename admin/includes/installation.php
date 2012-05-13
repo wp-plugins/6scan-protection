@@ -171,7 +171,11 @@ OpenSSL functions for increased security.".
 						
 		/*	Preparing options for further use */											
 		update_option( SIXSCAN_OPTION_COMM_ORACLE_NONCE , 1 );
-		update_option( SIXSCAN_OPTION_COMM_LAST_SIG_UPDATE_NONCE , 0 );						
+		update_option( SIXSCAN_OPTION_COMM_LAST_SIG_UPDATE_NONCE , 0 );	
+		update_option( SIXSCAN_OPTION_STAT_SUSPICIOUS_REQ_COUNT , 0 );
+		update_option( SIXSCAN_OPTION_STAT_OK_REQ_COUNT , 0);
+		update_option( SIXSCAN_OPTION_WAF_REQUESTED , array() );
+		update_option( SIXSCAN_OPTION_LOGIN_SETTINGS , array() );
 		
 	} catch( Exception $e ) {
 		/* Exception aborts the process */
@@ -181,8 +185,6 @@ OpenSSL functions for increased security.".
 		
 		return $e;
 	}		
-		
-
 		
 	return TRUE;
 }
@@ -209,7 +211,11 @@ function sixscan_installation_uninstall() {
 		delete_option( SIXSCAN_OPTION_COMM_ORACLE_NONCE );				
 		delete_option( SIXSCAN_OPTION_COMM_LAST_SIG_UPDATE_NONCE );		
 		delete_option( SIXSCAN_OPTION_VULNERABITILY_COUNT );
+		delete_option( SIXSCAN_OPTION_LOGIN_SETTINGS );
+		delete_option( SIXSCAN_LOGIN_LOGS );		
 		delete_option( SIXSCAN_OPTION_WAF_REQUESTED );
+		delete_option( SIXSCAN_OPTION_STAT_SUSPICIOUS_REQ_COUNT );
+		delete_option( SIXSCAN_OPTION_STAT_OK_REQ_COUNT );
 
 	} catch( Exception $e ) {		
 		die( $e );
@@ -261,12 +267,10 @@ function sixscan_installation_register_with_server(){
 		sixscan_communication_oracle_reg_create_verification_file();
 		$verification_result = sixscan_communication_oracle_reg_verification( TRUE );		
 		
-		if ( $verification_result !== TRUE ) {
-			/*	Try to diagnose what caused the verification failure */
-			sixscan_installation_verification_fail_reason();
+		if ( $verification_result !== TRUE ) {			
 			
 			sixscan_communication_oracle_reg_remove_verification_file();
-			$err_descr = "There was a problem verifying your site with 6Scan: <br>";					
+			$err_descr = "There was a problem verifying your site with 6Scan: <b>$verification_result</b>.<br><br>";					
 			$err_msg .= sixscan_menu_wrap_error_msg( $err_descr );
 			$err_msg .= sixscan_menu_get_error_submission_form( $verification_result );		
 			return $err_msg; /* Fail activation with error message and submission form */		
@@ -282,44 +286,6 @@ function sixscan_installation_verification_get_page_result( $page_url ){
 	return wp_remote_retrieve_response_code( $response );
 }
 
-function sixscan_installation_verification_fail_reason(){
-
-	/* Try to find what stage caused 500 error */
-	$failed_verification = array();
-	$image_url = home_url() . "/" . SIXSCAN_VERIFICATION_FILE_PREFIX . sixscan_common_get_verification_token() . ".gif";
-
-	/*	Try accessing blog index */
-	$failed_verification[ 'home_url_htaccess_modification' ] = sixscan_installation_verification_get_page_result( home_url() );
-
-	/*	Try accessing verification image */	
-	$failed_verification[ 'image_pic_htaccess_modification' ] = sixscan_installation_verification_get_page_result( $image_url );
-
-	sixscan_htaccess_uninstall();		
-
-	/*	Try accessing verification image */	
-	$failed_verification[ 'image_pic_no_htaccess_modification' ] = sixscan_installation_verification_get_page_result( $image_url );
-
-	/*	Try different haccess variations */
-	sixscan_htaccess_install('1');
-
-	$failed_verification[ 'image_pic_htaccess_1_modification' ] = sixscan_installation_verification_get_page_result( $image_url );
-
-	sixscan_htaccess_uninstall();
-	sixscan_htaccess_install('2');
-	
-	$failed_verification[ 'image_pic_htaccess_2_modification' ] = sixscan_installation_verification_get_page_result( $image_url );
-
-	sixscan_htaccess_uninstall();
-	sixscan_htaccess_install('3');
-
-	$failed_verification[ 'image_pic_htaccess_3_modification' ] = sixscan_installation_verification_get_page_result( $image_url );
-	sixscan_htaccess_uninstall();
-	
-	/*	Prepare error log */
-	$fail_verification_diag = urlencode( base64_encode( print_r( $failed_verification , TRUE) ) );
-	$failure_data = "root_url=" . home_url() . "&wordpress_version=" . get_bloginfo('version') . "&6scan_version=" . SIXSCAN_VERSION .  "&error_details=$fail_verification_diag&admin_email=&admin_comments=";
-	sixscan_common_request_network( SIXSCAN_BODYGUARD_INTERNAL_ERROR_URL , $failure_data , "POST" );	
-}
 
 function sixscan_installation_account_setup_required_notice() {		
 	

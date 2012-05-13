@@ -92,6 +92,9 @@ if ( isset( $_GET[ SIXSCAN_NOTICE_ACCOUNT_ENABLED ] ) ){
 /*	Change WAF options, according to request */
 sixscan_waf_set_options_confuguration();
 
+/*	Change secure login configuration */
+sixscan_login_options_configuration();
+
 /*	Default value, in case we don't need to send security env */
 $security_result = TRUE;
 if ( isset( $_GET[ SIXSCAN_NOTICE_SECURITY_ENV_NAME ] ) && ( $_GET[ SIXSCAN_NOTICE_SECURITY_ENV_NAME ] == 1 ) ){
@@ -131,6 +134,41 @@ else{
 }
 /*	And exit */
 exit( 0 );
+
+function sixscan_login_options_configuration(){
+
+	$sixscan_allowed_login_options = array( SIXSCAN_LOGIN_ERRORS_HIDE_OPTION , SIXSCAN_LOGIN_LIMITS_ACTIVATED , 
+		SIXSCAN_LOGIN_WITHIN_TIME_LIMIT_SECONDS , SIXSCAN_LOGIN_WITHIN_TIME_LIMIT_MINUTES, SIXSCAN_LOGIN_LIMIT_LOGINS , SIXSCAN_LOGIN_LOCKED_OUT_SECONDS 
+		, SIXSCAN_LOGIN_LOCKED_OUT_MINUTES , SIXSCAN_LOGIN_NOTIFY_ADMIN_EMAIL );
+
+	$sixscan_login_options = array();
+	$sixscan_requested_options = array();
+
+	parse_str( $_SERVER[ 'QUERY_STRING'] , $sixscan_requested_options);	
+	foreach ( $sixscan_requested_options as $requested_option => $option_value ) {
+	 	if ( in_array( $requested_option , $sixscan_allowed_login_options) ){
+	 		/*	If requested option is one of the login options */
+
+	 		if ( $requested_option == SIXSCAN_LOGIN_LOCKED_OUT_MINUTES ){
+	 			/* Passed in minutes, have to convert to seconds */
+	 			$requested_option = SIXSCAN_LOGIN_LOCKED_OUT_SECONDS ;
+	 			$option_value = $option_value * 60;
+	 		}
+
+	 		if ( $requested_option == SIXSCAN_LOGIN_WITHIN_TIME_LIMIT_MINUTES ) {
+	 			/*	Passed in minutes, have to convert to seconds */
+	 			$requested_option = SIXSCAN_LOGIN_WITHIN_TIME_LIMIT_SECONDS;
+	 			$option_value = $option_value * 60;
+	 		}
+
+	 		$sixscan_login_options[ $requested_option ] = $option_value;
+	 	}
+	}
+
+	/* Set requested options */
+	update_option ( SIXSCAN_OPTION_LOGIN_SETTINGS , $sixscan_login_options);
+
+}
 
 function sixscan_waf_set_options_confuguration(){
 	$waf_global_options = array();
@@ -208,21 +246,40 @@ function sixscan_send_security_log( $site_id ,  $api_token ){
 																	. "&api_token=" . $api_token;	
 	
 	$log_fname = "../../" . SIXSCAN_SECURITY_LOG_FILENAME;
-	if ( is_file( $log_fname ) === FALSE)
-		return TRUE;
+	
+	if ( is_file( $log_fname ) === FALSE ){
+		$log_data = "";
+	}
+	else{
+		$log_data = file_get_contents( $log_fname );
+		unlink( $log_fname );
 		
-	$log_data = file_get_contents( $log_fname );
+		if ( $log_data === FALSE )
+			$log_data = "";	#empty
+	}
 	
-	if ( $log_data === FALSE )
-		$log_data = "";	#empty
 	
+	/*	Get suspicious requests statistics from DB and reset it  */
+	$suspicious_request_count = sixscan_signatures_analyzer_requests_get();
+	sixscan_signatures_analyzer_requests_reset();
+
+	/* If there are no counter fields in databse, it means we have upgraded from version, which didn't add those fields on install */
+	if ( ( in_array( SIXSCAN_OPTION_STAT_SUSPICIOUS_REQ_COUNT , $suspicious_request_count ) === false ) ||
+			( in_array( SIXSCAN_OPTION_STAT_OK_REQ_COUNT , $suspicious_request_count ) === false ) ){
+		update_option( SIXSCAN_OPTION_STAT_SUSPICIOUS_REQ_COUNT , '0' );
+		update_option( SIXSCAN_OPTION_STAT_OK_REQ_COUNT , '0' );
+	}
+	else{
+		$version_update_url .= "&bad_requests=" . $suspicious_request_count[ SIXSCAN_OPTION_STAT_SUSPICIOUS_REQ_COUNT ] . 
+			"&good_requests=" . $suspicious_request_count[ SIXSCAN_OPTION_STAT_OK_REQ_COUNT ];	
+	}
+	
+
 	$response = sixscan_common_request_network( $version_update_url , $log_data , "POST" );	
 	
 	if ( is_wp_error( $response ) ) {
 		return $response->get_error_message();
 	}
-	
-	unlink( $log_fname );
 	
 	return TRUE;
 }

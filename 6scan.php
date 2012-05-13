@@ -4,7 +4,7 @@ Plugin Name: 6Scan
 Plugin URI: http://www.6scan.com/
 Description: 6Scan protects your website against hackers destroying, stealing or defacing your website's precious and vulnerable data.
 Author: 6Scan
-Version: 2.1.1
+Version: 2.1.2
 Author URI: http://www.6scan.com
 */
 
@@ -16,7 +16,7 @@ define( 'SIXSCAN_PLUGIN_DIR',	trailingslashit( dirname(__FILE__) ) );
 define( 'SIXSCAN_PLUGIN_URL',	trailingslashit( plugins_url( basename (dirname (__FILE__) ) ) ) );
 
 require_once( ABSPATH . 'wp-admin/includes/plugin.php' );
-require_once( 'admin/includes/common.php' );	
+require_once( 'admin/includes/common.php' );
 require_once( 'admin/includes/htaccess.php' );
 require_once( 'admin/includes/installation.php' );
 require_once( 'admin/includes/events/deactivation.php' );
@@ -24,6 +24,7 @@ require_once( 'admin/includes/events/uninstall.php' );
 require_once( 'modules/communication/oracle-reg.php' );
 require_once( 'modules/communication/oracle-auth.php' );
 require_once( 'modules/signatures/analyzer.php' );
+require_once( 'modules/signatures/loginsec.php' );
 require_once( 'modules/signatures/update.php' );
 require_once( 'admin/includes/6scan-menu.php' );
 require_once( 'modules/stat/analytics.php' );
@@ -51,6 +52,8 @@ if ( is_admin() ) {
 add_action( 'init' , 'sixscan_wordpress_admin_set_cookie_callback');	
 
 sixscan_signatures_analyzer_suspicious_request();
+
+sixscan_signatures_loginsec_register();
 
 if ( sixscan_common_run_signature_check_request() == FALSE ){
 	header('HTTP/1.1 403 Forbidden');

@@ -3,7 +3,7 @@
 if ( ! defined( 'ABSPATH' ) ) 
 	die( 'No direct access allowed' );
 
-define ( 'SIXSCAN_VERSION' ,							'2.1.1.0' );
+define ( 'SIXSCAN_VERSION' ,							'2.1.2.0' );
 define ( 'SIXSCAN_HTACCESS_VERSION' ,					'1' );
 
 if( empty( $_SERVER[ "HTTPS" ] ) )
@@ -41,7 +41,20 @@ define ( 'SIXSCAN_OPTION_MENU_API_TOKEN' , 				'sixscan_registered_api_token' );
 define ( 'SIXSCAN_OPTION_MENU_VERIFICATION_TOKEN' , 	'sixscan_registered_verification_token' );
 define ( 'SIXSCAN_OPTION_MENU_DASHBOARD_TOKEN' , 		'sixscan_registered_dashboard_token' );
 define ( 'SIXSCAN_OPTION_VULNERABITILY_COUNT' ,			'sixscan_vulnerability_count' );
-define ( 'SIXSCAN_OPTION_WAF_REQUESTED' ,				'sixscan_waf_requested_options');
+define ( 'SIXSCAN_OPTION_WAF_REQUESTED' ,				'sixscan_waf_requested_options' );
+define ( 'SIXSCAN_OPTION_LOGIN_SETTINGS' ,				'sixscan_login_settings_options' );
+define ( 'SIXSCAN_LOGIN_LOGS' ,							'sixscan_login_settings_logs' );
+define ( 'SIXSCAN_OPTION_STAT_SUSPICIOUS_REQ_COUNT' ,	'sixscan_waf_suspicious_req_count' );
+define ( 'SIXSCAN_OPTION_STAT_OK_REQ_COUNT' ,			'sixscan_waf_ok_count' );
+
+define ( 'SIXSCAN_LOGIN_ERRORS_HIDE_OPTION' ,			'login_errors_hide_enable' );
+define ( 'SIXSCAN_LOGIN_LIMITS_ACTIVATED' ,				'login_limit_activated' );
+define ( 'SIXSCAN_LOGIN_WITHIN_TIME_LIMIT_SECONDS' ,	'login_time_limit_seconds' );
+define ( 'SIXSCAN_LOGIN_WITHIN_TIME_LIMIT_MINUTES' ,	'login_time_limit_minutes' );
+define ( 'SIXSCAN_LOGIN_LIMIT_LOGINS' ,					'login_attempts_limit' );
+define ( 'SIXSCAN_LOGIN_LOCKED_OUT_SECONDS' ,			'login_locked_out_seconds' );
+define ( 'SIXSCAN_LOGIN_LOCKED_OUT_MINUTES' ,			'login_locked_out_minutes' );
+define ( 'SIXSCAN_LOGIN_NOTIFY_ADMIN_EMAIL' ,			'login_notify_admin_email' );
 
 define ( 'SIXSCAN_UPDATE_OK_RESPONSE_CODE',				200 );
 define ( 'SIXSCAN_UPDATE_LAST_VERSION_RESPONSE_CODE',	304 );
@@ -87,13 +100,15 @@ define( 'SIXSCAN_ADMIN_ACCESS_COOKIE_NAME',				'sixscan_wpblog_admin' );
 
 define( 'SIXSCAN_ANALYZER_MAX_LOG_FILESIZE',			512000 );	
 define( 'SIXSCAN_SECURITY_LOG_FILENAME',				'/data/security_log/logger.txt' );
+define( 'SIXSCAN_SECURITY_LOCK_NOTIFY_FILENAME',		'/data/lockout_email.html');
 define( 'SIXSCAN_SECURITY_LOG_SEPARATOR',				"\n" );
+
 /*	If this script is included from outside, we will not have SIXSCAN_PLUGIN_DIR defined, but we do not really need it */
-if ( defined( 'SIXSCAN_PLUGIN_DIR' ) ){
+if ( defined( 'SIXSCAN_PLUGIN_DIR' ) ){	
 	define( 'SIXSCAN_HTACCESS_6SCAN', 						SIXSCAN_PLUGIN_DIR . '/data/.htaccess.dat' );
 	define( 'SIXSCAN_SIGNATURE_SRC',						SIXSCAN_PLUGIN_DIR . '/data/' . SIXSCAN_COMM_SIGNATURE_FILENAME );
 	define( 'SIXSCAN_HTACCESS_6SCAN_GATE_SOURCE',  			SIXSCAN_PLUGIN_DIR . '/data/' . SIXSCAN_HTACCESS_6SCAN_GATE_FILE_NAME );
-	define( 'SIXSCAN_ANALYZER_LOG_FILEPATH',				SIXSCAN_PLUGIN_DIR . SIXSCAN_SECURITY_LOG_FILENAME );
+	define( 'SIXSCAN_ANALYZER_LOG_FILEPATH',				SIXSCAN_PLUGIN_DIR . SIXSCAN_SECURITY_LOG_FILENAME );	
 }
 
 define( 'SIXSCAN_HTACCESS_6SCAN_GATE_DEST', 			ABSPATH . SIXSCAN_HTACCESS_6SCAN_GATE_FILE_NAME );

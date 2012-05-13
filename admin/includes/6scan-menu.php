@@ -66,7 +66,7 @@ function sixscan_menu_create_dashboard_frame( $redirect_request = SIXSCAN_COMMON
 ?>	
 	<script language='javascript'>
             var frame = document.getElementById('sixscan_dashboard_iframe');
-            frame.height = parent.document.body.clientHeight;
+            frame.height = document.body.scrollHeight - 127;
 	</script>
 <?php
 }
