@@ -29,11 +29,11 @@ if ( ( $backward_compat_active == 'SETUP_STAGE_RUNNING' ) || ( $backward_compat_
 }
 
 /*	Verify process. Make sure that sites belongs to the user that registered it */
-if ( isset( $_GET[ SIXSCAN_NOTICE_VERIFICATION_NAME ] ) && ( isset( $_GET[ SIXSCAN_NOTICE_AUTH_NAME ] ) ) ){
+if ( isset( $_REQUEST[ SIXSCAN_NOTICE_VERIFICATION_NAME ] ) && ( isset( $_REQUEST[ SIXSCAN_NOTICE_AUTH_NAME ] ) ) ){
 	
 	$expected_auth_id = md5( sixscan_common_get_api_token() . sixscan_common_get_site_id() );
-	if ( ( $_GET[ SIXSCAN_NOTICE_VERIFICATION_NAME ] == sixscan_common_get_site_id() ) &&
-		( $_GET[ SIXSCAN_NOTICE_AUTH_NAME ] == $expected_auth_id ) ){
+	if ( ( $_REQUEST[ SIXSCAN_NOTICE_VERIFICATION_NAME ] == sixscan_common_get_site_id() ) &&
+		( $_REQUEST[ SIXSCAN_NOTICE_AUTH_NAME ] == $expected_auth_id ) ){
 		
 		echo SIXSCAN_VERIFICATION_DELIMITER . sixscan_common_get_verification_token() . SIXSCAN_VERIFICATION_DELIMITER;		
 	}
@@ -49,7 +49,7 @@ if ( sixscan_common_is_account_active() != TRUE ){
 	exit( 0 );
 }
 
-$oracle_nonce = intval( $_GET[ 'nonce' ] );
+$oracle_nonce = intval( $_REQUEST[ 'nonce' ] );
 $last_nonce = intval( get_option( SIXSCAN_OPTION_COMM_LAST_SIG_UPDATE_NONCE ) );
 
 if ( $last_nonce >= $oracle_nonce ){
@@ -60,7 +60,7 @@ if ( $last_nonce >= $oracle_nonce ){
 $api_token = sixscan_common_get_api_token();
 $site_id = sixscan_common_get_site_id();
 $expected_token = md5( SIXSCAN_SIGNATURE_SCHEDULER_SALT . $oracle_nonce . $api_token );
-$received_token = $_GET[ 'token' ];
+$received_token = $_REQUEST[ 'token' ];
 
 if ( $expected_token != $received_token ){
 	header( "HTTP/1.1 418 I'm a teapot" );	//as defined in RFC2324: http://tools.ietf.org/html/rfc2324
@@ -74,8 +74,8 @@ sixscan_common_show_all_errors();
 update_option( SIXSCAN_OPTION_COMM_LAST_SIG_UPDATE_NONCE , $oracle_nonce );	
 
 /*	Server updates discovered vulnerability count */
-if ( isset( $_GET[ SIXSCAN_NOTICE_VULN_COUNT ] ) ){
-	update_option( SIXSCAN_OPTION_VULNERABITILY_COUNT , intval( $_GET[ SIXSCAN_NOTICE_VULN_COUNT ] ) );
+if ( isset( $_REQUEST[ SIXSCAN_NOTICE_VULN_COUNT ] ) ){
+	update_option( SIXSCAN_OPTION_VULNERABITILY_COUNT , intval( $_REQUEST[ SIXSCAN_NOTICE_VULN_COUNT ] ) );
 }
 	
 /*	Include the update functionality */
@@ -83,8 +83,8 @@ require_once( ABSPATH . 'wp-admin/includes/upgrade.php' );
 require_once( 'update.php' );
 
 /* Activated this blog with 6Scan server */
-if ( isset( $_GET[ SIXSCAN_NOTICE_ACCOUNT_ENABLED ] ) ){
-	if ( intval( $_GET[ SIXSCAN_NOTICE_ACCOUNT_ENABLED ] ) == 1 ){
+if ( isset( $_REQUEST[ SIXSCAN_NOTICE_ACCOUNT_ENABLED ] ) ){
+	if ( intval( $_REQUEST[ SIXSCAN_NOTICE_ACCOUNT_ENABLED ] ) == 1 ){
 		sixscan_common_set_account_operational( TRUE );
 	}	
 }
@@ -97,11 +97,11 @@ sixscan_login_options_configuration();
 
 /*	Default value, in case we don't need to send security env */
 $security_result = TRUE;
-if ( isset( $_GET[ SIXSCAN_NOTICE_SECURITY_ENV_NAME ] ) && ( $_GET[ SIXSCAN_NOTICE_SECURITY_ENV_NAME ] == 1 ) ){
+if ( isset( $_REQUEST[ SIXSCAN_NOTICE_SECURITY_ENV_NAME ] ) && ( $_REQUEST[ SIXSCAN_NOTICE_SECURITY_ENV_NAME ] == 1 ) ){
 	$security_result = sixscan_send_security_environment( $site_id , $api_token );
 }
 
-if ( isset( $_GET[ SIXSCAN_NOTICE_SECURITY_LOG_NAME ] ) && ( $_GET[ SIXSCAN_NOTICE_SECURITY_LOG_NAME ] == 1 ) ){
+if ( isset( $_REQUEST[ SIXSCAN_NOTICE_SECURITY_LOG_NAME ] ) && ( $_REQUEST[ SIXSCAN_NOTICE_SECURITY_LOG_NAME ] == 1 ) ){
 	$tmp_result = sixscan_send_security_log( $site_id ,  $api_token );
 	
 	/* Checking result values, and appending  error message, if needed */
@@ -113,7 +113,7 @@ if ( isset( $_GET[ SIXSCAN_NOTICE_SECURITY_LOG_NAME ] ) && ( $_GET[ SIXSCAN_NOTI
 
 /* Update signatures, if needed */
 $error_list = "";
-if ( isset( $_GET[ SIXSCAN_NOTICE_UPDATE_NAME ] ) && ( $_GET[ SIXSCAN_NOTICE_UPDATE_NAME ] == 1 ) ){
+if ( isset( $_REQUEST[ SIXSCAN_NOTICE_UPDATE_NAME ] ) && ( $_REQUEST[ SIXSCAN_NOTICE_UPDATE_NAME ] == 1 ) ){
 	$error_list = sixscan_signatures_update_request_total( $site_id ,  $api_token );
 }
 
@@ -165,6 +165,7 @@ function sixscan_login_options_configuration(){
 	 	}
 	}
 
+
 	/* Set requested options */
 	update_option ( SIXSCAN_OPTION_LOGIN_SETTINGS , $sixscan_login_options);
 
@@ -173,25 +174,25 @@ function sixscan_login_options_configuration(){
 function sixscan_waf_set_options_confuguration(){
 	$waf_global_options = array();
 
-	if ( isset( $_GET[ 'waf_global_enable' ] ) && ( $_GET[ 'waf_global_enable' ] == 'True') )
+	if ( isset( $_REQUEST[ 'waf_global_enable' ] ) && ( $_REQUEST[ 'waf_global_enable' ] == 'True') )
 		$waf_global_options[] = 'waf_global_enable';
 
-	if ( isset( $_GET[ 'waf_non_standart_req_disable' ] ) && ( $_GET[ 'waf_non_standart_req_disable' ] == 'True') )	
+	if ( isset( $_REQUEST[ 'waf_non_standart_req_disable' ] ) && ( $_REQUEST[ 'waf_non_standart_req_disable' ] == 'True') )	
 		$waf_global_options[] = 'waf_non_standart_req_disable';
 
-	if ( isset( $_GET[ 'waf_sql_protection_enable' ] ) && ( $_GET[ 'waf_sql_protection_enable' ] == 'True') )	
+	if ( isset( $_REQUEST[ 'waf_sql_protection_enable' ] ) && ( $_REQUEST[ 'waf_sql_protection_enable' ] == 'True') )	
 		$waf_global_options[] = 'waf_sql_protection_enable';
 
-	if ( isset( $_GET[ 'waf_rfi_protection_enable' ] ) && ( $_GET[ 'waf_rfi_protection_enable' ] == 'True') )	
+	if ( isset( $_REQUEST[ 'waf_rfi_protection_enable' ] ) && ( $_REQUEST[ 'waf_rfi_protection_enable' ] == 'True') )	
 		$waf_global_options[] = 'waf_rfi_protection_enable';
 
-	if ( isset( $_GET[ 'waf_rfi_local_access_enable' ] ) && ( $_GET[ 'waf_rfi_local_access_enable' ] == 'True') )	
+	if ( isset( $_REQUEST[ 'waf_rfi_local_access_enable' ] ) && ( $_REQUEST[ 'waf_rfi_local_access_enable' ] == 'True') )	
 		$waf_global_options[] = 'waf_rfi_local_access_enable';
 
-	if ( isset( $_GET[ 'waf_xss_protection_enable' ] ) && ( $_GET[ 'waf_xss_protection_enable' ] == 'True') )	
+	if ( isset( $_REQUEST[ 'waf_xss_protection_enable' ] ) && ( $_REQUEST[ 'waf_xss_protection_enable' ] == 'True') )	
 		$waf_global_options[] = 'waf_xss_protection_enable';
 
-	if ( isset( $_GET[ 'waf_post_csrf_protection_enable' ] ) && ( $_GET[ 'waf_post_csrf_protection_enable' ] == 'True') )	
+	if ( isset( $_REQUEST[ 'waf_post_csrf_protection_enable' ] ) && ( $_REQUEST[ 'waf_post_csrf_protection_enable' ] == 'True') )	
 		$waf_global_options[] = 'waf_post_csrf_protection_enable';
 	
 	/*	Saves WAF options */
@@ -264,8 +265,8 @@ function sixscan_send_security_log( $site_id ,  $api_token ){
 	sixscan_signatures_analyzer_requests_reset();
 
 	/* If there are no counter fields in databse, it means we have upgraded from version, which didn't add those fields on install */
-	if ( ( in_array( SIXSCAN_OPTION_STAT_SUSPICIOUS_REQ_COUNT , $suspicious_request_count ) === false ) ||
-			( in_array( SIXSCAN_OPTION_STAT_OK_REQ_COUNT , $suspicious_request_count ) === false ) ){
+	if ( ( array_key_exists( SIXSCAN_OPTION_STAT_SUSPICIOUS_REQ_COUNT , $suspicious_request_count ) === false ) ||
+			( array_key_exists( SIXSCAN_OPTION_STAT_OK_REQ_COUNT , $suspicious_request_count ) === false ) ){
 		update_option( SIXSCAN_OPTION_STAT_SUSPICIOUS_REQ_COUNT , '0' );
 		update_option( SIXSCAN_OPTION_STAT_OK_REQ_COUNT , '0' );
 	}
