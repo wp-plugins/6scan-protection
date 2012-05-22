@@ -3,7 +3,7 @@
 if ( ! defined( 'ABSPATH' ) ) 
 	die( 'No direct access allowed' );
 
-define ( 'SIXSCAN_VERSION' ,							'2.1.2.2' );
+define ( 'SIXSCAN_VERSION' ,							'2.1.3.0' );
 define ( 'SIXSCAN_HTACCESS_VERSION' ,					'1' );
 
 if( empty( $_SERVER[ "HTTPS" ] ) )
@@ -71,6 +71,14 @@ define ( 'SIXSCAN_NOTICE_SECURITY_ENV_NAME' ,			'upd-security-environment' );
 define ( 'SIXSCAN_NOTICE_SECURITY_LOG_NAME' ,			'upd-security-logs' );
 define ( 'SIXSCAN_NOTICE_ACCOUNT_ENABLED' ,				'upd-account-enabled' );
 define ( 'SIXSCAN_NOTICE_VULN_COUNT' ,					'vuln-count' );
+define ( 'SIXSCAN_NOTICE_BCKP_REQUEST' ,				'bkp' );
+define ( 'SIXSCAN_AMAZON_OK_UPLOAD_HEADER' ,            'HTTP/1.1 204 No Content');
+define ( 'SIXSCAN_BACKUP_MAX_RUN_SECONDS' ,				1800 );
+define ( 'SIXSCAN_BACKUP_DATABASE_REQUEST' ,			'database' );
+define ( 'SIXSCAN_BACKUP_FILES_REQUEST' ,				'files' );
+
+define ( 'SIXSCAN_NOTICE_BCKP_TYPE',					'__type' );
+define ( 'SIXSCAN_NOTICE_BCKP_ACTION',					'__action' );
 define ( 'SIXSCAN_COMM_SIGNATURE_FILENAME', 			'6scan-signature.php' );
 define ( 'SIXSCAN_SIGNATURE_LINKS_DELIMITER',			"\n" );
 define ( 'SIXSCAN_SIGNATURE_MULTIPART_DELIMITER',		'###UZhup3v1ENMefI7Wy44QNppgZmp0cu6RPenZewotclc2ZCWUDE4zAfXIJX354turrscbFBL2pOiKpiNLYosm6Z1Qp8b3PNjgd1xqtuskjcT9MC4fZvQfx7FPUDF11oTiTrMeayQr7JHk3UuEK7fR0###' );

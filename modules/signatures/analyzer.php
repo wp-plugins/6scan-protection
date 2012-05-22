@@ -89,7 +89,9 @@ function sixscan_signatures_analyzer_suspicious_request(){
 
 function sixscan_signatures_analyzer_is_rfi_by_mask( $requested_url, $required_mask , $is_strict = FALSE ){
 
-	$requested_url = urldecode( $requested_url );	
+	$requested_url = strtolower( urldecode( $requested_url ) );
+	$required_mask = strtolower( $required_mask );
+	
 	$rfi_pattern = "/(https?|ftp|gzip|bzip2):\/\/([a-z0-9.-\/]+)&?/i";
 	
 	/* Get the URL, that address points to */

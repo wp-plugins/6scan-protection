@@ -31,7 +31,7 @@ function sixscan_menu_support(){
 	
 	/*	If user has already submitted a ticket, show him a "Thank you" */
 	if ( sixscan_menu_is_ticket_requested() ){
-		print "<center>\nThank you for your submission.  6Scan support will be in touch shortly.\n</center>\n";		
+		sixscan_menu_submission_ok_msg();
 		return;
 	}
 	
@@ -53,11 +53,21 @@ function sixscan_menu_dashboard(){
 	sixscan_menu_create_dashboard_frame();
 }
 
+function sixscan_menu_submission_ok_msg(){
+print <<<EOD
+	<center>
+	<div style="padding-top: 20px;"></div>
+	<div style="width: 680px; margin: 0; padding: 30px 10px; font-size: 16px; font-family:arial, 'Times New Roman', Times, serif; background-color: rgb(220, 219, 219); border: 1px inset #bbbbbb; box-shadow: 1px 0px 0px #bbbbbb inset; border-radius: 6px 6px 6px 6px; border-bottom: 1px solid #f0f0f0; border-right: 1px solid #f0f0f0;" class="rounded_box">
+	Thank you for your submission.  6Scan support will be in touch shortly.
+	</div>
+	</center>
+EOD;
+}
 function sixscan_menu_create_dashboard_frame( $redirect_request = SIXSCAN_COMMON_DASHBOARD_URL_MAIN ){
 
 	/*	If user has already submitted a ticket, show him a "Thank you" */
 	if ( sixscan_menu_is_ticket_requested() ){
-		print "<center>\nThank you for your submission.  6Scan support will be in touch shortly.\n</center>\n";		
+		sixscan_menu_submission_ok_msg();	
 		return;
 	}
 	

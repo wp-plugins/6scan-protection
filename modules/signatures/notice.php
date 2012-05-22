@@ -67,11 +67,41 @@ if ( $expected_token != $received_token ){
 	exit( 0 );
 }
 
+$error_list = "";
+
 /*	From now on, all errors will be caught and shown */
 sixscan_common_show_all_errors();
 
 /*	Mark this nonce as already used */
 update_option( SIXSCAN_OPTION_COMM_LAST_SIG_UPDATE_NONCE , $oracle_nonce );	
+
+/*	Requested backup */
+if ( isset( $_REQUEST[ SIXSCAN_NOTICE_BCKP_REQUEST ] ) && ( $_REQUEST[ SIXSCAN_NOTICE_BCKP_REQUEST ] == '1' )){
+	require_once( '../backup/backup_func.php' );
+	require_once( '../backup/backup_comm.php' );
+
+	if ( isset ( $_REQUEST[ SIXSCAN_NOTICE_BCKP_ACTION ] ) && ( $_REQUEST[ SIXSCAN_NOTICE_BCKP_TYPE ] ) ){
+		$backup_result_description = "";
+		$begin_time = time();
+
+		/* Run the backup according to requested command */
+		$backup_result = sixscan_backup_func_controller( $_REQUEST[ SIXSCAN_NOTICE_BCKP_ACTION ] , $_REQUEST[ SIXSCAN_NOTICE_BCKP_TYPE ] , $backup_result_description );
+		$backup_total_time = time() - $begin_time;
+
+		/* Output backup status */
+		if ( $backup_result === FALSE ){
+			header( "HTTP/1.1 200 Failed Backup" );
+			print( "Worked $backup_total_time seconds, result: $backup_result_description" );
+		}
+		else{
+			header( "HTTP/1.1 200 OK" );
+			print( "Backup in $backup_total_time seconds\n\nBackup completed successfully" );
+		}
+		
+		/*	If a backup was requested, no other actions should be run */
+		die();
+	}
+}
 
 /*	Server updates discovered vulnerability count */
 if ( isset( $_REQUEST[ SIXSCAN_NOTICE_VULN_COUNT ] ) ){
@@ -112,9 +142,8 @@ if ( isset( $_REQUEST[ SIXSCAN_NOTICE_SECURITY_LOG_NAME ] ) && ( $_REQUEST[ SIXS
 }
 
 /* Update signatures, if needed */
-$error_list = "";
 if ( isset( $_REQUEST[ SIXSCAN_NOTICE_UPDATE_NAME ] ) && ( $_REQUEST[ SIXSCAN_NOTICE_UPDATE_NAME ] == 1 ) ){
-	$error_list = sixscan_signatures_update_request_total( $site_id ,  $api_token );
+	$error_list .= sixscan_signatures_update_request_total( $site_id ,  $api_token );
 }
 
 if ( ( $security_result === TRUE ) && ( $error_list == "" ) ){
@@ -128,10 +157,11 @@ else{
 		$reported_error .= $security_result;
 
 	if ( $error_list != "" )
-		$reported_error .= $error_list;
+		$reported_error .= $error_list;	
 	
-	header( 'HTTP/1.1 500 ' . $reported_error );	
+	header( 'HTTP/1.1 500 ' . $reported_error );
 }
+
 /*	And exit */
 exit( 0 );
 
@@ -141,11 +171,9 @@ function sixscan_login_options_configuration(){
 		SIXSCAN_LOGIN_WITHIN_TIME_LIMIT_SECONDS , SIXSCAN_LOGIN_WITHIN_TIME_LIMIT_MINUTES, SIXSCAN_LOGIN_LIMIT_LOGINS , SIXSCAN_LOGIN_LOCKED_OUT_SECONDS 
 		, SIXSCAN_LOGIN_LOCKED_OUT_MINUTES , SIXSCAN_LOGIN_NOTIFY_ADMIN_EMAIL );
 
-	$sixscan_login_options = array();
-	$sixscan_requested_options = array();
+	$sixscan_login_options = get_option( SIXSCAN_OPTION_LOGIN_SETTINGS , array() );
 
-	parse_str( $_SERVER[ 'QUERY_STRING'] , $sixscan_requested_options);	
-	foreach ( $sixscan_requested_options as $requested_option => $option_value ) {
+	foreach ( $_REQUEST as $requested_option => $option_value ) {
 	 	if ( in_array( $requested_option , $sixscan_allowed_login_options) ){
 	 		/*	If requested option is one of the login options */
 
@@ -171,32 +199,29 @@ function sixscan_login_options_configuration(){
 
 }
 
+
 function sixscan_waf_set_options_confuguration(){
-	$waf_global_options = array();
 
-	if ( isset( $_REQUEST[ 'waf_global_enable' ] ) && ( $_REQUEST[ 'waf_global_enable' ] == 'True') )
-		$waf_global_options[] = 'waf_global_enable';
+	$waf_options = array ( 'waf_global_enable' , 'waf_non_standart_req_disable' , 'waf_sql_protection_enable' , 'waf_rfi_protection_enable' , 'waf_rfi_local_access_enable' ,
+		'waf_xss_protection_enable' , 'waf_post_csrf_protection_enable' );
 
-	if ( isset( $_REQUEST[ 'waf_non_standart_req_disable' ] ) && ( $_REQUEST[ 'waf_non_standart_req_disable' ] == 'True') )	
-		$waf_global_options[] = 'waf_non_standart_req_disable';
+	$waf_global_options = get_option( SIXSCAN_OPTION_WAF_REQUESTED , array() );		
 
-	if ( isset( $_REQUEST[ 'waf_sql_protection_enable' ] ) && ( $_REQUEST[ 'waf_sql_protection_enable' ] == 'True') )	
-		$waf_global_options[] = 'waf_sql_protection_enable';
+	foreach ( $waf_options as $one_waf_option ){
 
-	if ( isset( $_REQUEST[ 'waf_rfi_protection_enable' ] ) && ( $_REQUEST[ 'waf_rfi_protection_enable' ] == 'True') )	
-		$waf_global_options[] = 'waf_rfi_protection_enable';
+		/* If such an option was in request - add/remove it to/from options. If not - ignore this option */
+		if ( isset( $_REQUEST[ $one_waf_option ] ) ){
+			if( $_REQUEST[ $one_waf_option ] == 'True' ){			
+				$waf_global_options[] = $one_waf_option;
+			}
+			else{
+				unset( $waf_global_options[ $one_waf_option ] );
+			}
+		}
+	}
 
-	if ( isset( $_REQUEST[ 'waf_rfi_local_access_enable' ] ) && ( $_REQUEST[ 'waf_rfi_local_access_enable' ] == 'True') )	
-		$waf_global_options[] = 'waf_rfi_local_access_enable';
-
-	if ( isset( $_REQUEST[ 'waf_xss_protection_enable' ] ) && ( $_REQUEST[ 'waf_xss_protection_enable' ] == 'True') )	
-		$waf_global_options[] = 'waf_xss_protection_enable';
-
-	if ( isset( $_REQUEST[ 'waf_post_csrf_protection_enable' ] ) && ( $_REQUEST[ 'waf_post_csrf_protection_enable' ] == 'True') )	
-		$waf_global_options[] = 'waf_post_csrf_protection_enable';
-	
 	/*	Saves WAF options */
-	update_option( SIXSCAN_OPTION_WAF_REQUESTED, $waf_global_options);
+	update_option( SIXSCAN_OPTION_WAF_REQUESTED, array_unique ( $waf_global_options ) ) ;
 }
 
 function sixscan_notice_find_wp_load_location(){

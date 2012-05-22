@@ -270,7 +270,7 @@ function sixscan_installation_register_with_server(){
 		if ( $verification_result !== TRUE ) {			
 			
 			sixscan_communication_oracle_reg_remove_verification_file();
-			$err_descr = "There was a problem verifying your site with 6Scan: <b>$verification_result</b>.<br><br>";					
+			$err_descr = "There was a problem verifying your site with 6Scan: <b>$verification_result</b><br><br>";					
 			$err_msg .= sixscan_menu_wrap_error_msg( $err_descr );
 			$err_msg .= sixscan_menu_get_error_submission_form( $verification_result );		
 			return $err_msg; /* Fail activation with error message and submission form */		

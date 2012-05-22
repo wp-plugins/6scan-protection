@@ -96,7 +96,8 @@ function sixscan_communication_oracle_reg_verification( $is_to_use_fallback_veri
 		else if ( 200 != wp_remote_retrieve_response_code( $response ) ) {
 			$server_response = "";
 			parse_str( wp_remote_retrieve_body( $response ), $server_response );
-			$error_string = "<br><br>" . $server_response['reason'];						
+			$fail_reason = ( ini_get( 'magic_quotes_gpc' ) )? stripslashes( $server_response['reason'] ) : $server_response['reason'];
+			$error_string = "<br><br>" . $fail_reason;						
 			return $error_string;
 		}
 				
