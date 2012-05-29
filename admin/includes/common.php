@@ -3,7 +3,7 @@
 if ( ! defined( 'ABSPATH' ) ) 
 	die( 'No direct access allowed' );
 
-define ( 'SIXSCAN_VERSION' ,							'2.1.3.0' );
+define ( 'SIXSCAN_VERSION' ,							'2.1.3.1' );
 define ( 'SIXSCAN_HTACCESS_VERSION' ,					'1' );
 
 if( empty( $_SERVER[ "HTTPS" ] ) )
@@ -11,7 +11,7 @@ if( empty( $_SERVER[ "HTTPS" ] ) )
 else
 	define( 'SERVER_HTTP_PREFIX',						'https://' );	
 
-define ( 'SIXSCAN_SERVER_ADDRESS',						'api.wp.6scan.com' );
+define ( 'SIXSCAN_SERVER_ADDRESS' ,						'api.wp.6scan.com' );
 
 /*	The server communication is always through SSL */
 define ( 'SIXSCAN_SERVER',								'https://' . SIXSCAN_SERVER_ADDRESS . '/' );	
@@ -46,6 +46,9 @@ define ( 'SIXSCAN_OPTION_LOGIN_SETTINGS' ,				'sixscan_login_settings_options' )
 define ( 'SIXSCAN_LOGIN_LOGS' ,							'sixscan_login_settings_logs' );
 define ( 'SIXSCAN_OPTION_STAT_SUSPICIOUS_REQ_COUNT' ,	'sixscan_waf_suspicious_req_count' );
 define ( 'SIXSCAN_OPTION_STAT_OK_REQ_COUNT' ,			'sixscan_waf_ok_count' );
+define ( 'SIXSCAN_BACKUP_LAST_FS_NAME' ,				'sixscan_backup_last_fs_name' );
+define ( 'SIXSCAN_BACKUP_LAST_DB_NAME' ,				'sixscan_backup_last_db_name' );
+define ( 'SIXSCAN_COMMON_BACKUP_MSG_DELIMITER',			 '$$$' );
 
 define ( 'SIXSCAN_LOGIN_ERRORS_HIDE_OPTION' ,			'login_errors_hide_enable' );
 define ( 'SIXSCAN_LOGIN_LIMITS_ACTIVATED' ,				'login_limit_activated' );
@@ -127,8 +130,7 @@ define( 'SIXSCAN_COMMON_SUPPORT_URL',					'six-scan-support' );
 
 define( 'SIXSCAN_COMMON_DASHBOARD_URL_MAIN',			'dashboard' );
 define( 'SIXSCAN_COMMON_DASHBOARD_URL_SETTINGS',		'dashboard_settings' );
-
-
+define( 'SIXSCAN_COMMON_DASHBOARD_URL_BACKUP',			'backup_dashboard' );
 
 define( 'SIXSCAN_SIGNATURE_HEADER_NAME',				'x-6scan-signature' );
 
@@ -326,7 +328,7 @@ function sixscan_common_is_fopen_working(){
 
 /*	Windows servers sometimes require special handling */
 function sixscan_common_is_windows_os(){
-	return (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN');    
+	return ( strtoupper( substr( PHP_OS , 0 , 3) ) === 'WIN' );    
 }
 
 function sixscan_common_gather_system_information_for_anonymous_support_ticket(){

@@ -84,18 +84,18 @@ if ( isset( $_REQUEST[ SIXSCAN_NOTICE_BCKP_REQUEST ] ) && ( $_REQUEST[ SIXSCAN_N
 		$backup_result_description = "";
 		$begin_time = time();
 
+		header( "HTTP/1.1 200 Backup" );
 		/* Run the backup according to requested command */
 		$backup_result = sixscan_backup_func_controller( $_REQUEST[ SIXSCAN_NOTICE_BCKP_ACTION ] , $_REQUEST[ SIXSCAN_NOTICE_BCKP_TYPE ] , $backup_result_description );
 		$backup_total_time = time() - $begin_time;
 
 		/* Output backup status */
-		if ( $backup_result === FALSE ){
-			header( "HTTP/1.1 200 Failed Backup" );
-			print( "Worked $backup_total_time seconds, result: $backup_result_description" );
+		if ( $backup_result === FALSE ){	
+			print( "Worked $backup_total_time seconds, result: " . $backup_result_description . SIXSCAN_COMMON_BACKUP_MSG_DELIMITER . "\n\nBackup failed");
 		}
-		else{
-			header( "HTTP/1.1 200 OK" );
-			print( "Backup in $backup_total_time seconds\n\nBackup completed successfully" );
+		else{			
+			print( "Backup in $backup_total_time seconds" . SIXSCAN_COMMON_BACKUP_MSG_DELIMITER . "OK" . SIXSCAN_COMMON_BACKUP_MSG_DELIMITER .
+				"\n\nBackup completed successfully" );
 		}
 		
 		/*	If a backup was requested, no other actions should be run */

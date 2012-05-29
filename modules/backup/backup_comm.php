@@ -9,7 +9,7 @@ function sixscan_backup_comm_save_file( $amazon_backup_address , $backed_filenam
         $sixscan_amazon_options = array();
 
         if ( file_exists( $backed_filename ) == FALSE )
-                return FALSE;
+                return "File $backed_filename not found" . SIXSCAN_COMMON_BACKUP_MSG_DELIMITER . "Failed creating backup file";      
 
         /* Set parameters for amazon request */
         foreach ( $_REQUEST as $amazon_key => $amazon_val ) {
@@ -30,6 +30,14 @@ function sixscan_backup_comm_post_request( $remote_url , $headers_array , $file_
 
         global $sixscan_comm_data_prefix;
         global $sixscan_comm_data_appendix;
+        
+        $data_file_size = filesize( $file_name );
+        $max_accepted_file_size = ( double )$_REQUEST[ 'backup_size_limit' ];
+        
+        if ( $data_file_size > $max_accepted_file_size){
+                return "File too large. Size is $data_file_size , max allowed: $max_accepted_file_size" . SIXSCAN_COMMON_BACKUP_MSG_DELIMITER . "Backup file is too large (" .
+                        round( $data_file_size / 1048576 , 2 ) . " MB). Acount limit is " . round( $max_accepted_file_size / 1048576 , 2 ) . "MB";
+        }
 
         /*      Random string to define data boundary in post request.
         Based on php.net information about fsockopen
@@ -38,8 +46,8 @@ function sixscan_backup_comm_post_request( $remote_url , $headers_array , $file_
         $boundary = "---------------------" . substr( md5 ( rand( 0, 32000 )) , 0 , 10 );        
 
         /* Build variables */
-        foreach( $headers_array as $key => $value){
-            $sixscan_comm_data_prefix .="--$boundary\r\n";
+        foreach( $headers_array as $key => $value ){
+            $sixscan_comm_data_prefix .= "--$boundary\r\n";
             $sixscan_comm_data_prefix .= "Content-Disposition: form-data; name=\"$key\"\r\n";
             $sixscan_comm_data_prefix .= "\r\n$value\r\n";
         }
@@ -49,7 +57,7 @@ function sixscan_backup_comm_post_request( $remote_url , $headers_array , $file_
         $sixscan_comm_data_prefix .= "Content-Type: application/octet-stream\r\n\r\n";
 
         $sixscan_comm_data_appendix = "\r\n--$boundary--\r\n";
-        $data_file_size = filesize( $file_name );
+        
         $data_size = $data_file_size + strlen( $sixscan_comm_data_prefix ) + strlen( $sixscan_comm_data_appendix );
 
         /* Open the file and pass it to libcurl */
@@ -65,7 +73,13 @@ function sixscan_backup_comm_post_request( $remote_url , $headers_array , $file_
         curl_setopt( $curl_handle , CURLOPT_INFILESIZE , $data_size );
         curl_setopt( $curl_handle , CURLOPT_INFILE , $fp );
         
+        $curl_err_description = "";
         $response = curl_exec( $curl_handle ); 
+
+        if ( curl_errno( $curl_handle ) != 0 ){
+                $curl_err_description = curl_error( $curl_handle );               
+        }
+
         $http_ret_code = curl_getinfo( $curl_handle , CURLINFO_HTTP_CODE );
         curl_close( $curl_handle ); 
         fclose( $fp );
@@ -73,13 +87,15 @@ function sixscan_backup_comm_post_request( $remote_url , $headers_array , $file_
         /* Empty response (204) is the code for successful upload */
         if ( $http_ret_code == 204 )
                 return TRUE;
-        else                
-                return $response;
+        else
+                return "Curl response: $curl_err_description , Amazon response: $response" . SIXSCAN_COMMON_BACKUP_MSG_DELIMITER . "Connection to storage server was broken";
+                
 }
 
 /*      This will be called to read every chunk from file and pass it to server */
 function sixscan_backup_comm_reader_callback( $curl_handle , $fp , $requested_len) {       
         static $first_read_happened = 0;
+        static $appenix_data_written = 0;
         global $sixscan_comm_data_prefix;
         global $sixscan_comm_data_appendix;
 
@@ -89,16 +105,29 @@ function sixscan_backup_comm_reader_callback( $curl_handle , $fp , $requested_le
                 $first_data_chunk_sz = $requested_len -  strlen( $sixscan_comm_data_prefix ) ;                
                 return $sixscan_comm_data_prefix . fread( $fp , $first_data_chunk_sz );
         }
+
+        /*      Appendix left from previous write */
+        if ( $appenix_data_written > 0){
+                return substr( $sixscan_comm_data_appendix , $appenix_data_written + 1 );
+        }
         
         /*      Read data from file and send it */
-        $data_chunk = fread( $fp , $requested_len );      
+        $data_chunk = fread( $fp , $requested_len );
 
         /* If we had data to send - use it. Otherwise send appendix data */
-        if ( strlen ( $data_chunk ) > 0 )
+        if ( strlen ( $data_chunk ) == $requested_len )
                 return $data_chunk;                
-        else
-                return $sixscan_comm_data_appendix;
+
+        /*      If both data chunk and appendix are less (or equal) to requested - just write them */
+        if ( strlen ( $data_chunk ) + strlen( $sixscan_comm_data_appendix ) <= $requested_len )
+                return $data_chunk . $sixscan_comm_data_appendix;
+        
+        /*      If data and appendix are longer than requested - write whatever we can and remember the remainder of appenix
+                It will be written in the next write, at line of ( if ( $appenix_data_written > 0){ )
+         */
+        if ( strlen ( $data_chunk ) + strlen( $sixscan_comm_data_appendix ) > $requested_len ){
+                $appenix_data_written = $requested_len - strlen ( $data_chunk );
+                return $data_chunk . substr( $sixscan_comm_data_appendix , 0 , $appenix_data_written );
+        }
 }
-
-
 ?>

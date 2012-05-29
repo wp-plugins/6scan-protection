@@ -5,6 +5,7 @@ if ( ! defined( 'ABSPATH' ) )
 
 function sixscan_installation_manager()
 {
+
 	/* If running from partner install, the logic is a bit different */
 	if ( ( sixscan_common_is_partner_version() ) && ( sixscan_installation_partner_is_to_install() === FALSE ) )
 		return;
@@ -20,12 +21,12 @@ function sixscan_installation_manager()
 			$sixscan_plugin_name = plugin_basename( realpath( dirname( __FILE__ ) . "/../../6scan.php" ) );
 			
 			/*	This dirty patch is required because some hostings (free?) have a short sql timeout. When it timeouts, 6Scan can't
-			disable itelf, and user gets stuck in infitie deactivate loop. 
+			disable itelf, and user gets stuck in infinite deactivate loop. 
 			We can't enlarge the timeout, since it requires sql root access. We can only reconnect to the SQL.
-			This rather dirty hack reconnects to SQL and deactivates the plugin */
+			This hack reconnects to SQL and deactivates the plugin */
 			if ( mysql_errno() != 0 ){
 				global $wpdb;
-				$wpdb = new wpdb( DB_USER, DB_PASSWORD, DB_NAME, DB_HOST );
+				$wpdb = new wpdb( DB_USER , DB_PASSWORD , DB_NAME , DB_HOST );
 				wp_set_wpdb_vars();
 			}
 
@@ -99,8 +100,8 @@ function sixscan_installation_install() {
 
 	try {		
 		/*	Clear the operational flag. It will be set, if activation is successful  */
-		sixscan_common_set_account_operational( FALSE );
-		
+		sixscan_common_set_account_operational( FALSE );		
+
 		/*	Make sure we can create signature file and update the site's .htaccess file */
 		if ( sixscan_common_is_writable_directory( ABSPATH ) == FALSE ){
 			$err_message = "6Scan Install <b>Error</b>: Failed creating signature file at Wordpress directory " . ABSPATH . SIXSCAN_COMM_SIGNATURE_FILENAME .
@@ -169,14 +170,14 @@ OpenSSL functions for increased security.".
 		/*	Account is now active, but not yet operational ( operation is set by server, when user completes the registration */
 		sixscan_common_set_account_active( TRUE );
 						
-		/*	Preparing options for further use */											
+		/*	Preparing options for further use */		
 		update_option( SIXSCAN_OPTION_COMM_ORACLE_NONCE , 1 );
 		update_option( SIXSCAN_OPTION_COMM_LAST_SIG_UPDATE_NONCE , 0 );	
 		update_option( SIXSCAN_OPTION_STAT_SUSPICIOUS_REQ_COUNT , 0 );
 		update_option( SIXSCAN_OPTION_STAT_OK_REQ_COUNT , 0);
 		update_option( SIXSCAN_OPTION_WAF_REQUESTED , array() );
-		update_option( SIXSCAN_OPTION_LOGIN_SETTINGS , array() );
-		
+		update_option( SIXSCAN_OPTION_LOGIN_SETTINGS , array() );		
+
 	} catch( Exception $e ) {
 		/* Exception aborts the process */
 		sixscan_common_erase_regdata();
@@ -200,7 +201,7 @@ function sixscan_installation_uninstall() {
 		/* Remove lines from htaccess */
 		sixscan_htaccess_uninstall();			
 
-		/* Clear the database */
+		/* Clear the database */		
 		delete_option( SIXSCAN_OPTIONS_SETUP_ACCOUNT );
 		delete_option( SIXSCAN_OPTION_MENU_IS_BLOG_VERIFIED );			
 		delete_option( SIXSCAN_OPTION_MENU_SITE_ID );
@@ -216,6 +217,8 @@ function sixscan_installation_uninstall() {
 		delete_option( SIXSCAN_OPTION_WAF_REQUESTED );
 		delete_option( SIXSCAN_OPTION_STAT_SUSPICIOUS_REQ_COUNT );
 		delete_option( SIXSCAN_OPTION_STAT_OK_REQ_COUNT );
+		delete_option( SIXSCAN_BACKUP_LAST_FS_NAME );
+		delete_option( SIXSCAN_BACKUP_LAST_DB_NAME );
 
 	} catch( Exception $e ) {		
 		die( $e );
@@ -285,7 +288,6 @@ function sixscan_installation_verification_get_page_result( $page_url ){
 	$response = sixscan_common_request_network( $page_url , "" , "GET" );
 	return wp_remote_retrieve_response_code( $response );
 }
-
 
 function sixscan_installation_account_setup_required_notice() {		
 	

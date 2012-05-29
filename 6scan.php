@@ -1,8 +1,8 @@
 <?php
 /*
-Plugin Name: 6Scan
+Plugin Name: 6Scan Security
 Plugin URI: http://www.6scan.com/
-Description: 6Scan protects your website against hackers destroying, stealing or defacing your website's precious and vulnerable data.
+Description: 6Scan Security is the most comprehensive <strong>automatic</strong> protection your Wordpress site can get against hackers.  Our security scanner goes beyond the rule-based protection of other Wordpress security plugins, employing active penetration testing algorithms to find security vulnerabilities.  These are then  automatically fixed before hackers can exploit them. Our team of website security experts ensures your protection is always up-to-date and airtight.
 Author: 6Scan
 Version: 2.1.3
 Author URI: http://www.6scan.com
@@ -12,8 +12,11 @@ if ( ! defined( 'ABSPATH' ) )
 	die( 'No direct access allowed' );
 
 /* Get the current plugin directory name and URL , while we are at the root */
-define( 'SIXSCAN_PLUGIN_DIR',	trailingslashit( dirname(__FILE__) ) );	
-define( 'SIXSCAN_PLUGIN_URL',	trailingslashit( plugins_url( basename (dirname (__FILE__) ) ) ) );
+define( 'SIXSCAN_PLUGIN_DIR' ,			trailingslashit( dirname(__FILE__) ) );	
+define( 'SIXSCAN_PLUGIN_URL' ,			trailingslashit( plugins_url( basename (dirname (__FILE__) ) ) ) );
+
+/* Default dashboard to show to users */
+define ( 'SIXSCAN_DASHBOARD_TYPE' , 	'security' );
 
 require_once( ABSPATH . 'wp-admin/includes/plugin.php' );
 require_once( 'admin/includes/common.php' );

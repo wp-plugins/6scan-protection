@@ -13,7 +13,8 @@ function sixscan_communication_oracle_reg_register( $site_url , $user_email , $n
 		$relative_notice_url = substr( $notice_script_url , strlen( $site_url ) + 1 );
 		
 		/*	Sending registration data to server, using GET */
-		$request_register_url = SIXSCAN_BODYGUARD_REGISTER_URL ."?platform=wordpress&platform_version=" . get_bloginfo( 'version' ) . "&platform_locale=" . get_locale() . "&url=$site_url&email=$user_email&notice_script_url=$relative_notice_url";
+		$request_register_url = SIXSCAN_BODYGUARD_REGISTER_URL ."?platform=wordpress&platform_version=" . get_bloginfo( 'version' ) . "&platform_locale=" 
+		. get_locale() . "&url=$site_url&email=$user_email&notice_script_url=$relative_notice_url&dashboard_type=" . SIXSCAN_DASHBOARD_TYPE ;
 		
 		/*	If partner ID and Key exists, add it to registration request. */		
 		if ( ( $partner_id != "" ) && ( $partner_key != "" ) ){
