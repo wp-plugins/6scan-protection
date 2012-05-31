@@ -411,7 +411,7 @@ function sixscan_signatures_is_to_block_non_standard_requests(){
 		return FALSE;
 
 	/* 	Filter strange requests */
-	if ( in_array( 'waf_non_standart_req_disable' , $allowed_waf_rules ) )
+	if ( in_array( 'waf_non_standard_req_disable' , $allowed_waf_rules ) )
 		return TRUE;	
 
 	return FALSE;

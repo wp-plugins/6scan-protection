@@ -7,10 +7,10 @@ if ( ! defined( 'ABSPATH' ) )
 function sixscan_signatures_loginsec_register(){	
 
 	/*	Filter on error, that is displayed to user when authentication failed */
-	add_filter( 'login_errors' , sixscan_signatures_loginsec_fault_message );
+	add_filter( 'login_errors' , sixscan_signatures_loginsec_fault_message );	
 	
-	/* Action on successful login */
-	add_action( 'wp_login' , sixscan_signatures_loginsec_login_success );
+	/*	User authorization was completed successfully */	
+	add_action( 'set_current_user' , sixscan_signatures_loginsec_login_success );
 
 	/* Action on authentication attempt */
 	add_filter( 'authenticate' , sixscan_signatures_loginsec_analyze , 20 , 3 );
@@ -59,6 +59,7 @@ function sixscan_signatures_loginsec_analyze( $user, $username, $password ){
 		if ( $login_inf[ 'login_start_time' ] + $loginsec_options[ SIXSCAN_LOGIN_WITHIN_TIME_LIMIT_SECONDS ] < time() ){
 			$login_inf[ 'login_start_time' ] = time();
 			$login_inf[ 'failed_login_count' ] = 0;	
+			$login_inf[ 'username' ] = "";
 		}
 
 		/*	logging attempted username */
@@ -109,6 +110,10 @@ function sixscan_signatures_loginsec_analyze( $user, $username, $password ){
 
 /*	Clear the failed login count */
 function sixscan_signatures_loginsec_login_success( $user_name ){
+
+	/* If the user passed authorization - clear the counters. */
+	if ( get_current_user_id() == 0 )
+		return;
 
 	$user_ip = $_SERVER[ 'REMOTE_ADDR' ];
 	$login_logs = get_option( SIXSCAN_LOGIN_LOGS , array() );

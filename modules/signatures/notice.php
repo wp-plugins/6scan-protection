@@ -202,7 +202,7 @@ function sixscan_login_options_configuration(){
 
 function sixscan_waf_set_options_confuguration(){
 
-	$waf_options = array ( 'waf_global_enable' , 'waf_non_standart_req_disable' , 'waf_sql_protection_enable' , 'waf_rfi_protection_enable' , 'waf_rfi_local_access_enable' ,
+	$waf_options = array ( 'waf_global_enable' , 'waf_non_standard_req_disable' , 'waf_sql_protection_enable' , 'waf_rfi_protection_enable' , 'waf_rfi_local_access_enable' ,
 		'waf_xss_protection_enable' , 'waf_post_csrf_protection_enable' );
 
 	$waf_global_options = get_option( SIXSCAN_OPTION_WAF_REQUESTED , array() );		

@@ -54,25 +54,36 @@ function sixscan_backup_func_can_run(){
 	
 	/* We don't run on Windows now */
 	if ( sixscan_common_is_windows_os() == TRUE )
-		return "os_limitation" . SIXSCAN_COMMON_BACKUP_MSG_DELIMITER . "Backup can currently only run on Linux platform";
+		return "os_limitation" . SIXSCAN_COMMON_BACKUP_MSG_DELIMITER . "6Scan only supports backing up sites on Linux servers.";
 
 	/*	Can't run in safe mode */
 	if ( ini_get( 'safe_mode' ) )
-		return "safe_mode_limitation" . SIXSCAN_COMMON_BACKUP_MSG_DELIMITER . "System is in safe mode, which prevents 6Scan from writing backup files";
+		return "safe_mode_limitation" . SIXSCAN_COMMON_BACKUP_MSG_DELIMITER . "Your PHP interpreter is running in safe mode, which prevents 6Scan from writing backup files.";
 	
 	/* We need to be able to change execution time */	
 	@set_time_limit( SIXSCAN_BACKUP_MAX_RUN_SECONDS );
 	if ( ini_get( 'max_execution_time' ) != SIXSCAN_BACKUP_MAX_RUN_SECONDS )
-		return "max_execution_time_limitation" . SIXSCAN_COMMON_BACKUP_MSG_DELIMITER . "6Scan can't set max_execution_time, which prevents creation of full backup";
+		return "max_execution_time_limitation" . SIXSCAN_COMMON_BACKUP_MSG_DELIMITER . "Your PHP interpreter does not allow changing the max_execution_time setting, which does not give 6Scan enough time to perform the full backup.";
 
 	/* Requires libcurl for file upload */
 	if ( function_exists( 'curl_init' ) == FALSE )
-		return "libcurl_limitation" . SIXSCAN_COMMON_BACKUP_MSG_DELIMITER . "libcurl is required to be installed";
+		return "libcurl_limitation" . SIXSCAN_COMMON_BACKUP_MSG_DELIMITER . "6Scan's backup requires libcurl to be installed.";
+
+	/* Check libcurl for SSL support */
+	$libcurl_version = curl_version();
+	$libcurl_is_ssl_supported = ( $libcurl_version[ 'features' ] & CURL_VERSION_SSL );
+	if ( (bool)$libcurl_is_ssl_supported != TRUE )
+		return "libcurl_ssl_limitation" . SIXSCAN_COMMON_BACKUP_MSG_DELIMITER . "The version of libcurl installed does not have SSL support.  6Scan's backup requires SSL support in order to securely transfer your backup.";
 
 	/* Testing whether we can execute functions */
+	$disabled_functions = ini_get( "disable_functions" );
+	if ( strstr( $disabled_functions , "passthru" ) !== FALSE ){
+		return "passthru_limitation" . SIXSCAN_COMMON_BACKUP_MSG_DELIMITER . "Your PHP interpreter has passthru() execution disabled, which prevents 6Scan from running backup commands.";
+	}
+
 	ob_start();	passthru( "mysqldump --version" ); $dumpavailable = ob_get_contents(); ob_end_clean();
 	if ( strlen( $dumpavailable ) == 0 )
-		return "exec_limitation" . SIXSCAN_COMMON_BACKUP_MSG_DELIMITER . "Commands execution is disabled, which prevents 6Scan from running backup commands";
+		return "exec_limitation" . SIXSCAN_COMMON_BACKUP_MSG_DELIMITER . "Your hosting environment does not support the mysqldump command, required to make database backups reliably.";
 
 	return TRUE;
 }
@@ -109,7 +120,7 @@ function sixscan_backup_func_files( &$backed_up_filename ){
 		return TRUE;
 	}
 	else{
-		$backed_up_filename = "Failed running tar. Retval = $ret_val " . SIXSCAN_COMMON_BACKUP_MSG_DELIMITER . "Tar command failed";
+		$backed_up_filename = "Failed running tar. Retval = $ret_val " . SIXSCAN_COMMON_BACKUP_MSG_DELIMITER . "Your hosting environment does not support the tar command, required for backup archiving.";
 		return FALSE;
 	}
 }
@@ -123,22 +134,35 @@ function sixscan_backup_func_db( &$backed_up_filename ){
 
 	$temp_sql_file_name = get_temp_dir() . $tmp_sql_dmp . ".sql";	
 	$temp_sql_file_tgzipped = get_temp_dir() . $tmp_sql_dmp . ".tar.gz";
+	$temp_backup_status = get_temp_dir() . $tmp_sql_dmp . ".err.txt";
 
 	/*	If a previous file was not deleted from some reason, delete it now and save the current filename */
 	sixscan_backup_func_delete_previous( SIXSCAN_BACKUP_LAST_DB_NAME , $temp_sql_file_tgzipped );
 
 	/* Prepare the mysqldump command, using defines from wp-config.php */
-	$db_backup_cmd = "mysqldump -h " . DB_HOST . " -u " . DB_USER . " -p" . DB_PASSWORD . " " . DB_NAME . " > $temp_sql_file_name";	
+	if ( strncmp( DB_HOST , 'localhost:' , 10 ) == 0 ){
+		
+		/*	Connecting to DB using unix socket. 'Remove the localhost:'' prefix */
+		$db_backup_cmd = "mysqldump -S " . substr( DB_HOST , 10 ) . " -u " . DB_USER . " -p" . DB_PASSWORD . " " . DB_NAME . " 2>$temp_backup_status > $temp_sql_file_name";	
+	}
+	else{
+		/*	Connecting to DB using tcp connect */
+		$db_backup_cmd = "mysqldump -h " . DB_HOST . " -u " . DB_USER . " -p" . DB_PASSWORD . " " . DB_NAME . " 2>$temp_backup_status > $temp_sql_file_name";	
+	}
 
 	/* Run the mysqldump */	
 	$ret_val = 0;
 	passthru( $db_backup_cmd , $ret_val ); 
 
-	if ( $ret_val != 0 ){
-		@unlink($temp_sql_file_name);
-		$backed_up_filename = "Mysqldump failed. Retval = $ret_val " . SIXSCAN_COMMON_BACKUP_MSG_DELIMITER . "mysqldump command failed";
+	if ( $ret_val != 0 ){		
+		$backed_up_filename = "Mysqldump failed. Retval = $ret_val " . SIXSCAN_COMMON_BACKUP_MSG_DELIMITER . "Mysqldump command failed : " . file_get_contents( $temp_backup_status );
+		@unlink( $temp_sql_file_name );
+		@unlink( $temp_backup_status );
 		return FALSE;
 	}	
+	
+	/*	Remove the stderr file, if no error has occured */
+	@unlink( $temp_backup_status );
 
 	/* Create tar.gz and remove the original .sql, while ignoring the output */
 	$archive_command = "tar -czf $temp_sql_file_tgzipped $temp_sql_file_name 2>&1";
@@ -149,7 +173,7 @@ function sixscan_backup_func_db( &$backed_up_filename ){
 	passthru( $cleanup_cmd );
 
 	if ( $ret_val != 0 ){
-		$backed_up_filename = "Failed running tar of sql dump file. Retval = $ret_val" . SIXSCAN_COMMON_BACKUP_MSG_DELIMITER . "Tar command failed";
+		$backed_up_filename = "Failed running tar of sql dump file. Retval = $ret_val" . SIXSCAN_COMMON_BACKUP_MSG_DELIMITER . "Your hosting environment does not support the tar command, required for backup archiving.";
 		return FALSE;
 	}
 	else{

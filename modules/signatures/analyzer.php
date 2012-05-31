@@ -125,7 +125,7 @@ function sixscan_signatures_analyzer_is_to_block_request(){
 
 	/* 	Filter strange requests */
 	if ( sixscan_signatures_analyzer_is_env_flag_on( "sixscanstrangerequest" ) ){
-		if ( in_array( 'waf_non_standart_req_disable' , $allowed_waf_rules ) )
+		if ( in_array( 'waf_non_standard_req_disable' , $allowed_waf_rules ) )
 			return TRUE;
 	}
 

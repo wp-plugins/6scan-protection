@@ -9,7 +9,7 @@ function sixscan_backup_comm_save_file( $amazon_backup_address , $backed_filenam
         $sixscan_amazon_options = array();
 
         if ( file_exists( $backed_filename ) == FALSE )
-                return "File $backed_filename not found" . SIXSCAN_COMMON_BACKUP_MSG_DELIMITER . "Failed creating backup file";      
+                return "File $backed_filename not found" . SIXSCAN_COMMON_BACKUP_MSG_DELIMITER . "6Scan failed to create the backup file.  This could indicate a permissions problem in your hosting environment.";      
 
         /* Set parameters for amazon request */
         foreach ( $_REQUEST as $amazon_key => $amazon_val ) {
@@ -36,7 +36,7 @@ function sixscan_backup_comm_post_request( $remote_url , $headers_array , $file_
         
         if ( $data_file_size > $max_accepted_file_size){
                 return "File too large. Size is $data_file_size , max allowed: $max_accepted_file_size" . SIXSCAN_COMMON_BACKUP_MSG_DELIMITER . "Backup file is too large (" .
-                        round( $data_file_size / 1048576 , 2 ) . " MB). Acount limit is " . round( $max_accepted_file_size / 1048576 , 2 ) . "MB";
+                        round( $data_file_size / 1048576 , 2 ) . " MB); your account limit is " . round( $max_accepted_file_size / 1048576 , 2 ) . "MB.";
         }
 
         /*      Random string to define data boundary in post request.
@@ -88,7 +88,7 @@ function sixscan_backup_comm_post_request( $remote_url , $headers_array , $file_
         if ( $http_ret_code == 204 )
                 return TRUE;
         else
-                return "Curl response: $curl_err_description , Amazon response: $response" . SIXSCAN_COMMON_BACKUP_MSG_DELIMITER . "Connection to storage server was broken";
+                return "Curl response: $curl_err_description , Amazon response: $response" . SIXSCAN_COMMON_BACKUP_MSG_DELIMITER . "The connection to our backup storage server was interrupted during transfer.";
                 
 }
 
