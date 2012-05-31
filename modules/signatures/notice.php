@@ -215,7 +215,7 @@ function sixscan_waf_set_options_confuguration(){
 				$waf_global_options[] = $one_waf_option;
 			}
 			else{
-				unset( $waf_global_options[ $one_waf_option ] );
+				unset($waf_global_options[array_search($one_waf_option, $waf_global_options)]);
 			}
 		}
 	}
