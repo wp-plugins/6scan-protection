@@ -7,9 +7,14 @@ if ( ! defined( 'ABSPATH' ) )
 function sixscan_backup_comm_save_file( $amazon_backup_address , $backed_filename ){
         $sixscan_set_fields = array( 'key' , 'AWSAccessKeyId' , 'acl' , 'policy' , 'signature' );
         $sixscan_amazon_options = array();
+        $backup_save_result = array();
 
-        if ( file_exists( $backed_filename ) == FALSE )
-                return "File $backed_filename not found" . SIXSCAN_COMMON_BACKUP_MSG_DELIMITER . "6Scan failed to create the backup file.  This could indicate a permissions problem in your hosting environment.";      
+        if ( file_exists( $backed_filename ) == FALSE ){
+                $backup_save_result[ 'success' ] = FALSE;
+                $backup_save_result[ 'internal_message' ] = "File $backed_filename not found";
+                $backup_save_result[ 'user_result_message' ] = "6Scan failed to create the backup file.  This could indicate a permissions problem in your hosting environment.";
+                return $backup_save_result;
+        }
 
         /* Set parameters for amazon request */
         foreach ( $_REQUEST as $amazon_key => $amazon_val ) {
@@ -30,13 +35,17 @@ function sixscan_backup_comm_post_request( $remote_url , $headers_array , $file_
 
         global $sixscan_comm_data_prefix;
         global $sixscan_comm_data_appendix;
-        
+        $backup_save_result = array();
+
         $data_file_size = filesize( $file_name );
         $max_accepted_file_size = ( double )$_REQUEST[ 'backup_size_limit' ];
         
         if ( $data_file_size > $max_accepted_file_size){
-                return "File too large. Size is $data_file_size , max allowed: $max_accepted_file_size" . SIXSCAN_COMMON_BACKUP_MSG_DELIMITER . "Backup file is too large (" .
+                $backup_save_result[ 'success' ] = FALSE;
+                $backup_save_result[ 'internal_message' ] = "File too large. Size is $data_file_size , max allowed: $max_accepted_file_size";
+                $backup_save_result[ 'user_result_message' ] = "Backup file is too large (" .
                         round( $data_file_size / 1048576 , 2 ) . " MB); your account limit is " . round( $max_accepted_file_size / 1048576 , 2 ) . "MB.";
+                return $backup_save_result;
         }
 
         /*      Random string to define data boundary in post request.
@@ -85,10 +94,15 @@ function sixscan_backup_comm_post_request( $remote_url , $headers_array , $file_
         fclose( $fp );
 
         /* Empty response (204) is the code for successful upload */
-        if ( $http_ret_code == 204 )
+        if ( $http_ret_code == 204 ){
                 return TRUE;
-        else
-                return "Curl response: $curl_err_description , Amazon response: $response" . SIXSCAN_COMMON_BACKUP_MSG_DELIMITER . "The connection to our backup storage server was interrupted during transfer.";
+        }
+        else{
+                $backup_save_result[ 'success' ] = FALSE;
+                $backup_save_result[ 'internal_message' ] = "Curl response: $curl_err_description , Amazon response: $response";
+                $backup_save_result[ 'user_result_message' ] = "The connection to our backup storage server was interrupted during transfer.";
+                return $backup_save_result;
+        }
                 
 }
 

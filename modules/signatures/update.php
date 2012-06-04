@@ -220,6 +220,7 @@ RewriteCond %{QUERY_STRING} (http(s)?(:|%3A)(/|%2F)(/|%2F)|ftp(:|%3A)(/|%2F)(/|%
 RewriteRule .*  - [E=sixscansecuritylog:1,E=sixscanwafrfi:1] -
 
 RewriteCond %{REQUEST_METHOD} ^(POST) [NC]
+RewriteCond %{HTTP_REFERER} !^$
 RewriteCond %{HTTP_REFERER} !^https?://" . $current_hostname . " [NC]
 RewriteRule .*  - [E=sixscansecuritylog:1,E=sixscanwafcsrf:1] -
 
