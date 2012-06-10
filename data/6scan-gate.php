@@ -58,9 +58,11 @@ if ( is_file( $path ) ){
 }
 else{
 	/*	Updates for index.php */
-	$_SERVER[ 'SCRIPT_FILENAME' ] = realpath( $site_document_root ) . '/' . $sixscan_base_dir . '/index.php';
+	if ($sixscan_base_dir != '/')
+		$sixscan_base_dir .= '/';
+	$_SERVER[ 'SCRIPT_FILENAME' ] = realpath( $site_document_root ) . '/' . $sixscan_base_dir . 'index.php';
 	$_SERVER[ 'SCRIPT_NAME' ] = $sixscan_base_dir . "index.php";
-	$_SERVER[ 'PHP_SELF' ] = $sixscan_base_dir . "index.php";
+	$_SERVER[ 'PHP_SELF' ] = $sixscan_base_dir . "index.php";	
 	require( "index.php" );
 }
 

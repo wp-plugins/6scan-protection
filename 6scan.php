@@ -10,6 +10,15 @@ Author URI: http://www.6scan.com
 
 if ( ! defined( 'ABSPATH' ) ) 
 	die( 'No direct access allowed' );
+	
+if ( defined( 'SIXSCAN_PLATFORM_TYPE' ) ){
+	/*	Do not allow double install of 6Scan plugins */
+	if ( SIXSCAN_PLATFORM_TYPE == 'wordpress_backup' ){			
+		die( 'You already have the 6Scan Backup plugin installed.  The 6Scan Backup plugin also provides full security functionality and vulnerability scanning -- simply access your dashboard and click the Scan Report tab.' );
+	}
+	
+	die('You already have this plugin installed.  To prevent conflicts, you cannot install two copies of this plugin.  Please access your 6Scan Dashboard to see the status of your plugin and change settings.');
+}
 
 /* Get the current plugin directory name and URL , while we are at the root */
 define( 'SIXSCAN_PLUGIN_DIR' ,			trailingslashit( dirname(__FILE__) ) );	
