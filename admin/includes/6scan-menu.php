@@ -68,9 +68,9 @@ EOD;
 function sixscan_menu_create_dashboard_frame( $redirect_request = SIXSCAN_COMMON_DASHBOARD_URL_MAIN ){
 
 	/* Default redirects per different plugin types */
-	if ( SIXSCAN_DASHBOARD_TYPE == 'security' )
+	if ( SIXSCAN_PLATFORM_TYPE == 'wordpress' )
 		$redirect_request = SIXSCAN_COMMON_DASHBOARD_URL_MAIN;
-	else if ( SIXSCAN_DASHBOARD_TYPE == 'backup' )
+	else if ( SIXSCAN_PLATFORM_TYPE == 'wordpress_backup' )
 		$redirect_request = SIXSCAN_COMMON_DASHBOARD_URL_BACKUP;
 
 	/*	If user has already submitted a ticket, show him a "Thank you" */

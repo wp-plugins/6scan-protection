@@ -4,7 +4,7 @@ Plugin Name: 6Scan Security
 Plugin URI: http://www.6scan.com/
 Description: 6Scan Security is the most comprehensive <strong>automatic</strong> protection your Wordpress site can get against hackers.  Our security scanner goes beyond the rule-based protection of other Wordpress security plugins, employing active penetration testing algorithms to find security vulnerabilities.  These are then  automatically fixed before hackers can exploit them. Our team of website security experts ensures your protection is always up-to-date and airtight.
 Author: 6Scan
-Version: 2.1.4
+Version: 2.1.5
 Author URI: http://www.6scan.com
 */
 
@@ -15,8 +15,8 @@ if ( ! defined( 'ABSPATH' ) )
 define( 'SIXSCAN_PLUGIN_DIR' ,			trailingslashit( dirname(__FILE__) ) );	
 define( 'SIXSCAN_PLUGIN_URL' ,			trailingslashit( plugins_url( basename (dirname (__FILE__) ) ) ) );
 
-/* Default dashboard to show to users */
-define ( 'SIXSCAN_DASHBOARD_TYPE' , 	'security' );
+/* Platform type */
+define ( 'SIXSCAN_PLATFORM_TYPE' , 	'wordpress' );
 
 require_once( ABSPATH . 'wp-admin/includes/plugin.php' );
 require_once( 'admin/includes/common.php' );

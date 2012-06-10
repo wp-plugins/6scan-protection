@@ -6,9 +6,12 @@ if ( $wp_load_location == FALSE ){
 	header( "HTTP/1.1 500 Can't initialize WP environment" );
 	exit( 0 );
 }
-	
+
 require( $wp_load_location );
 require_once( '../../admin/includes/common.php' );
+
+/*	Older Wordpress version contain several functions, that we use, in this file: */
+require_once( ABSPATH . 'wp-admin/includes/file.php' );
 
 if ( defined( 'SIXSCAN_VERSION' ) == FALSE ){
 	header( "HTTP/1.1 500 Can't initialize environment" );
