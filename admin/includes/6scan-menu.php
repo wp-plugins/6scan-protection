@@ -131,4 +131,49 @@ function sixscan_menu_get_error_submission_form( $err_data = "" , $custom_form_m
 	
 	return $result_html;
 }
+
+function sixscan_menu_show_vulnerabilities_warning(){	
+
+	/*	User has asked us not to show the message */
+	if ( get_option( SIXSCAN_VULN_MESSAGE_DISMISSED ) == TRUE ){
+		return;
+	}
+	
+	$current_vulns_found = intval( get_option( SIXSCAN_OPTION_VULNERABITILY_COUNT ) );
+	/*	If we have 0 vulnerabilities, don't show the warning */
+	if ( $current_vulns_found == 0 )
+		return;
+
+	echo '<div id="6scan_dashboard_redirect_caption" class="updated" style="text-align: center;"><p><p>6Scan: You have ' . $current_vulns_found  . ' unfixed vulnerabilities. <a href="admin.php?page=' . SIXSCAN_COMMON_DASHBOARD_URL . '&fixnow=1">Fix them now</a> before hackers exploit them to gain access to your site.  <a href="#" onClick="sixscan_vuln_warning_dismiss();">Dismiss this message</a></p></p></div>';
+}
+
+/*	Hiding the vulnerabilties warning */
+add_action( 'admin_head', 'sixscan_menu_dismiss_warning_ajax' );
+add_action( 'wp_ajax_sixscan_dismiss_vuln_warning' , 'sixscan_menu_dismiss_vulnerabilities_warning' );
+
+function sixscan_menu_dismiss_warning_ajax(){
+	$nonce = wp_create_nonce( 'sixscan_vuln_message' );
+	?>
+	<script  type='text/javascript'>		
+		function sixscan_vuln_warning_dismiss(){
+			jQuery.ajax({
+				type: "post",url: "admin-ajax.php",data: { action: 'sixscan_dismiss_vuln_warning', _ajax_nonce: '<?php echo $nonce; ?>' },			
+				success: function(html){ 					
+					jQuery("#6scan_dashboard_redirect_caption").hide();					
+				}
+			}); //close jQuery.ajax(
+		}
+		</script>
+	<?php
+}
+
+function sixscan_menu_dismiss_vulnerabilities_warning(){
+	check_ajax_referer( 'sixscan_vuln_message' );
+
+	/*	Update the options, to dismiss the warning message */
+	update_option( SIXSCAN_VULN_MESSAGE_DISMISSED , TRUE );
+
+	die();
+}
+
 ?>

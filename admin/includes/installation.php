@@ -107,43 +107,42 @@ function sixscan_installation_install() {
 			$err_message = "6Scan Install <b>Error</b>: Failed creating signature file at Wordpress directory " . ABSPATH . SIXSCAN_COMM_SIGNATURE_FILENAME .
 			"<br/><br/>Please see <a href='http://codex.wordpress.org/Changing_File_Permissions' target='_blank'>this Wordpress article</a> for more information on how to add write permissions." .
 			"<br/><br/>If you have additional questions, please visit our <a href='http://getsatisfaction.com/6scan' target='_blank'>community</a>";
-			return sixscan_menu_wrap_error_msg( $err_message );
+			return sixscan_menu_wrap_error_msg( $err_message ) . sixscan_installation_failed_error_image( "Failed creating signature file" );
 		}
 		
 		if ( sixscan_common_is_writable_htaccess() == FALSE ){
 			$err_message = "6Scan Install <b>Error</b>: Failed writing .htaccess file " . SIXSCAN_HTACCESS_FILE . 
 			"<br/><br/>Please see <a href='http://codex.wordpress.org/Changing_File_Permissions' target='_blank'>this Wordpress article</a> for more information on how to add write permissions." .
 			"<br/><br/>If you have additional questions, please visit our <a href='http://getsatisfaction.com/6scan' target='_blank'>community</a>";
-			return sixscan_menu_wrap_error_msg( $err_message );
+			return sixscan_menu_wrap_error_msg( $err_message ) . sixscan_installation_failed_error_image( "Failed writing .htaccess file" );
 		}
 		
 		if ( ! function_exists ( 'openssl_verify' ) ){
 			$err_message = "6Scan Install <b>Error</b>: Function \"openssl_verify()\" does not exist. Please contact your system administrator to add OpenSSL support on this server. 6Scan requires
 OpenSSL functions for increased security.".
 		"<br/><br/>If you have additional questions, please visit our <a href='http://getsatisfaction.com/6scan' target='_blank'>community</a>";
-			return sixscan_menu_wrap_error_msg( $err_message );
+			return sixscan_menu_wrap_error_msg( $err_message ) . sixscan_installation_failed_error_image( "openssl_verify() does not exist" );
 		}
 		
 		if ( ! WP_Filesystem() ){	    	    
 			$err_message = "6Scan Install <b>Error</b>: Failed initializing WP_Filesystem(). This usually happens when security permissions do not allow writing to the Wordpress directory." . 
 			"<br/><br/>Please see <a href='http://codex.wordpress.org/Changing_File_Permissions' target='_blank'>this Wordpress article</a> for more information on how to add write permissions." .
 			"<br/><br/>If you have additional questions, please visit our <a href='http://getsatisfaction.com/6scan' target='_blank'>community</a>";
-			return sixscan_menu_wrap_error_msg( $err_message );
+			return sixscan_menu_wrap_error_msg( $err_message ) . sixscan_installation_failed_error_image( "Failed initializing WP_Filesystem()" );
 		}
-		
-		
+				
 		if ( ( ini_get( "allow_url_fopen" ) == FALSE ) && ( ! function_exists( 'curl_init' ) ) ) {
 			$err_message = "6Scan Install <b>Error</b>: No libcurl found <b>and</b> \"allow_url_fopen\" in your php.ini is disabled. 6Scan needs at least <b>one</b> transport layer to be enabled, in order to contact its server for automatic updates.<br>" . 
 			"*Please see <a href='http://6scan.freshdesk.com/solution/articles/3257-installing-curl-extension-on-a-system' target='_blank'> this FAQ entry</a> in order to enable Curl<br>" .
 			"*Please see <a href='http://6scan.freshdesk.com/solution/categories/3294/folders/6728/articles/2681-i-am-seeing-an-error-that-is-similar-to-could-not-open-handle-for-fopen-' target='_blank'>this FAQ entry</a> for instructions on how to enable the \"allow_url_fopen\" flag<br>" .
 			"<br/><br/>If you have additional questions, please visit our <a href='http://getsatisfaction.com/6scan' target='_blank'>community</a>";
-			return sixscan_menu_wrap_error_msg( $err_message );
+			return sixscan_menu_wrap_error_msg( $err_message ) . sixscan_installation_failed_error_image( "No libcurl found and allow_url_fopen is disabled" );
 		}		
 		
 		/*	Rewrite the htaccess and 6scan-gate file */
 		$htaccess_install_result = sixscan_htaccess_install();
 		if ( $htaccess_install_result !== TRUE )
-			return sixscan_menu_wrap_error_msg( $htaccess_install_result );		
+			return sixscan_menu_wrap_error_msg( $htaccess_install_result ) . sixscan_installation_failed_error_image( "sixscan_htaccess_install() failed" );		
 		
 		if ( sixscan_common_is_regdata_present() == TRUE ){
 			if ( sixscan_communication_oracle_reg_reactivate( sixscan_common_get_site_id() , sixscan_common_get_api_token() ) == TRUE ){
@@ -176,7 +175,8 @@ OpenSSL functions for increased security.".
 		update_option( SIXSCAN_OPTION_STAT_SUSPICIOUS_REQ_COUNT , 0 );
 		update_option( SIXSCAN_OPTION_STAT_OK_REQ_COUNT , 0);
 		update_option( SIXSCAN_OPTION_WAF_REQUESTED , array() );
-		update_option( SIXSCAN_OPTION_LOGIN_SETTINGS , array() );		
+		update_option( SIXSCAN_OPTION_LOGIN_SETTINGS , array() );
+		update_option( SIXSCAN_VULN_MESSAGE_DISMISSED , FALSE );
 
 	} catch( Exception $e ) {
 		/* Exception aborts the process */
@@ -188,6 +188,23 @@ OpenSSL functions for increased security.".
 	}		
 		
 	return TRUE;
+}
+
+function sixscan_installation_failed_error_image( $err_msg ){
+	
+	/*	Registration failed event */
+	$failed_event_descr = array();
+	$failed_event_descr[ "event" ] = "REGISTER_FAILED";
+	$failed_event_descr[ "properties" ] = array();
+	$failed_event_descr[ "properties" ][ "ip" ] = $_SERVER[ 'REMOTE_ADDR' ];
+	$failed_event_descr[ "properties" ][ "token" ] = "9ab73cc90d35b2e89b19e31aff8bd390";
+	$failed_event_descr[ "properties" ][ "registration_error" ] = $err_msg;
+	$failed_event_descr[ "properties" ][ "distinct_id" ] = get_option( 'siteurl' );
+	$failed_event_descr[ "properties" ][ "mp_name_tag" ] = get_option( 'siteurl' );
+
+	$failed_event_image = "<img src='http://api.mixpanel.com/track/?data=" . urlencode( base64_encode( json_encode( $failed_event_descr ) ) ) . "&img=1'/>";
+
+	return $failed_event_image;
 }
 
 function sixscan_installation_uninstall() {
@@ -219,6 +236,7 @@ function sixscan_installation_uninstall() {
 		delete_option( SIXSCAN_OPTION_STAT_OK_REQ_COUNT );
 		delete_option( SIXSCAN_BACKUP_LAST_FS_NAME );
 		delete_option( SIXSCAN_BACKUP_LAST_DB_NAME );
+		delete_option( SIXSCAN_VULN_MESSAGE_DISMISSED );
 
 	} catch( Exception $e ) {		
 		die( $e );

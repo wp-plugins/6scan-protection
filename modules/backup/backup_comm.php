@@ -26,7 +26,7 @@ function sixscan_backup_comm_save_file( $amazon_backup_address , $backed_filenam
         $sixscan_amazon_options[ 'Content-Type' ] = 'application/gzip';
 
         /*      Actual Amazon upload code */
-        return sixscan_backup_comm_post_request( urldecode( $amazon_backup_address ) , $sixscan_amazon_options , $backed_filename );     
+        return sixscan_backup_comm_post_request( base64_decode( urldecode( $amazon_backup_address ) ) , $sixscan_amazon_options , $backed_filename );     
 }
 
 

@@ -3,7 +3,7 @@
 if ( ! defined( 'ABSPATH' ) ) 
 	die( 'No direct access allowed' );
 
-define ( 'SIXSCAN_VERSION' ,							'2.1.5.0' );
+define ( 'SIXSCAN_VERSION' ,							'2.1.5.1' );
 define ( 'SIXSCAN_HTACCESS_VERSION' ,					'1' );
 
 if( empty( $_SERVER[ "HTTPS" ] ) )
@@ -48,6 +48,7 @@ define ( 'SIXSCAN_OPTION_STAT_SUSPICIOUS_REQ_COUNT' ,	'sixscan_waf_suspicious_re
 define ( 'SIXSCAN_OPTION_STAT_OK_REQ_COUNT' ,			'sixscan_waf_ok_count' );
 define ( 'SIXSCAN_BACKUP_LAST_FS_NAME' ,				'sixscan_backup_last_fs_name' );
 define ( 'SIXSCAN_BACKUP_LAST_DB_NAME' ,				'sixscan_backup_last_db_name' );
+define ( 'SIXSCAN_VULN_MESSAGE_DISMISSED' ,				'sixscan_vuln_message_dismissed' );
 define ( 'SIXSCAN_COMMON_BACKUP_MSG_DELIMITER',			 '###' );
 
 define ( 'SIXSCAN_LOGIN_ERRORS_HIDE_OPTION' ,			'login_errors_hide_enable' );

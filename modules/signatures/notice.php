@@ -95,7 +95,7 @@ if ( isset( $_REQUEST[ SIXSCAN_NOTICE_BCKP_REQUEST ] ) && ( $_REQUEST[ SIXSCAN_N
 		$backup_total_time = time() - $begin_time;
 		
 		$backup_result_description[ 'elapsed_time' ] = $backup_total_time;
-		print ( SIXSCAN_COMMON_BACKUP_MSG_DELIMITER . json_encode( $backup_result_description ) );
+		print ( SIXSCAN_COMMON_BACKUP_MSG_DELIMITER . json_encode( $backup_result_description ) . SIXSCAN_COMMON_BACKUP_MSG_DELIMITER );
 				
 		/*	If a backup was requested, no other actions should be run */
 		die();
@@ -104,7 +104,14 @@ if ( isset( $_REQUEST[ SIXSCAN_NOTICE_BCKP_REQUEST ] ) && ( $_REQUEST[ SIXSCAN_N
 
 /*	Server updates discovered vulnerability count */
 if ( isset( $_REQUEST[ SIXSCAN_NOTICE_VULN_COUNT ] ) ){
-	update_option( SIXSCAN_OPTION_VULNERABITILY_COUNT , intval( $_REQUEST[ SIXSCAN_NOTICE_VULN_COUNT ] ) );
+	$old_count = intval( get_option( SIXSCAN_OPTION_VULNERABITILY_COUNT ) );
+	$new_count = intval( $_REQUEST[ SIXSCAN_NOTICE_VULN_COUNT ] );
+
+	/*	New vulnerability was discovered. Show user the warning message */
+	if ( $new_count > $old_count )
+		update_option( SIXSCAN_VULN_MESSAGE_DISMISSED , FALSE );
+
+	update_option( SIXSCAN_OPTION_VULNERABITILY_COUNT , $new_count );
 }
 	
 /*	Include the update functionality */
