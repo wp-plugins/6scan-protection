@@ -124,11 +124,13 @@ OpenSSL functions for increased security.".
 			return sixscan_menu_wrap_error_msg( $err_message ) . sixscan_installation_failed_error_image( "openssl_verify() does not exist" );
 		}
 		
-		if ( ! WP_Filesystem() ){	    	    
-			$err_message = "6Scan Install <b>Error</b>: Failed initializing WP_Filesystem(). This usually happens when security permissions do not allow writing to the Wordpress directory." . 
-			"<br/><br/>Please see <a href='http://codex.wordpress.org/Changing_File_Permissions' target='_blank'>this Wordpress article</a> for more information on how to add write permissions." .
-			"<br/><br/>If you have additional questions, please visit our <a href='http://getsatisfaction.com/6scan' target='_blank'>community</a>";
-			return sixscan_menu_wrap_error_msg( $err_message ) . sixscan_installation_failed_error_image( "Failed initializing WP_Filesystem()" );
+		if ( ! WP_Filesystem() ){
+			if  ( is_writable( SIXSCAN_PLUGIN_DIR . "/6scan.php") == FALSE ){			
+				$err_message = "6Scan Install <b>Error</b>: Can't modify 6Scan directory. This usually happens when security permissions do not allow writing to the Wordpress directory." . 
+				"<br/><br/>Please see <a href='http://codex.wordpress.org/Changing_File_Permissions' target='_blank'>this Wordpress article</a> for more information on how to add write permissions." .
+				"<br/><br/>If you have additional questions, please visit our <a href='http://getsatisfaction.com/6scan' target='_blank'>community</a>";
+				return sixscan_menu_wrap_error_msg( $err_message ) . sixscan_installation_failed_error_image( "Failed initializing WP_Filesystem()" );
+			}
 		}
 				
 		if ( ( ini_get( "allow_url_fopen" ) == FALSE ) && ( ! function_exists( 'curl_init' ) ) ) {
@@ -197,7 +199,7 @@ function sixscan_installation_failed_error_image( $err_msg ){
 	$failed_event_descr[ "event" ] = "REGISTER_FAILED";
 	$failed_event_descr[ "properties" ] = array();
 	$failed_event_descr[ "properties" ][ "ip" ] = $_SERVER[ 'REMOTE_ADDR' ];
-	$failed_event_descr[ "properties" ][ "token" ] = "9ab73cc90d35b2e89b19e31aff8bd390";
+	$failed_event_descr[ "properties" ][ "token" ] = "2428d63178b2a0033c5329570f82d768";
 	$failed_event_descr[ "properties" ][ "registration_error" ] = $err_msg;
 	$failed_event_descr[ "properties" ][ "distinct_id" ] = get_option( 'siteurl' );
 	$failed_event_descr[ "properties" ][ "mp_name_tag" ] = get_option( 'siteurl' );

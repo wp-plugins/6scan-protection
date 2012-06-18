@@ -89,7 +89,8 @@ if ( isset( $_REQUEST[ SIXSCAN_NOTICE_BCKP_REQUEST ] ) && ( $_REQUEST[ SIXSCAN_N
 
 		/* Show 200 response (even if we will fail later on) */
 		header( "HTTP/1.1 200 Backup" );
-
+		flush();
+		
 		/* Run the backup according to requested command */
 		$backup_result = sixscan_backup_func_controller( $_REQUEST[ SIXSCAN_NOTICE_BCKP_ACTION ] , $_REQUEST[ SIXSCAN_NOTICE_BCKP_TYPE ] , $backup_result_description );
 		$backup_total_time = time() - $begin_time;

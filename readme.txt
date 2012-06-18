@@ -1,6 +1,6 @@
 === 6Scan Security ===
 Contributors: 6Scan
-Version: 2.1.5
+Version: 2.2.0
 Tags: security,secure,wordpress security,firewall,antivirus,security plugin,securty,protection,anti-hack,hack,scan,exploit,anti-virus
 Requires at least: 3.0.0
 Tested up to: 3.3.2
@@ -26,7 +26,10 @@ Our automatic security scanner finds and protects against:
 
 6Scan Security also includes a Web Application Firewall (WAF) that uses pattern matching to block out even more security threats.  Our application firewall is completely configurable so you can choose the level of security you desire for your site.
 
-Once 6Scan Security is installed, no further action is required to keep your site protected.  6Scan Security is also specifically engineered not to affect your site's performance or interfere with your site's legitimate users.  Our dashboard is specifically designed to convey your security status in a clear and simple manner, so that even non-experts can understand the situation.
+6Scan Security also includes protection against brute-force password hacking and dictionary attacks.  After a configurable number of failed logins from a remote IP, that IP can be blocked for a predefined period of time.  An email notification of the usernames tried can optionally be sent to the site's administrator.  To enable the login security feature, click the Settings tab on your dashboard and select the appropriate checkbox.  You will also be able to select the timeouts/periods and thresholds for a security lockdown.
+
+Once 6Scan Security is installed, no further action is required to keep your site protected.  6Scan Security is also specifically engineered not to affect your site's performance or interfere with your site's legitimate users.  
+Our dashboard is specifically designed to convey your security status in a clear and simple manner, so that even non-experts can understand the situation.
 
 It is very important to take note of the difference between various Wordpress security plugins.  Most of these are based on a ruleset which recognizes and blocks certain attack signatures. This approach is effective for protecting against some common SQL injection attacks, but fails to detect or prevent hackers from exploiting flawed logic.  For example, it could not protect against an authorization bug in a file upload plugin, potentially allowing unauthorized users to upload malware and viruses to your site.  6Scan's security response team constantly updates your blog's protection to deal with the latest threats found on all major exploit databases on the Internet.
 
@@ -140,7 +143,7 @@ Hackers are constantly on the prowl for sites they can exploit.  Security vulner
 
 = Can 6Scan Security fix a site that has already been hacked? =
 
-6Scan Security protects you from hackers attempting to compromise your site, but it cannot undo the damage a hacker has already caused - it is not an antivirus, but a preemptive protection solution.  Any damage must be manually cleaned before 6Scan can effectively secure your site.  Our backup feature, which is currently in beta testing and will be released soon, can help you ensure that even if your site is compromised, you will always be able to roll back to a clean version with a minimum of hassle - no antivirus or antimalware required.
+6Scan Security protects you from hackers attempting to compromise your site, but it cannot undo the damage a hacker has already caused - it is not an antivirus, but a preemptive protection solution.  Any damage must be manually cleaned before 6Scan can effectively secure your site.  Our backup feature helps you by ensuring that even if your site is compromised, you will always be able to roll back to a clean and secure version with a minimum of hassle - no antivirus or antimalware required.
 
 = 6Scan scanned my site and no vulnerabilities were found. What does this mean? =
 
@@ -149,6 +152,26 @@ Good news!  This means that there are no immediate security problems with your s
 = How is 6Scan Security different from an antivirus or antimalware product? =
 
 Antivirus and antimalware products are designed to let you know when your site is infected by a virus or malware, and help you remove it.  However, the existence of a virus or malware on your site means it has already been compromised by hackers!  6Scan Security prevents hackers from getting into your site in the first place, meaning you will never have malware installed.  However, 6Scan does include a malware scanner that will let you know if there is any pre-existing malicious code on your site.
+
+= How am I notified if new security vulnerabilities are found on my site? =
+
+You can be notified in three different ways:
+
+* An email message.
+* A text (SMS) message.
+* A notification on your Wordpress dashbord.
+
+To set your notification preferences, simply open your 6Scan Security dashboard, click the Settings tab, and check or uncheck the boxes under Notifications.
+
+= How do I unsubscribe from email notifications? =
+
+Easy!  Open your 6Scan Security dashboard, click the Settings tab, and uncheck the email box under Notifications.  You will no longer receive new vulnerability notifications by email.
+
+= What is the backup feature? =
+	
+In addition to our security features, we have also added automatic scheduled backups for your Wordpress site.  The backup feature makes sure that even in case of an accidental deletion, server problem, or even lost password, you will be able to restore a working and secure version of your site.
+
+Our automatic backup runs automatically on a schedule, backing up both your database and your site's files to our secure cloud datacenter.  A number of previous backups can be stored, ensuring you can go back to a number of points in time.  You can download the backups from your 6Scan dashboard; backups are secured, and their download is protected by a key, so only you can download them.
 
 = I have a feature request! =
 
@@ -163,6 +186,7 @@ We are a team of ex-military security experts who have implemented traditional e
 1. Your dashboard shows the security vulnerabilities found on your site.  6Scan can automatically and immediately fix each of these vulnerabilities, ensuring your site is always secure.
 2. Security settings of 6Scan's WAF and notification of new security vulnerabilities by SMS.
 3. If you prefer to manually fix a security vulnerability, you can get detailed instructions on how to do so.
+4. Example of a manual security vulnerability fix.
 
 == Changelog ==
 
@@ -196,7 +220,7 @@ We are a team of ex-military security experts who have implemented traditional e
 = 1.0.7 =
 * Installation process improved.
 * Added settings menu
-* Added support for more Patrol servers
+* Added support for more security scanning servers
 
 = 1.0.8 =
 * Security tightened even more
@@ -215,11 +239,46 @@ We are a team of ex-military security experts who have implemented traditional e
 
 = 2.1.1 =
 * Added WAF security settings
-* Added manual fixes instructions
+* Added manual fix instructions for security vulnerabilities
 * New dashboard design
+* Added new feature: login security.  Login security can optionally lock out users who attempt a brute-force or dictionary attack on your blog's login form.
+
+= 2.1.2 =
+* In addition to website security, we have introduced a backup feature, allowing users to automatically create backups of their database and files. The backups are securely uploaded to our cloud datacenter and are only accessible by the site owner.
+* Changed the UI of the ticket submission form.
+* UI minor bugfix: on site verification failure, the message to user was double escaped.
+* Some servers had security settings that denied long GET requests.  A fix was introduced to avoid this condition.
+
+= 2.1.3 =
+* Added another security check to CSRF on POST check. Now empty referrers are considered safe, because some user agents do not pass the referrer at all (for security or privacy reasons).
+* Changed server communication protocol when performing backups for more reliability.
+* Error messages have been rewritten to be more clear.
+* Can now connect to MySQL database through socket.
+* Added support for non-legacy tar implementations.
+* Fixed: login security could sometimes lock-out users that were using XML-RPC to make posts.
+* Storage upload engine was completely rewritten.
+* Backup feature now makes sure that no old backups are left in the Wordpress directory (otherwise they could stack and inflate the backup size).
+
+= 2.1.4 =
+* Fixed a bug in a gatekeeper script, where a special configuration would cause scripts to get the wrong value from the PHP_SELF variable.
+* Older versions of Wordpress would sometimes not update security signatures. Fixed that condition.
+* Fixed a bug where WAF security options would sometimes not act as intended.
+
+= 2.1.5 =
+* If a security vulnerability has been discovered, it is now shown on the Wordpress administrator panel.
+* Fixed: under certain configurations, server firewalls could mistake a backup request for a security threat and block it.
+* Fixed a bug where some servers would add their html code to scripts' output and confuse the 6Scan plugin.
+
+= 2.2 =
+* Worked around a problem with WP_Filesystem that many users saw during installation.  This problem could pop up if the file ownership on some of your files is not as Wordpress requires.  6Scan Security now installs and functions correctly even if WP_Filesystem does not, although correct file permissions are still required.
+* Fixed minor UI discrepancies.
+* Optimizations to secure automatic backup feature.
 
 == Upgrade Notice ==
 
 * Support menu, if user encounters a problem
 * Security tightened up even more
 * Easier to install
+* Built-in firewall to keep hackers out and your site secure.
+* Login security to stop brute-force and dictionary attacks.
+* Automatic scheduled backups, stored in our secure datacenter.

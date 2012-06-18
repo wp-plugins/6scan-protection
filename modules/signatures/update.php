@@ -72,8 +72,13 @@ function sixscan_signature_engine_update_get ( $site_id , $api_token , $current_
 		return "Failed writing file to " . $temp_zip_file;
 		
 	/*	Get the write credentials for the following unzip_file() function */	
-	if ( ! WP_Filesystem() ) {	    	    
-	    return "Failed initializing WP_Filesystem()";
+	if ( ! WP_Filesystem() ) {
+		require_once( ABSPATH . 'wp-admin/includes/class-wp-filesystem-base.php' ); 
+		require_once( ABSPATH . 'wp-admin/includes/class-wp-filesystem-direct.php' ); 
+		/*	If from some reason WP_Filesystem failed, but the wp-content directory is writable (otherwise plugin install would've failed)
+		we force direct write method */
+	    global $wp_filesystem;	
+		$wp_filesystem = new WP_Filesystem_direct( "" ); 	    
 	}	
 	
 	/*	unzip_file returns mixed on failure */	
