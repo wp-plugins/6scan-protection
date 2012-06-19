@@ -387,14 +387,24 @@ function sixscan_signatures_update_check_ssl_signature( $response_data , $respon
 	}
 	
 	/*	Verify that program data was signed by 6Scan */
-	if ( function_exists ( 'openssl_verify' ) ) {
+	if ( function_exists ( 'openssl_verify' ) ) {	
 		$sig_ver_result = openssl_verify( $response_data , base64_decode ( $openssl_sha1_signature ) , SIXSCAN_SIGNATURE_PUBLIC_KEY );	
 		if ( $sig_ver_result != 1 ){
 			return "openssl_verify() failed with error code " . $sig_ver_result;
 		}			
 	}
 	else {
-		return "Function openssl_verify() does not exist";
+		
+		/*	If there is no openssl library, fallback to pure PHP implementation of RSA sign/verification, take from
+			http://phpseclib.sourceforge.net/   */
+			
+		include('Crypt/RSA.php');
+		$rsa = new Crypt_RSA();
+		/*	SHA1 key is chosen by default */
+		$rsa->loadKey( SIXSCAN_SIGNATURE_PUBLIC_KEY );
+		$rsa->setSignatureMode(CRYPT_RSA_SIGNATURE_PKCS1);		
+		if ( $rsa->verify( $response_data , base64_decode ( $openssl_sha1_signature ) ) == FALSE )
+			return "Crypt_RSA->verify() failed" ;
 	}
 	
 	return TRUE;
