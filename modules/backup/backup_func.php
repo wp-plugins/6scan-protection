@@ -1,6 +1,5 @@
 <?php
 
-
 function sixscan_backup_func_controller( $amazon_backup_address , $backup_type , &$backup_err_descr ){
 	/* Empty error message */	
 
@@ -182,11 +181,11 @@ function sixscan_backup_func_db( &$backed_up_filename ){
 	if ( strncmp( DB_HOST , 'localhost:' , 10 ) == 0 ){
 		
 		/*	Connecting to DB using unix socket. 'Remove the localhost:'' prefix */
-		$db_backup_cmd = "mysqldump -S " . substr( DB_HOST , 10 ) . " -u " . DB_USER . " -p" . DB_PASSWORD . " " . DB_NAME . " 2>$temp_backup_status > $temp_sql_file_name";	
+		$db_backup_cmd = "mysqldump -S " . substr( DB_HOST , 10 ) . " -u " . DB_USER . " -p'" . DB_PASSWORD . "' " . DB_NAME . " 2>$temp_backup_status > $temp_sql_file_name";	
 	}
 	else{
 		/*	Connecting to DB using tcp connect */
-		$db_backup_cmd = "mysqldump -h " . DB_HOST . " -u " . DB_USER . " -p" . DB_PASSWORD . " " . DB_NAME . " 2>$temp_backup_status > $temp_sql_file_name";	
+		$db_backup_cmd = "mysqldump -h " . DB_HOST . " -u " . DB_USER . " -p'" . DB_PASSWORD . "' " . DB_NAME . " 2>$temp_backup_status > $temp_sql_file_name";	
 	}
 
 	/* Run the mysqldump */	

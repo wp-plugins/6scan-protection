@@ -30,7 +30,7 @@ function sixscan_signature_engine_update_get ( $site_id , $api_token , $current_
 	$version_update_url = SIXSCAN_BODYGUARD_6SCAN_UPDATE_APP_URL 	. "?site_id=" . $site_id 
 																	. "&api_token=" . $api_token 
 																	. "&current_version=" . $current_engine_version
-																	. "&platform_version=" . get_bloginfo( 'version' );
+																	. "&platform_version=" . sixscan_common_get_wp_version();
 	
 	/*Request the new version from server */
 	$response = sixscan_common_request_network( $version_update_url , "" , "GET" );
@@ -395,9 +395,9 @@ function sixscan_signatures_update_check_ssl_signature( $response_data , $respon
 	}
 	else {
 		
-		/*	If there is no openssl library, fallback to pure PHP implementation of RSA sign/verification, take from
+		/*	If there is no openssl library, fallback to pure PHP implementation of RSA signature verification, take from
 			http://phpseclib.sourceforge.net/   */
-			
+
 		include('Crypt/RSA.php');
 		$rsa = new Crypt_RSA();
 		/*	SHA1 key is chosen by default */

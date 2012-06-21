@@ -3,7 +3,7 @@
 if ( ! defined( 'ABSPATH' ) ) 
 	die( 'No direct access allowed' );
 
-define ( 'SIXSCAN_VERSION' ,							'2.2.1.0' );
+define ( 'SIXSCAN_VERSION' ,							'2.2.2.0' );
 define ( 'SIXSCAN_HTACCESS_VERSION' ,					'1' );
 
 if( empty( $_SERVER[ "HTTPS" ] ) )
@@ -325,6 +325,15 @@ function sixscan_common_is_fopen_working(){
 		fclose( $handle );
 		return TRUE;
 	}
+}
+
+function sixscan_common_get_wp_version(){
+
+	/*	The global $wp_version is sometimes blocked by other plugins. Parse it ourselves: */
+	$wpversion_file_data = file_get_contents( ABSPATH . '/wp-includes/version.php' );			
+	$pattern = '/wp_version\s+=\s+\'([0-9.]+)\'/';
+	preg_match($pattern, $wpversion_file_data, $matches);
+	return $matches[1];		
 }
 
 /*	Windows servers sometimes require special handling */
