@@ -80,7 +80,8 @@ function sixscan_signatures_analyzer_suspicious_request(){
 		return;
 	
 	$data_log = "\"" . $_SERVER['SCRIPT_NAME'] . "\" \"" . addslashes( $_SERVER['QUERY_STRING'] ) . "\" \"" . addslashes( $_SERVER['HTTP_REFERER'] ) . "\" \"" . addslashes( $_SERVER['HTTP_USER_AGENT'] ) . "\"" . SIXSCAN_SECURITY_LOG_SEPARATOR;
-	file_put_contents( SIXSCAN_ANALYZER_LOG_FILEPATH , $data_log ,  FILE_APPEND );
+
+	@file_put_contents( SIXSCAN_ANALYZER_LOG_FILEPATH , $data_log ,  FILE_APPEND );
 
 	/* Check whether we should block this request */
 	if ( sixscan_signatures_analyzer_is_to_block_request() )

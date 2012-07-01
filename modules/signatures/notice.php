@@ -200,7 +200,6 @@ function sixscan_login_options_configuration(){
 	 	}
 	}
 
-
 	/* Set requested options */
 	update_option ( SIXSCAN_OPTION_LOGIN_SETTINGS , $sixscan_login_options);
 
@@ -280,6 +279,10 @@ function sixscan_send_security_log( $site_id ,  $api_token ){
 	
 	$log_fname = "../../" . SIXSCAN_SECURITY_LOG_FILENAME;
 	
+	/*	Can't write/delete logs without configured FS */
+	if ( get_option( SIXSCAN_OPTION_WPFS_CONFIG ) !== FALSE )
+		return TRUE;
+
 	if ( is_file( $log_fname ) === FALSE ){
 		$log_data = "";
 	}

@@ -1,6 +1,6 @@
 === 6Scan Security ===
 Contributors: 6Scan
-Version: 2.2.1
+Version: 2.2.3
 Tags: security,secure,wordpress security,firewall,antivirus,security plugin,securty,protection,anti-hack,hack,scan,exploit,anti-virus
 Requires at least: 3.0.0
 Tested up to: 3.3.2
@@ -276,6 +276,11 @@ We are a team of ex-military security experts who have implemented traditional e
 
 = 2.2.1 =
 * We have added a pure PHP implemented fallback for openssl_verify function, so that if your webhosting does not have openssl package, you can still use 6Scan without compromising on traffic security.
+
+= 2.2.3 =
+* We have added a full support for WP_Filesystem. If wordpress is running without permissions to access filesystem, user is required to enter the FTP credentials (Based entirely on Wordpress filesystem implementation)
+* Added a 6Scan Security dashboard widget
+* We also make sure to set a correct permissions mode on our verification file (There are some servers, that create it without runnable permissions by default)
 
 == Upgrade Notice ==
 

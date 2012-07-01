@@ -3,7 +3,7 @@
 if ( ! defined( 'ABSPATH' ) ) 
 	die( 'No direct access allowed' );
 
-define ( 'SIXSCAN_VERSION' ,							'2.2.2.0' );
+define ( 'SIXSCAN_VERSION' ,							'2.2.3.0' );
 define ( 'SIXSCAN_HTACCESS_VERSION' ,					'1' );
 
 if( empty( $_SERVER[ "HTTPS" ] ) )
@@ -43,6 +43,7 @@ define ( 'SIXSCAN_OPTION_MENU_DASHBOARD_TOKEN' , 		'sixscan_registered_dashboard
 define ( 'SIXSCAN_OPTION_VULNERABITILY_COUNT' ,			'sixscan_vulnerability_count' );
 define ( 'SIXSCAN_OPTION_WAF_REQUESTED' ,				'sixscan_waf_requested_options' );
 define ( 'SIXSCAN_OPTION_LOGIN_SETTINGS' ,				'sixscan_login_settings_options' );
+define ( 'SIXSCAN_OPTION_WPFS_CONFIG' ,					'sixscan_login_wpfs_param' );
 define ( 'SIXSCAN_LOGIN_LOGS' ,							'sixscan_login_settings_logs' );
 define ( 'SIXSCAN_OPTION_STAT_SUSPICIOUS_REQ_COUNT' ,	'sixscan_waf_suspicious_req_count' );
 define ( 'SIXSCAN_OPTION_STAT_OK_REQ_COUNT' ,			'sixscan_waf_ok_count' );
@@ -131,9 +132,11 @@ define( 'SIXSCAN_COMMON_SUPPORT_URL',					'six-scan-support' );
 
 define( 'SIXSCAN_COMMON_DASHBOARD_URL_MAIN',			'dashboard' );
 define( 'SIXSCAN_COMMON_DASHBOARD_URL_SETTINGS',		'dashboard_settings' );
+define( 'SIXSCAN_COMMON_DASHBOARD_URL_WIDGET',			'dashboard_widget' );
 define( 'SIXSCAN_COMMON_DASHBOARD_URL_BACKUP',			'backup_dashboard' );
 
 define( 'SIXSCAN_SIGNATURE_HEADER_NAME',				'x-6scan-signature' );
+define( 'SIXSCAN_SIGNATURE_REQ_KEY',					'x-6scan-db_encryption_key' );
 
 define( 'SIXSCAN_SIGNATURE_PUBLIC_KEY',	<<<EOD
 -----BEGIN PUBLIC KEY-----
@@ -202,6 +205,30 @@ function sixscan_common_is_partner_version(){
 	return file_exists( $partner_file_path );	
 }
 
+/*	Based on http://phpseclib.sourceforge.net/ package */
+function sixscan_common_encrypt_string( $plain_data , $key ){
+	
+	if ( class_exists( 'Crypt_RC4' ) == FALSE ){
+		require_once( SIXSCAN_PLUGIN_DIR . "modules/signatures/Crypt/RC4.php" );		
+	}
+	
+	$rc4_encr = new Crypt_RC4(); 
+	$rc4_encr->setKey( $key );
+	return $rc4_encr->encrypt( $plain_data );
+}
+
+/*	Based on http://phpseclib.sourceforge.net/ package */
+function sixscan_common_decrypt_string( $encr_data , $key ){
+	
+	if ( class_exists( 'Crypt_RC4' ) == FALSE ){
+		require_once( SIXSCAN_PLUGIN_DIR . "modules/signatures/Crypt/RC4.php" );
+	}
+	
+	$rc4_encr = new Crypt_RC4(); 
+	$rc4_encr->setKey( $key );
+	return $rc4_encr->decrypt( $encr_data ); 	
+}
+
 function sixscan_wordpress_admin_set_cookie_callback(){
 	
 	/*	Admin is getting auth cookie, other users do not */
@@ -260,32 +287,6 @@ function sixscan_common_run_signature_check_request(){
 	return true;
 }
 
-function sixscan_common_is_writable_directory( $dir_to_check ){	
-	$test_fname = $dir_to_check . SIXSCAN_COMM_SIGNATURE_FILENAME;
-	
-	/*	We can't rely on is_writable() , since safe mode limitations are not taken into account. Lets try by ourselves: */
-	$fh = @fopen( $test_fname , "a+" );
-	if ($fh === FALSE)
-		return FALSE;
-	
-	/*	Cleanup */
-	fclose( $fh );
-	unlink( $test_fname );
-	return TRUE;	
-}
-
-function sixscan_common_is_writable_htaccess(){
-	/*	We can't rely on is_writable() , since safe mode limitations are not taken into account. Lets try by ourselves: */		
-	$fh = @fopen( SIXSCAN_HTACCESS_FILE , "a+" );
-	if ($fh == FALSE)
-		return FALSE;
-	
-	fclose( $fh );
-	
-	/*	Even if there weren't an htaccess present, and we have just created it , there is no reason to unlink() it, since we will generate new one, anyways */	
-	return TRUE;
-}	
-
 function sixscan_common_is_fopen_working(){
 
 	$url = SIXSCAN_BODYGUARD_PING_URL;
@@ -327,6 +328,12 @@ function sixscan_common_is_fopen_working(){
 	}
 }
 
+function sixscan_common_generate_random_string(){
+
+	/*	Random enough for our needs */
+	return ( sha1( 'OBpjnNrFXA' . md5( 'RZc3LJKCti' . mt_rand() . mt_rand() . time() ) ) );
+}
+
 function sixscan_common_get_wp_version(){
 
 	/*	The global $wp_version is sometimes blocked by other plugins. Parse it ourselves: */
@@ -351,11 +358,8 @@ function sixscan_common_gather_system_information_for_anonymous_support_ticket()
 	$regdata_status = sixscan_common_is_regdata_present();
 	$submission_data .= "Regdata present: $regdata_status\n";
 	
-	$root_dir_writable =  sixscan_common_is_writable_directory( ABSPATH );
-	$submission_data .= "Is root writable: $root_dir_writable\n";
-	
-	$is_htaccess_writable = sixscan_common_is_writable_htaccess();
-	$submission_data .= "Is htaccess writable: $is_htaccess_writable\n";
+	$write_method = ( get_option( SIXSCAN_OPTION_WPFS_CONFIG ) === FALSE ) ? "Direct_access" : "WP_filesystem";
+	$submission_data .= "Write method: $write_method\n";	
 	
 	/* Check , whether site can access external resources */
 	$url = SIXSCAN_BODYGUARD_REGISTER_URL;

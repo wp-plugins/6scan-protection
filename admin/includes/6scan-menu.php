@@ -65,13 +65,17 @@ EOD;
 }
 
 
-function sixscan_menu_create_dashboard_frame( $redirect_request = SIXSCAN_COMMON_DASHBOARD_URL_MAIN ){
+function sixscan_menu_create_dashboard_frame( $redirect_request = "" ){
 
-	/* Default redirects per different plugin types */
-	if ( SIXSCAN_PLATFORM_TYPE == 'wordpress' )
-		$redirect_request = SIXSCAN_COMMON_DASHBOARD_URL_MAIN;
-	else if ( SIXSCAN_PLATFORM_TYPE == 'wordpress_backup' )
-		$redirect_request = SIXSCAN_COMMON_DASHBOARD_URL_BACKUP;
+	$user_height = '100%';
+
+	if ( $redirect_request == ""){
+		/* Default redirects per different plugin types */
+		if ( SIXSCAN_PLATFORM_TYPE == 'wordpress' )
+			$redirect_request = SIXSCAN_COMMON_DASHBOARD_URL_MAIN;
+		else if ( SIXSCAN_PLATFORM_TYPE == 'wordpress_backup' )
+			$redirect_request = SIXSCAN_COMMON_DASHBOARD_URL_BACKUP;
+	}
 
 	/*	If user has already submitted a ticket, show him a "Thank you" */
 	if ( sixscan_menu_is_ticket_requested() ){
@@ -79,7 +83,11 @@ function sixscan_menu_create_dashboard_frame( $redirect_request = SIXSCAN_COMMON
 		return;
 	}
 	
-	print "<iframe id='sixscan_dashboard_iframe' src=\"" . sixscan_communication_oracle_auth_get_link( $redirect_request ) . "\" width='100%' height='100%'>\n";
+	/*	Widget has smaller iframe size */
+	if ( $redirect_request == SIXSCAN_COMMON_DASHBOARD_URL_WIDGET )
+		$user_height = '550px';
+
+	print "<iframe id='sixscan_dashboard_iframe' src=\"" . sixscan_communication_oracle_auth_get_link( $redirect_request ) . "\" width='100%' height='$user_height'>\n";
 	print "</iframe>\n";
 ?>	
 	<script language='javascript'>
@@ -104,6 +112,7 @@ function sixscan_menu_wrap_error_msg( $err_msg ){
 
 function sixscan_menu_get_error_submission_form( $err_data = "" , $custom_form_message = "" ){	
 	
+	$server_request_uri = htmlspecialchars( $_SERVER[ "REQUEST_URI" ] , ENT_QUOTES );
 	$result_html = "";
 	$error_details = base64_encode( "User error: " . $err_data . "\n\n" . sixscan_common_gather_system_information_for_anonymous_support_ticket() );
 	$result_html .= "<center>\n";
@@ -121,7 +130,7 @@ function sixscan_menu_get_error_submission_form( $err_data = "" , $custom_form_m
 	$result_html .= "<table>\n";
 	$result_html .= "<tr><td width='80'>Email:</td><td><input type=text name=admin_email value=\"" . get_option( "admin_email" ) . "\"></td></tr>\n";
 	$result_html .= "<tr><td width='80'>Comments:</td><td><textarea name=admin_comments cols=60 rows=3></textarea></td></tr>\n";
-	$result_html .= "<input type=hidden name=return_url value='" . SERVER_HTTP_PREFIX . $_SERVER[ "SERVER_NAME" ] . $_SERVER[ "REQUEST_URI" ] . "&ticket_submitted=1'>\n";
+	$result_html .= "<input type=hidden name=return_url value='" . SERVER_HTTP_PREFIX . $_SERVER[ "SERVER_NAME" ] . $server_request_uri . "&ticket_submitted=1'>\n";
 	$result_html .= "<tr><td width='80'></td><td><input type=submit value='Submit error log'></td>\n";
 	$result_html .= "</table>";
 	$result_html .= "</form>\n";
@@ -175,5 +184,33 @@ function sixscan_menu_dismiss_vulnerabilities_warning(){
 
 	die();
 }
+
+/*	Put the widget on dashboard and push it up (for the first time) */
+function sixscan_menu_dashboard_widget(){
+	
+	$current_vulns_found = intval( get_option( SIXSCAN_OPTION_VULNERABITILY_COUNT ) );
+	
+	/*	If we have 0 vulnerabilities, don't show the panel */
+	if ( $current_vulns_found == 0 )
+		return;
+
+	wp_add_dashboard_widget( 'sixscan_widget' , '6Scan Wordpress Security' , 'sixscan_menu_widget_function');	
+	
+	global $wp_meta_boxes;
+
+	$normal_dashboard = $wp_meta_boxes['dashboard']['normal']['core'];
+	$sixscan_widget = array( 'sixscan_widget' => $normal_dashboard[ 'sixscan_widget' ] );
+	unset( $normal_dashboard[ 'sixscan_widget' ] );	
+	$sorted_dashboard = array_merge( $sixscan_widget , $normal_dashboard );	
+	$wp_meta_boxes['dashboard']['normal']['core'] = $sorted_dashboard;                
+}
+
+/*	Creates link to 6Scan dashboard widget */
+function sixscan_menu_widget_function() {
+	/* Create dashboard frame with settings redirect request */
+	sixscan_menu_create_dashboard_frame( SIXSCAN_COMMON_DASHBOARD_URL_WIDGET );
+} 
+
+
 
 ?>

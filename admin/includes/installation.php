@@ -9,9 +9,14 @@ function sixscan_installation_manager()
 	/* If running from partner install, the logic is a bit different */
 	if ( ( sixscan_common_is_partner_version() ) && ( sixscan_installation_partner_is_to_install() === FALSE ) )
 		return;
-	
+
+	/* If we are waiting for user to input wpfs data */
+	$tmp_key = sixscan_common_generate_random_string();
+	if ( sixscan_installation_wpfs_init( $tmp_key ) == FALSE)
+		return;
+
 	/* Run the install */
-	$install_result = sixscan_installation_install();
+	$install_result = sixscan_installation_install( $tmp_key );
 	if ( $install_result !== TRUE ){
 
 		/*	If the install failed - print error message and deactivate the plugin */				
@@ -96,36 +101,36 @@ function sixscan_installation_partner_mark_install_tried(){
 	update_option( SIXSCAN_PARTNER_INSTALL_KEY , "softacolous_sixscan" );
 }
 
-function sixscan_installation_install() {	
+function sixscan_installation_install( $tmp_key ) {	
 
 	try {		
 		/*	Clear the operational flag. It will be set, if activation is successful  */
 		sixscan_common_set_account_operational( FALSE );		
+		
+		global $wp_filesystem;
 
 		/*	Make sure we can create signature file and update the site's .htaccess file */
-		if ( sixscan_common_is_writable_directory( ABSPATH ) == FALSE ){
+		if ( $wp_filesystem->is_writable( ABSPATH ) == FALSE ){
 			$err_message = "6Scan Install <b>Error</b>: Failed creating signature file at Wordpress directory " . ABSPATH . SIXSCAN_COMM_SIGNATURE_FILENAME .
 			"<br/><br/>Please see <a href='http://codex.wordpress.org/Changing_File_Permissions' target='_blank'>this Wordpress article</a> for more information on how to add write permissions." .
 			"<br/><br/>If you have additional questions, please visit our <a href='http://6scan.com/support' target='_blank'>community</a>";
 			return sixscan_menu_wrap_error_msg( $err_message ) . sixscan_installation_failed_error_image( "Failed creating signature file" );
 		}
 		
-		if ( sixscan_common_is_writable_htaccess() == FALSE ){
+		if ( $wp_filesystem->is_writable( SIXSCAN_HTACCESS_FILE ) == FALSE ){
 			$err_message = "6Scan Install <b>Error</b>: Failed writing .htaccess file " . SIXSCAN_HTACCESS_FILE . 
 			"<br/><br/>Please see <a href='http://codex.wordpress.org/Changing_File_Permissions' target='_blank'>this Wordpress article</a> for more information on how to add write permissions." .
 			"<br/><br/>If you have additional questions, please visit our <a href='http://6scan.com/support' target='_blank'>community</a>";
 			return sixscan_menu_wrap_error_msg( $err_message ) . sixscan_installation_failed_error_image( "Failed writing .htaccess file" );
 		}
 		
-		if ( ! WP_Filesystem() ){
-			if  ( is_writable( SIXSCAN_PLUGIN_DIR . "/6scan.php") == FALSE ){			
-				$err_message = "6Scan Install <b>Error</b>: Can't modify 6Scan directory. This usually happens when security permissions do not allow writing to the Wordpress directory." . 
-				"<br/><br/>Please see <a href='http://codex.wordpress.org/Changing_File_Permissions' target='_blank'>this Wordpress article</a> for more information on how to add write permissions." .
-				"<br/><br/>If you have additional questions, please visit our <a href='http://6scan.com/support' target='_blank'>community</a>";
-				return sixscan_menu_wrap_error_msg( $err_message ) . sixscan_installation_failed_error_image( "Failed initializing WP_Filesystem()" );
-			}
+		if  ( $wp_filesystem->is_writable( SIXSCAN_PLUGIN_DIR . "/6scan.php" ) == FALSE ){			
+			$err_message = "6Scan Install <b>Error</b>: Can't modify 6Scan directory. This usually happens when security permissions do not allow writing to the Wordpress directory." . 
+			"<br/><br/>Please see <a href='http://codex.wordpress.org/Changing_File_Permissions' target='_blank'>this Wordpress article</a> for more information on how to add write permissions." .
+			"<br/><br/>If you have additional questions, please visit our <a href='http://6scan.com/support' target='_blank'>community</a>";
+			return sixscan_menu_wrap_error_msg( $err_message ) . sixscan_installation_failed_error_image( "Failed initializing WP_Filesystem()" );
 		}
-				
+						
 		if ( ( ini_get( "allow_url_fopen" ) == FALSE ) && ( ! function_exists( 'curl_init' ) ) ) {
 			$err_message = "6Scan Install <b>Error</b>: No libcurl found <b>and</b> \"allow_url_fopen\" in your php.ini is disabled. 6Scan needs at least <b>one</b> transport layer to be enabled, in order to contact its server for automatic updates.<br>" . 
 			"*Please see <a href='http://6scan.freshdesk.com/solution/articles/3257-installing-curl-extension-on-a-system' target='_blank'> this FAQ entry</a> in order to enable Curl<br>" .
@@ -153,7 +158,7 @@ function sixscan_installation_install() {
 		}
 		
 		/*	Register process */
-		$server_registration_result = sixscan_installation_register_with_server();
+		$server_registration_result = sixscan_installation_register_with_server( $tmp_key );
 		
 		if ( $server_registration_result !== TRUE ){
 			/* If something went wrong in the registration/verification process */
@@ -170,7 +175,7 @@ function sixscan_installation_install() {
 		update_option( SIXSCAN_OPTION_STAT_SUSPICIOUS_REQ_COUNT , 0 );
 		update_option( SIXSCAN_OPTION_STAT_OK_REQ_COUNT , 0);
 		update_option( SIXSCAN_OPTION_WAF_REQUESTED , array() );
-		update_option( SIXSCAN_OPTION_LOGIN_SETTINGS , array() );
+		update_option( SIXSCAN_OPTION_LOGIN_SETTINGS , array() );		
 		update_option( SIXSCAN_VULN_MESSAGE_DISMISSED , FALSE );
 
 	} catch( Exception $e ) {
@@ -226,6 +231,7 @@ function sixscan_installation_uninstall() {
 		delete_option( SIXSCAN_OPTION_VULNERABITILY_COUNT );
 		delete_option( SIXSCAN_OPTION_LOGIN_SETTINGS );
 		delete_option( SIXSCAN_LOGIN_LOGS );		
+		delete_option( SIXSCAN_OPTION_WPFS_CONFIG );
 		delete_option( SIXSCAN_OPTION_WAF_REQUESTED );
 		delete_option( SIXSCAN_OPTION_STAT_SUSPICIOUS_REQ_COUNT );
 		delete_option( SIXSCAN_OPTION_STAT_OK_REQ_COUNT );
@@ -252,14 +258,14 @@ function sixscan_installation_partner_info_get( & $partner_id , & $partner_key )
 	}	
 }
 
-function sixscan_installation_register_with_server(){
+function sixscan_installation_register_with_server( $tmpkey ){
 		
 	/*	If there is partner file, partner_id and partner_key are filled */
 	sixscan_installation_partner_info_get( $partner_id , $partner_key );
 
 	$sixscan_register_result = sixscan_communication_oracle_reg_register( get_option( 'siteurl' ) ,
 							get_option( 'admin_email' ) , SIXSCAN_PLUGIN_URL . "modules/signatures/notice.php" , 
-							$sixscan_oracle_auth_struct , $partner_id , $partner_key );			
+							$sixscan_oracle_auth_struct , $partner_id , $partner_key , $tmpkey );			
 
 	if ( $sixscan_register_result !== TRUE ){	
 		$err_descr = "There was a problem registering your site with 6Scan: <b>$sixscan_register_result</b>.<br><br>";		
@@ -312,5 +318,34 @@ function sixscan_installation_account_setup_required_notice() {
 			SIXSCAN_COMMON_DASHBOARD_URL . '">create your account</a> now.</p></p></div>';
 		}
 }	
+
+/*	Returns TRUE if wpfs is already initialized, FALSE if we are waiting for user to enter reg_data */
+function sixscan_installation_wpfs_init( $config_key ){
+	
+	if ( WP_Filesystem() != NULL ){
+		return TRUE;
+	}
+
+	/*	We are not using nonce, because there is no way user can arrive to this location after install is complete */
+	$url = 'admin.php?page=' . SIXSCAN_COMMON_DASHBOARD_URL;
+	
+	/*	Show user message only at the first time */
+	if ( ( isset( $_GET[ 'page' ] ) == FALSE ) || ( $_GET[ 'page' ] != SIXSCAN_COMMON_DASHBOARD_URL ) )
+		print "<p><h1>6Scan requires filesystem credentials to update signature files - fill the information below and click proceed</h1></p>";
+
+	if ( ( $creds = request_filesystem_credentials( $url ) ) !== FALSE ){	
+		if ( ! WP_Filesystem($creds) ) {
+			/* Current POST data failed, present new form . Error is now "TRUE" */
+			request_filesystem_credentials( $url , '' , TRUE );
+		}
+		else{			
+			update_option( SIXSCAN_OPTION_WPFS_CONFIG , base64_encode( sixscan_common_encrypt_string( serialize( $creds ) , $config_key ) ) );
+			return TRUE;
+		}
+	}
+
+	/* User now sees the credential input form */
+	return FALSE;
+}
 	
 ?>
