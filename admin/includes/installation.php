@@ -108,27 +108,33 @@ function sixscan_installation_install( $tmp_key ) {
 		sixscan_common_set_account_operational( FALSE );		
 		
 		global $wp_filesystem;
+		$current_wp_filesystem = ( $tmp_key == "" ) ? 'direct' : 'ftp' ;
+
+		if ( is_multisite() ){
+			$err_message = "6Scan Install <b>Error</b>: 6Scan currently does not support multisite installs. The support will be added soon";
+			return sixscan_menu_wrap_error_msg( $err_message ) . sixscan_installation_failed_error_image( "Multisite install failed" , $current_wp_filesystem );
+		}
 
 		/*	Make sure we can create signature file and update the site's .htaccess file */
 		if ( $wp_filesystem->is_writable( ABSPATH ) == FALSE ){
 			$err_message = "6Scan Install <b>Error</b>: Failed creating signature file at Wordpress directory " . ABSPATH . SIXSCAN_COMM_SIGNATURE_FILENAME .
 			"<br/><br/>Please see <a href='http://codex.wordpress.org/Changing_File_Permissions' target='_blank'>this Wordpress article</a> for more information on how to add write permissions." .
 			"<br/><br/>If you have additional questions, please visit our <a href='http://6scan.com/support' target='_blank'>community</a>";
-			return sixscan_menu_wrap_error_msg( $err_message ) . sixscan_installation_failed_error_image( "Failed creating signature file" );
+			return sixscan_menu_wrap_error_msg( $err_message ) . sixscan_installation_failed_error_image( "Failed creating signature file" , $current_wp_filesystem );
 		}
 		
-		if ( $wp_filesystem->is_writable( SIXSCAN_HTACCESS_FILE ) == FALSE ){
+		if ( ( $wp_filesystem->exists( SIXSCAN_HTACCESS_FILE ) ) && ( $wp_filesystem->is_writable( SIXSCAN_HTACCESS_FILE ) == FALSE ) ){
 			$err_message = "6Scan Install <b>Error</b>: Failed writing .htaccess file " . SIXSCAN_HTACCESS_FILE . 
 			"<br/><br/>Please see <a href='http://codex.wordpress.org/Changing_File_Permissions' target='_blank'>this Wordpress article</a> for more information on how to add write permissions." .
 			"<br/><br/>If you have additional questions, please visit our <a href='http://6scan.com/support' target='_blank'>community</a>";
-			return sixscan_menu_wrap_error_msg( $err_message ) . sixscan_installation_failed_error_image( "Failed writing .htaccess file" );
+			return sixscan_menu_wrap_error_msg( $err_message ) . sixscan_installation_failed_error_image( "Failed writing .htaccess file" , $current_wp_filesystem );
 		}
 		
 		if  ( $wp_filesystem->is_writable( SIXSCAN_PLUGIN_DIR . "/6scan.php" ) == FALSE ){			
 			$err_message = "6Scan Install <b>Error</b>: Can't modify 6Scan directory. This usually happens when security permissions do not allow writing to the Wordpress directory." . 
 			"<br/><br/>Please see <a href='http://codex.wordpress.org/Changing_File_Permissions' target='_blank'>this Wordpress article</a> for more information on how to add write permissions." .
 			"<br/><br/>If you have additional questions, please visit our <a href='http://6scan.com/support' target='_blank'>community</a>";
-			return sixscan_menu_wrap_error_msg( $err_message ) . sixscan_installation_failed_error_image( "Failed initializing WP_Filesystem()" );
+			return sixscan_menu_wrap_error_msg( $err_message ) . sixscan_installation_failed_error_image( "Failed initializing WP_Filesystem()" , $current_wp_filesystem );
 		}
 						
 		if ( ( ini_get( "allow_url_fopen" ) == FALSE ) && ( ! function_exists( 'curl_init' ) ) ) {
@@ -136,13 +142,13 @@ function sixscan_installation_install( $tmp_key ) {
 			"*Please see <a href='http://6scan.freshdesk.com/solution/articles/3257-installing-curl-extension-on-a-system' target='_blank'> this FAQ entry</a> in order to enable Curl<br>" .
 			"*Please see <a href='http://6scan.freshdesk.com/solution/categories/3294/folders/6728/articles/2681-i-am-seeing-an-error-that-is-similar-to-could-not-open-handle-for-fopen-' target='_blank'>this FAQ entry</a> for instructions on how to enable the \"allow_url_fopen\" flag<br>" .
 			"<br/><br/>If you have additional questions, please visit our <a href='http://6scan.com/support' target='_blank'>community</a>";
-			return sixscan_menu_wrap_error_msg( $err_message ) . sixscan_installation_failed_error_image( "No libcurl found and allow_url_fopen is disabled" );
+			return sixscan_menu_wrap_error_msg( $err_message ) . sixscan_installation_failed_error_image( "No libcurl found and allow_url_fopen is disabled" , $current_wp_filesystem );
 		}		
 		
 		/*	Rewrite the htaccess and 6scan-gate file */
 		$htaccess_install_result = sixscan_htaccess_install();
 		if ( $htaccess_install_result !== TRUE )
-			return sixscan_menu_wrap_error_msg( $htaccess_install_result ) . sixscan_installation_failed_error_image( "sixscan_htaccess_install() failed" );		
+			return sixscan_menu_wrap_error_msg( $htaccess_install_result ) . sixscan_installation_failed_error_image( "sixscan_htaccess_install() failed" , $current_wp_filesystem );		
 		
 		if ( sixscan_common_is_regdata_present() == TRUE ){
 			if ( sixscan_communication_oracle_reg_reactivate( sixscan_common_get_site_id() , sixscan_common_get_api_token() ) == TRUE ){
@@ -190,7 +196,7 @@ function sixscan_installation_install( $tmp_key ) {
 	return TRUE;
 }
 
-function sixscan_installation_failed_error_image( $err_msg ){
+function sixscan_installation_failed_error_image( $err_msg , $filesystem_type ){
 	
 	/*	Registration failed event */
 	$failed_event_descr = array();
@@ -199,6 +205,7 @@ function sixscan_installation_failed_error_image( $err_msg ){
 	$failed_event_descr[ "properties" ][ "ip" ] = $_SERVER[ 'REMOTE_ADDR' ];
 	$failed_event_descr[ "properties" ][ "token" ] = "2428d63178b2a0033c5329570f82d768";
 	$failed_event_descr[ "properties" ][ "registration_error" ] = $err_msg;
+	$failed_event_descr[ "properties" ][ "filesystem_type" ] = $filesystem_type;
 	$failed_event_descr[ "properties" ][ "distinct_id" ] = get_option( 'siteurl' );
 	$failed_event_descr[ "properties" ][ "mp_name_tag" ] = get_option( 'siteurl' );
 
@@ -320,9 +327,10 @@ function sixscan_installation_account_setup_required_notice() {
 }	
 
 /*	Returns TRUE if wpfs is already initialized, FALSE if we are waiting for user to enter reg_data */
-function sixscan_installation_wpfs_init( $config_key ){
+function sixscan_installation_wpfs_init( &$config_key ){
 	
 	if ( WP_Filesystem() != NULL ){
+		$config_key = "";
 		return TRUE;
 	}
 
