@@ -129,7 +129,7 @@ function sixscan_menu_get_error_submission_form( $err_data = "" , $custom_form_m
 	$result_html .= "<input type=hidden name=error_details value=\"" . $error_details . "\"><br>\n";
 	$result_html .= "<table>\n";
 	$result_html .= "<tr><td width='80'>Email:</td><td><input type=text name=admin_email value=\"" . get_option( "admin_email" ) . "\"></td></tr>\n";
-	$result_html .= "<tr><td width='80'>Comments:</td><td><textarea name=admin_comments cols=60 rows=3></textarea></td></tr>\n";
+	$result_html .= "<tr><td width='80'>Comments(*):</td><td><textarea name=admin_comments cols=60 rows=3></textarea></td></tr>\n";
 	$result_html .= "<input type=hidden name=return_url value='" . SERVER_HTTP_PREFIX . $_SERVER[ "SERVER_NAME" ] . $server_request_uri . "&ticket_submitted=1'>\n";
 	$result_html .= "<tr><td width='80'></td><td><input type=submit value='Submit error log'></td>\n";
 	$result_html .= "</table>";

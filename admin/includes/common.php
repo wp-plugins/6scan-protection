@@ -3,7 +3,7 @@
 if ( ! defined( 'ABSPATH' ) ) 
 	die( 'No direct access allowed' );
 
-define ( 'SIXSCAN_VERSION' ,							'2.2.3.1' );
+define ( 'SIXSCAN_VERSION' ,							'2.2.4.0' );
 define ( 'SIXSCAN_HTACCESS_VERSION' ,					'1' );
 
 if( empty( $_SERVER[ "HTTPS" ] ) )
@@ -30,6 +30,8 @@ define ( 'SIXSCAN_BODYGUARD_DEACTIVATE_ACCOUNT' ,		SIXSCAN_SERVER . 'wpapi/v1/de
 define ( 'SIXSCAN_BODYGUARD_UNINSTALL_ACCOUNT' ,		SIXSCAN_SERVER . 'wpapi/v1/uninstall' );
 define ( 'SIXSCAN_BODYGUARD_PING_URL' ,					SIXSCAN_SERVER . 'wpapi/v1/ping' );
 define ( 'SIXSCAN_COMM_ORACLE_AUTH_DASHBOARD_URL' ,		SIXSCAN_SERVER . 'dashboard/v1?' );
+define ( 'SIXSCAN_BODYGUARD_6SCAN_BACKUP_MPU_SIG_URL' ,	SIXSCAN_SERVER . 'wpapi/v1/backup_get_mpu_sig' );
+
 
 define ( 'SIXSCAN_COMM_REQUEST_TIMEOUT_SEC' ,			12 );
 define ( 'SIXSCAN_COMM_REQUEST_RETRIES' ,				4 );
@@ -49,6 +51,7 @@ define ( 'SIXSCAN_OPTION_STAT_SUSPICIOUS_REQ_COUNT' ,	'sixscan_waf_suspicious_re
 define ( 'SIXSCAN_OPTION_STAT_OK_REQ_COUNT' ,			'sixscan_waf_ok_count' );
 define ( 'SIXSCAN_BACKUP_LAST_FS_NAME' ,				'sixscan_backup_last_fs_name' );
 define ( 'SIXSCAN_BACKUP_LAST_DB_NAME' ,				'sixscan_backup_last_db_name' );
+define ( 'SIXSCAN_BACKUP_ETAG_ARRAY' ,					'sixscan_backup_etag_array' );
 define ( 'SIXSCAN_VULN_MESSAGE_DISMISSED' ,				'sixscan_vuln_message_dismissed' );
 define ( 'SIXSCAN_COMMON_BACKUP_MSG_DELIMITER',			 '###' );
 
@@ -77,10 +80,12 @@ define ( 'SIXSCAN_NOTICE_SECURITY_LOG_NAME' ,			'upd-security-logs' );
 define ( 'SIXSCAN_NOTICE_ACCOUNT_ENABLED' ,				'upd-account-enabled' );
 define ( 'SIXSCAN_NOTICE_VULN_COUNT' ,					'vuln-count' );
 define ( 'SIXSCAN_NOTICE_BCKP_REQUEST' ,				'bkp' );
+define ( 'SIXSCAN_NOTICE_BCKP_PART_ID_REQUEST' ,		'part_id' );
 define ( 'SIXSCAN_AMAZON_OK_UPLOAD_HEADER' ,            'HTTP/1.1 204 No Content');
 define ( 'SIXSCAN_BACKUP_MAX_RUN_SECONDS' ,				1800 );
 define ( 'SIXSCAN_BACKUP_DATABASE_REQUEST' ,			'database' );
 define ( 'SIXSCAN_BACKUP_FILES_REQUEST' ,				'files' );
+define ( 'SIXSCAN_BACKUP_CHUNK_SIZE' ,					'52428800' );	//50MB
 
 define ( 'SIXSCAN_NOTICE_BCKP_TYPE',					'__type' );
 define ( 'SIXSCAN_NOTICE_BCKP_ACTION',					'__action' );

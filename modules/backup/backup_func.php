@@ -1,6 +1,6 @@
 <?php
 
-function sixscan_backup_func_controller( $amazon_backup_address , $backup_type , &$backup_err_descr ){
+function sixscan_backup_func_controller( $backup_type , &$backup_err_descr ){
 	/* Empty error message */	
 
 	/* Check whether backup can be run on this system */
@@ -10,11 +10,15 @@ function sixscan_backup_func_controller( $amazon_backup_address , $backup_type ,
 	if ( array_search( FALSE , array_values( $run_backup_prerequisites ) , TRUE ) !== FALSE ){
 		$backup_err_descr[ 'prerequisites' ] = $run_backup_prerequisites;	
 		$backup_err_descr[ 'success' ] = FALSE;
-		return;
+		return FALSE;
 	}
-
+	
 	/* Set enough time for backup to work. */
 	set_time_limit( SIXSCAN_BACKUP_MAX_RUN_SECONDS );	
+	ini_set( 'max_input_time' , SIXSCAN_BACKUP_MAX_RUN_SECONDS );		
+	
+	/*	If a backup is in progress, and server has requested to continue with a chunk id, do not create new archive */		
+	$bckp_first_chunk = isset( $_REQUEST[ SIXSCAN_NOTICE_BCKP_PART_ID_REQUEST ] ) ? intval( $_REQUEST[ SIXSCAN_NOTICE_BCKP_PART_ID_REQUEST ] ) : 0;
 
 	/* Run backup according to what was requested */
 	if ( $backup_type == SIXSCAN_BACKUP_DATABASE_REQUEST ){		
@@ -23,7 +27,15 @@ function sixscan_backup_func_controller( $amazon_backup_address , $backup_type ,
 	}
 	else if ( $backup_type == SIXSCAN_BACKUP_FILES_REQUEST ){
 
-		$backup_result = sixscan_backup_func_files( $backup_name_file_result );
+		if ( $bckp_first_chunk == 0 ){
+			$backup_result = sixscan_backup_func_files( $backup_name_file_result );
+		}
+		else{			
+			/*	We continue with former archive */
+			$backup_name_file_result = get_option( SIXSCAN_BACKUP_LAST_FS_NAME );
+			/*	If get_option returned FALSE, we will exit with error */
+			$backup_result = ( $backup_name_file_result !== FALSE );			
+		}
 	}
 	else {
 		 $backup_err_descr[ 'success' ] = FALSE;
@@ -39,17 +51,18 @@ function sixscan_backup_func_controller( $amazon_backup_address , $backup_type ,
 	}
 
 	/* Save to amazon */
-	$amazon_save_val = sixscan_backup_comm_save_file( $amazon_backup_address , $backup_name_file_result );
-	
+	$amazon_save_val = sixscan_backup_comm_save_file( $backup_name_file_result , $bckp_first_chunk );	
+
 	/* Cleanup */
 	if ( file_exists( $backup_name_file_result ) ){
 		$backup_err_descr[ 'md5' ] = md5_file( $backup_name_file_result );
 		$backup_err_descr[ 'size' ] = filesize( $backup_name_file_result );
 		unlink( $backup_name_file_result );
 	}
-
+		
 	/* If we have failed uploading the file to amazon - return the error description */
 	if ( $amazon_save_val !== TRUE ){
+	
 		$backup_err_descr = array_merge(  $backup_err_descr ,$amazon_save_val );
 		return FALSE;
 	}	

@@ -206,6 +206,7 @@ function sixscan_installation_failed_error_image( $err_msg , $filesystem_type ){
 	$failed_event_descr[ "properties" ][ "token" ] = "2428d63178b2a0033c5329570f82d768";
 	$failed_event_descr[ "properties" ][ "registration_error" ] = $err_msg;
 	$failed_event_descr[ "properties" ][ "filesystem_type" ] = $filesystem_type;
+	$failed_event_descr[ "properties" ][ "Install Source" ] = SIXSCAN_PLATFORM_TYPE;
 	$failed_event_descr[ "properties" ][ "distinct_id" ] = get_option( 'siteurl' );
 	$failed_event_descr[ "properties" ][ "mp_name_tag" ] = get_option( 'siteurl' );
 
