@@ -19,6 +19,7 @@ function sixscan_htaccess_install( $htaccess_sixscan_version = "") {
 		if ( $wp_filesystem->exists( SIXSCAN_HTACCESS_FILE ) ) {
 			$htaccess_content = $wp_filesystem->get_contents( SIXSCAN_HTACCESS_FILE );
 			$htaccess_sixscan .= preg_replace( '@# Created by 6Scan plugin(.*?)# End of 6Scan plugin@s' , '' , $htaccess_content ) ;
+			$wp_filesystem->delete( SIXSCAN_HTACCESS_FILE );
 		}
 		
 		if ( $wp_filesystem->put_contents( SIXSCAN_HTACCESS_FILE , $htaccess_sixscan ) === FALSE )
