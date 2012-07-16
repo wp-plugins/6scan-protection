@@ -60,10 +60,7 @@ if ( is_admin() ) {
 	add_action( 'admin_menu' , 'sixscan_menu_install' );	
 
 	/*	Vulnerabilities found warning */
-	add_action( 'admin_notices' , 'sixscan_menu_show_vulnerabilities_warning' );
-
-	/* 6Scan widget on admin dashboard */
-	add_action( 'wp_dashboard_setup' , 'sixscan_menu_dashboard_widget' );
+	add_action( 'admin_notices' , 'sixscan_menu_show_vulnerabilities_warning' );	
 
 }
 
