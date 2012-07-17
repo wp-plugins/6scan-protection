@@ -4,11 +4,12 @@ function sixscan_backup_func_controller( $backup_type , &$backup_err_descr ){
 	/* Empty error message */	
 
 	/* Check whether backup can be run on this system */
-	$run_backup_prerequisites = sixscan_backup_func_can_run();
+	$run_backup_prerequisites = sixscan_backup_func_can_run( $backup_type );
 
 	/* If there was a false in prerequisites */
 	if ( array_search( FALSE , array_values( $run_backup_prerequisites ) , TRUE ) !== FALSE ){
-		$backup_err_descr[ 'prerequisites' ] = $run_backup_prerequisites;	
+		# return prerequisites only for database
+		if ( $backup_type == SIXSCAN_BACKUP_DATABASE_REQUEST ) $backup_err_descr[ 'prerequisites' ] = $run_backup_prerequisites;	
 		$backup_err_descr[ 'success' ] = FALSE;
 		return FALSE;
 	}
@@ -71,15 +72,27 @@ function sixscan_backup_func_controller( $backup_type , &$backup_err_descr ){
 	return TRUE;
 }
 
-function sixscan_backup_func_can_run(){
+function sixscan_backup_func_can_run($backup_type){
 	$requirements_table = array();
 
-	/* We don't run on Windows now */
-	if ( sixscan_common_is_windows_os() == TRUE ){		
-		$requirements_table[ 'Operating system' ] =  FALSE;
-	}
-	else{
-		$requirements_table[ 'Operating system' ] =  TRUE;	
+	if ( $backup_type == SIXSCAN_BACKUP_FILES_REQUEST )
+	{
+		/* We don't run on Windows now */
+		if ( sixscan_common_is_windows_os() == TRUE ){		
+			$requirements_table[ 'Operating system' ] =  FALSE;
+		}
+		else{
+			$requirements_table[ 'Operating system' ] =  TRUE;	
+		}
+
+		/* Testing whether we can execute functions */
+		$disabled_functions = ini_get( "disable_functions" );
+		if ( strstr( $disabled_functions , "passthru" ) !== FALSE ){
+			$requirements_table[ 'passthru() enabled' ] = FALSE;
+		}
+		else{
+			$requirements_table[ 'passthru() enabled' ] = TRUE;
+		}
 	}
 
 	/*	Can't run in safe mode */
@@ -115,23 +128,6 @@ function sixscan_backup_func_can_run(){
 	}
 	else{
 		$requirements_table[ 'libcurl SSL support' ] = TRUE;
-	}
-
-	/* Testing whether we can execute functions */
-	$disabled_functions = ini_get( "disable_functions" );
-	if ( strstr( $disabled_functions , "passthru" ) !== FALSE ){
-		$requirements_table[ 'passthru() enabled' ] = FALSE;
-	}
-	else{
-		$requirements_table[ 'passthru() enabled' ] = TRUE;
-	}
-
-	ob_start();	passthru( "mysqldump --version" ); $dumpavailable = ob_get_contents(); ob_end_clean();
-	if ( strlen( $dumpavailable ) == 0 ){
-		$requirements_table[ 'mysqldump exists' ] = FALSE;
-	}
-	else{
-		$requirements_table[ 'mysqldump exists' ] = TRUE;
 	}
 
 	return $requirements_table;
@@ -176,67 +172,44 @@ function sixscan_backup_func_files( &$backed_up_filename ){
 	}
 }
 
+/*	Used to compress database backup file */
+function sixscan_backup_func_compress( $filename , $compressed_filename ){	
+	require_once ( ABSPATH . 'wp-admin/includes/class-pclzip.php' );
+	$zip_archive = new PclZip( $compressed_filename );
+	if ( $zip_archive->add( $filename , PCLZIP_OPT_REMOVE_ALL_PATH ) == 0 ){
+		return $zip_archive->errorInfo( true );
+	}
+	return TRUE;
+}
+
+
 /* Run DB backup */
 function sixscan_backup_func_db( &$backed_up_filename ){
 
 	/*	Generate random seed and random file name */
 	srand( (double) microtime() * 1000000 );
 	$tmp_sql_dmp = "sql_dump" . date("Y-m-d-H-i-s") . "_" . substr( md5 ( rand( 0, 32000 )) , 0 , 10 );
-
 	$temp_sql_file_name = get_temp_dir() . $tmp_sql_dmp . ".sql";	
-	$temp_sql_file_tgzipped = get_temp_dir() . $tmp_sql_dmp . ".tar.gz";
-	$temp_backup_status = get_temp_dir() . $tmp_sql_dmp . ".err.txt";
-
-	/*	If a previous file was not deleted from some reason, delete it now and save the current filename */
-	sixscan_backup_func_delete_previous( SIXSCAN_BACKUP_LAST_DB_NAME , $temp_sql_file_tgzipped );
-
-	/* Prepare the mysqldump command, using defines from wp-config.php */
-	if ( strncmp( DB_HOST , 'localhost:' , 10 ) == 0 ){
-		
-		/*	Connecting to DB using unix socket. 'Remove the localhost:'' prefix */
-		$db_backup_cmd = "mysqldump -S " . substr( DB_HOST , 10 ) . " -u " . DB_USER . " -p'" . DB_PASSWORD . "' " . DB_NAME . " 2>$temp_backup_status > $temp_sql_file_name";	
-	}
-	else{
-		/*	Connecting to DB using tcp connect */
-		$db_backup_cmd = "mysqldump -h " . DB_HOST . " -u " . DB_USER . " -p'" . DB_PASSWORD . "' " . DB_NAME . " 2>$temp_backup_status > $temp_sql_file_name";	
-	}
-
-	/* Run the mysqldump */	
-	$ret_val = 0;
-	passthru( $db_backup_cmd , $ret_val );
-
-	if ( $ret_val != 0 ){
-		$mysqldump_err = file_get_contents( $temp_backup_status );
-		$backed_up_filename[ 'internal_message' ] = "Mysqldump failed. Retval = $ret_val. Mysqldump error = $$mysqldump_err";
-		$backed_up_filename[ 'user_result_message' ] = "Mysqldump command failed : $mysqldump_err";
-		$backed_up_filename[ 'success' ] = FALSE;
-
-		@unlink( $temp_sql_file_name );
-		@unlink( $temp_backup_status );
-		return FALSE;
-	}	
+	$temp_sql_file_zipped = get_temp_dir() . $tmp_sql_dmp.".zip";
 	
-	/*	Remove the stderr file, if no error has occured */
-	@unlink( $temp_backup_status );
+	/*	If a previous file was not deleted from some reason, delete it now and save the current filename */
+	sixscan_backup_func_delete_previous( SIXSCAN_BACKUP_LAST_DB_NAME , $temp_sql_file_zipped );		
 
-	/* Create tar.gz and remove the original .sql, while ignoring the output */
-	$archive_command = "tar -czf $temp_sql_file_tgzipped $temp_sql_file_name 2>&1";
-	$ret_val = "";
-	ob_start(); passthru( $archive_command , $ret_val ); $tar_output = ob_get_contents(); ob_clean();
-
-	$cleanup_cmd = "rm $temp_sql_file_name 2>&1";
-	passthru( $cleanup_cmd );
-
-	if ( $ret_val == 0 ){
-		$backed_up_filename = $temp_sql_file_tgzipped;
-		return TRUE;
-	}
-	else{
-		$backed_up_filename[ 'internal_message' ] = "Failed running tar of sql dump file. Retval = $ret_val , tar result = $tar_output";
-		$backed_up_filename[ 'user_result_message' ] = "Your hosting environment does not support the tar command, required for backup archiving.";
+	sixscan_backup_sql( DB_HOST , DB_USER , DB_PASSWORD , DB_NAME , $temp_sql_file_name );
+	
+	$zip_result = sixscan_backup_func_compress( $temp_sql_file_name, $temp_sql_file_zipped );
+	if ($zip_result !== TRUE)
+	{
+		$backed_up_filename[ 'internal_message' ] = "Could not create zip file. Error returned: $zip_result";
+		$backed_up_filename[ 'user_result_message' ] = "Failed creating ZIP file (write permissions at " . get_temp_dir() . " ?)";
 		$backed_up_filename[ 'success' ] = FALSE;		
 		return FALSE;		
-	}
+	}	
+	
+	@unlink( $temp_sql_file_name );
+
+	$backed_up_filename = $temp_sql_file_zipped;
+	return TRUE;
 }
 
 /*	If, from any reason (like OOM, server reset or anything else), the script was interrupted
@@ -247,6 +220,69 @@ function sixscan_backup_func_delete_previous( $backup_type , $new_backup_filenam
 	if ( file_exists( $last_db_backup_name ) )
 		@unlink( $last_db_backup_name );
 	update_option( $backup_type , $new_backup_filename );
+}
+
+
+/* Backup the db OR just a table */
+function sixscan_backup_sql( $host , $user , $pass , $name , $sql_output_file )
+{
+  
+  	/* Access the SQL database */
+	$link = mysql_connect( $host , $user , $pass );
+	mysql_select_db( $name , $link );
+  
+ 	/*	Getting table list */
+	$tables = array();
+	$result = mysql_query( 'SHOW TABLES' );
+	while( $row = mysql_fetch_row( $result ) )
+	{
+		$tables[] = $row[0];
+	}
+  
+	$sql_dump_data = '';	
+	foreach( $tables as $table ){
+		$result = mysql_query( 'SELECT * FROM ' . $table );
+		$num_fields = mysql_num_fields( $result );
+
+		/* Create tables syntax: */
+		$sql_dump_data.= 'DROP TABLE IF EXISTS `' . $table . '`;';
+		$row2 = mysql_fetch_row( mysql_query( 'SHOW CREATE TABLE `' . $table . '`' ) );
+		$sql_dump_data .= "\n\n" . $row2[ 1 ] . ";\n\n";
+
+		/* Dump each table's data */
+		for ( $i = 0 ; $i < $num_fields ; $i++ ) {
+
+			while( $row = mysql_fetch_row( $result ) ){
+				/*	Prepare insert query for each row */
+				$sql_dump_data .= 'INSERT INTO `' . $table .'` VALUES(';
+				
+				for( $j = 0 ; $j < $num_fields ; $j++ ) {
+					$row[ $j ] = addslashes( $row[ $j ] );          
+					$row[ $j ] = str_replace( "\n" , "\\n" , $row[ $j ] );
+
+					/* Add the data itself */
+					if ( isset( $row[ $j ] ) ){
+						$sql_dump_data.= '"'.$row[$j].'"' ; 
+					}
+					else {
+						$sql_dump_data.= '""'; 
+					}
+
+					/*	Separating the values with comma (except the last one ) */
+					if ( $j < ( $num_fields - 1 ) ) {
+						$sql_dump_data.= ','; 
+					}
+				}
+			
+				$sql_dump_data.= ");\n";
+			}
+		}
+
+		$sql_dump_data.="\n\n\n";
+	}
+
+	file_put_contents( $sql_output_file , $sql_dump_data );
+	mysql_close( $link );
 }
 
 ?>

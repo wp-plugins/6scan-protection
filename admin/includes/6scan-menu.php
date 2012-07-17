@@ -153,7 +153,7 @@ function sixscan_menu_show_vulnerabilities_warning(){
 	if ( $current_vulns_found == 0 )
 		return;
 	
-	echo '<div id="6scan_dashboard_redirect_caption" class="updated" style="text-align: center;"><p><p>You have ' . $current_vulns_found  . ' unfixed vulnerabilities. <a href="admin.php?page=' . SIXSCAN_COMMON_DASHBOARD_URL . '&fixnow=1">Click here</a> to fix them now.</p></p></div>';
+	echo '<div id="6scan_dashboard_redirect_caption" class="updated" style="text-align: center;"><p>You have ' . $current_vulns_found  . ' unfixed vulnerabilities. <a href="admin.php?page=' . SIXSCAN_COMMON_DASHBOARD_URL . '&fixnow=1">Click here</a> to fix them now.<a href="#" style="float:right" onClick="sixscan_vuln_warning_dismiss();">Dismiss this message</a></p></div>';
 }
 
 /*	Hiding the vulnerabilties warning */

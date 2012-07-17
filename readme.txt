@@ -1,6 +1,6 @@
 === 6Scan Security ===
 Contributors: 6Scan
-Version: 2.2.4
+Version: 2.2.5
 Tags: security,secure,wordpress security,firewall,antivirus,security plugin,securty,protection,anti-hack,hack,scan,exploit,anti-virus
 Requires at least: 3.0.0
 Tested up to: 3.4.1
@@ -186,7 +186,7 @@ We are a team of ex-military security experts who have implemented traditional e
 1. Your dashboard shows the security vulnerabilities found on your site.  6Scan can automatically and immediately fix each of these vulnerabilities, ensuring your site is always secure.
 2. Security settings of 6Scan's WAF and notification of new security vulnerabilities by SMS.
 3. If you prefer to manually fix a security vulnerability, you can get detailed instructions on how to do so.
-4. Example of a manual security vulnerability fix.
+4. Security analysis
 
 == Changelog ==
 
@@ -281,6 +281,9 @@ We are a team of ex-military security experts who have implemented traditional e
 * We have added a full support for WP_Filesystem. If wordpress is running without permissions to access filesystem, user is required to enter the FTP credentials (Based entirely on Wordpress filesystem implementation)
 * Added a 6Scan Security dashboard widget
 * We also make sure to set a correct permissions mode on our verification file (There are some servers, that create it without runnable permissions by default)
+
+= 2.2.5 =
+* Now running pure PHP code, when performing database backup. Now database backup has much less prerequisites
 
 == Upgrade Notice ==
 

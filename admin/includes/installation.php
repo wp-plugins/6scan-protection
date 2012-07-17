@@ -169,7 +169,7 @@ function sixscan_installation_install( $tmp_key ) {
 		if ( $server_registration_result !== TRUE ){
 			/* If something went wrong in the registration/verification process */
 			sixscan_common_erase_regdata();
-			return $server_registration_result;
+			return $server_registration_result . sixscan_installation_failed_error_image( "Server registration failed" , $current_wp_filesystem );
 		}
 		
 		/*	Account is now active, but not yet operational ( operation is set by server, when user completes the registration */
@@ -190,7 +190,7 @@ function sixscan_installation_install( $tmp_key ) {
 		sixscan_common_set_account_active( FALSE );
 		sixscan_common_set_account_operational( FALSE );
 		
-		return $e;
+		return $e . sixscan_installation_failed_error_image( "Exception occured while installing" , $current_wp_filesystem );
 	}		
 		
 	return TRUE;
