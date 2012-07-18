@@ -75,6 +75,7 @@ function sixscan_backup_func_controller( $backup_type , &$backup_err_descr ){
 function sixscan_backup_func_can_run($backup_type){
 	$requirements_table = array();
 
+	@set_time_limit( SIXSCAN_BACKUP_MAX_RUN_SECONDS );
 	if ( $backup_type == SIXSCAN_BACKUP_FILES_REQUEST )
 	{
 		/* We don't run on Windows now */
@@ -93,23 +94,22 @@ function sixscan_backup_func_can_run($backup_type){
 		else{
 			$requirements_table[ 'passthru() enabled' ] = TRUE;
 		}
-	}
 
-	/*	Can't run in safe mode */
-	if ( ini_get( 'safe_mode' ) ){
-		$requirements_table[ 'Safe mode disabled' ] =  FALSE;
-	}
-	else{
-		$requirements_table[ 'Safe mode disabled' ] =  TRUE;	
-	}
-	
-	/* We need to be able to change execution time */	
-	@set_time_limit( SIXSCAN_BACKUP_MAX_RUN_SECONDS );
-	if ( ini_get( 'max_execution_time' ) != SIXSCAN_BACKUP_MAX_RUN_SECONDS ){
-		$requirements_table[ 'Max execution time' ] =  FALSE;
-	}
-	else{
-		$requirements_table[ 'Max execution time' ] =  TRUE;	
+		/*	Can't run in safe mode */
+		if ( ini_get( 'safe_mode' ) ){
+			$requirements_table[ 'Safe mode disabled' ] =  FALSE;
+		}
+		else{
+			$requirements_table[ 'Safe mode disabled' ] =  TRUE;	
+		}
+
+		/* We need to be able to change execution time */		
+		if ( ini_get( 'max_execution_time' ) != SIXSCAN_BACKUP_MAX_RUN_SECONDS ){
+			$requirements_table[ 'Max execution time' ] =  FALSE;
+		}
+		else{
+			$requirements_table[ 'Max execution time' ] =  TRUE;	
+		}
 	}
 
 	/* Requires libcurl for file upload */
@@ -226,7 +226,9 @@ function sixscan_backup_func_delete_previous( $backup_type , $new_backup_filenam
 /* Backup the db OR just a table */
 function sixscan_backup_sql( $host , $user , $pass , $name , $sql_output_file )
 {
-  
+	/*	Dump to file every 1000 records, to avoid storing large chunks of data in memory */
+  	define( 'DUMP_RECORD_COUNT' , 1000 ); 
+
   	/* Access the SQL database */
 	$link = mysql_connect( $host , $user , $pass );
 	mysql_select_db( $name , $link );
@@ -239,6 +241,7 @@ function sixscan_backup_sql( $host , $user , $pass , $name , $sql_output_file )
 		$tables[] = $row[0];
 	}
   
+  	$dumped_record_count = 0;
 	$sql_dump_data = '';	
 	foreach( $tables as $table ){
 		$result = mysql_query( 'SELECT * FROM ' . $table );
@@ -275,13 +278,22 @@ function sixscan_backup_sql( $host , $user , $pass , $name , $sql_output_file )
 				}
 			
 				$sql_dump_data.= ");\n";
+				$dumped_record_count++;
+				if ( $dumped_record_count == DUMP_RECORD_COUNT ){
+					// append data to avoid large memory demands
+					file_put_contents( $sql_output_file , $sql_dump_data , FILE_APPEND );
+					$sql_dump_data = '';
+					$dumped_record_count = 0;
+				}
 			}
 		}
 
 		$sql_dump_data.="\n\n\n";
+		// append data to avoid large memory demands
+		file_put_contents( $sql_output_file , $sql_dump_data , FILE_APPEND );
+		$sql_dump_data = '';
 	}
-
-	file_put_contents( $sql_output_file , $sql_dump_data );
+	
 	mysql_close( $link );
 }
 
