@@ -204,7 +204,8 @@ function sixscan_backup_comm_req_signature_from_server( $req_type , $params , $d
 
 function sixscan_backup_comm_get_init_mpu_req( $AWSAccessKeyId , $backup_id ){
         $backup_save_result = array();
-        $date = strftime("%a, %d %b %Y %X +0000", time());        
+
+        $date = gmdate( 'D, d M Y H:i:s +0000' , time() );        
         $server_sig = sixscan_backup_comm_req_signature_from_server( 'POST' , '?uploads' , $date , $backup_id );
         
         if ( $server_sig == NULL ){

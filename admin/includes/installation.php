@@ -119,7 +119,7 @@ function sixscan_installation_install( $tmp_key ) {
 		}
 
 		/*	Make sure we can create signature file and update the site's .htaccess file */
-		if ( $wp_filesystem->is_writable( ABSPATH ) == FALSE ){
+		if ( sixscan_common_test_dir_writable( ABSPATH ) == FALSE ){
 			$err_message = "6Scan Install <b>Error</b>: Failed creating signature file at Wordpress directory " . ABSPATH . SIXSCAN_COMM_SIGNATURE_FILENAME .
 			"<br/><br/>Please see <a href='http://codex.wordpress.org/Changing_File_Permissions' target='_blank'>this Wordpress article</a> for more information on how to add write permissions." .
 			"<br/><br/>If you have additional questions, please visit our <a href='http://6scan.com/support' target='_blank'>community</a>";
