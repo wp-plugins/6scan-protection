@@ -231,7 +231,7 @@ function sixscan_backup_comm_get_init_mpu_req( $AWSAccessKeyId , $backup_id ){
 
 function sixscan_backup_comm_get_chunk_mpu_req( $AWSAccessKeyId , $backup_id , $filename , $chunk_size , $chunk_offset , $part_id , $upload_id , $mpu_chunk_etag ){
         $backup_save_result = array();
-        $date = strftime("%a, %d %b %Y %X +0000", time());
+        $date = gmdate( 'D, d M Y H:i:s +0000' , time() );
         $upload_params = "?partNumber=$part_id&uploadId=$upload_id";
         $server_sig = sixscan_backup_comm_req_signature_from_server( 'PUT' , $upload_params , $date , $backup_id , $mpu_chunk_etag );
        
@@ -265,7 +265,7 @@ function sixscan_backup_comm_get_chunk_mpu_req( $AWSAccessKeyId , $backup_id , $
 }
 
 function sixscan_backup_comm_get_complete_chunk_mpu_req( $AWSAccessKeyId , $backup_id , $upload_id , $etag_arr ){
-        $date = strftime("%a, %d %b %Y %X +0000", time());
+        $date = gmdate( 'D, d M Y H:i:s +0000' , time() );
         $complete_params = "?uploadId=$upload_id";
 
         $server_sig = sixscan_backup_comm_req_signature_from_server( 'POST' , $complete_params , $date , $backup_id );

@@ -14,7 +14,7 @@ function sixscan_communication_oracle_reg_register( $site_url , $user_email , $n
 		
 		/*	Sending registration data to server, using GET */
 		$request_register_url = SIXSCAN_BODYGUARD_REGISTER_URL ."?platform=" . SIXSCAN_PLATFORM_TYPE . "&platform_version=" . sixscan_common_get_wp_version() . "&platform_locale=" 
-		. get_locale() . "&url=$site_url&email=$user_email&notice_script_url=$relative_notice_url&dbkey=$dbkey";
+		. get_locale() . "&current_version=" . SIXSCAN_VERSION . "&url=$site_url&email=$user_email&notice_script_url=$relative_notice_url&dbkey=$dbkey";
 		
 		/*	If partner ID and Key exists, add it to registration request. */		
 		if ( ( $partner_id != "" ) && ( $partner_key != "" ) ){

@@ -6,6 +6,9 @@ if ( ! defined( 'ABSPATH' ) )
 function sixscan_installation_manager()
 {
 
+	/*	Start registration process notification */	
+	sixscan_common_request_network( sixscan_installation_error_link( 'OK' , '' , 'REGISTER_STARTED' ) , "" , "GET" );
+
 	/* If running from partner install, the logic is a bit different */
 	if ( ( sixscan_common_is_partner_version() ) && ( sixscan_installation_partner_is_to_install() === FALSE ) )
 		return;
@@ -109,9 +112,6 @@ function sixscan_installation_install( $tmp_key ) {
 		
 		global $wp_filesystem;
 		$current_wp_filesystem = ( $tmp_key == "" ) ? 'direct' : 'ftp' ;
-		
-		/*	Start registration process notification */
-		file_get_contents( sixscan_installation_error_link( 'OK' , $current_wp_filesystem , 'REGISTER_STARTED') );
 
 		if ( is_multisite() ){
 			$err_message = "6Scan Install <b>Error</b>: 6Scan currently does not support multisite installs. The support will be added soon";
@@ -217,7 +217,7 @@ function sixscan_installation_error_link( $err_msg , $filesystem_type , $event_o
 	$failed_event_descr[ "properties" ][ "distinct_id" ] = get_option( 'siteurl' );
 	$failed_event_descr[ "properties" ][ "mp_name_tag" ] = get_option( 'siteurl' );
 
-	return "http://api.mixpanel.com/track/?data=" . urlencode( base64_encode( json_encode( $failed_event_descr ) ) ) . "&img=1";		
+	return "http://api.mixpanel.com/track/?data=" . urlencode( base64_encode( json_encode( $failed_event_descr ) ) ) . "&img=1";
 }
 
 function sixscan_installation_uninstall() {
@@ -335,7 +335,7 @@ function sixscan_installation_account_setup_required_notice() {
 /*	Returns TRUE if wpfs is already initialized, FALSE if we are waiting for user to enter reg_data */
 function sixscan_installation_wpfs_init( &$config_key ){
 	
-	if ( WP_Filesystem() != NULL ){
+	if ( WP_Filesystem() ){
 		$config_key = "";
 		return TRUE;
 	}
@@ -348,7 +348,7 @@ function sixscan_installation_wpfs_init( &$config_key ){
 		print "<p><h1>6Scan requires filesystem credentials to update signature files - fill the information below and click proceed</h1></p>";
 
 	if ( ( $creds = request_filesystem_credentials( $url ) ) !== FALSE ){	
-		if ( ! WP_Filesystem($creds) ) {
+		if ( ! WP_Filesystem( $creds ) ) {
 			/* Current POST data failed, present new form . Error is now "TRUE" */
 			request_filesystem_credentials( $url , '' , TRUE );
 		}
