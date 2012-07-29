@@ -147,13 +147,18 @@ function sixscan_menu_show_vulnerabilities_warning(){
 	if ( get_option( SIXSCAN_VULN_MESSAGE_DISMISSED ) == TRUE ){
 		return;
 	}
+
+	/*	Don't show the message on the dashboard page */
+	if ( isset( $_GET[ 'page' ] ) && ( $_GET[ 'page' ] == SIXSCAN_COMMON_DASHBOARD_URL ) ){
+		return;
+	}	
 	
 	$current_vulns_found = intval( get_option( SIXSCAN_OPTION_VULNERABITILY_COUNT ) );
 	/*	If we have 0 vulnerabilities, don't show the warning */
 	if ( $current_vulns_found == 0 )
 		return;
 	
-	echo '<div id="6scan_dashboard_redirect_caption" class="updated" style="text-align: center;"><p>You have ' . $current_vulns_found  . ' unfixed vulnerabilities. <a href="admin.php?page=' . SIXSCAN_COMMON_DASHBOARD_URL . '&fixnow=1">Click here</a> to fix them now.<a href="#" style="float:right" onClick="sixscan_vuln_warning_dismiss();">Dismiss this message</a></p></div>';
+	echo '<div id="6scan_dashboard_redirect_caption" class="updated" style="text-align: center;"><p>You have ' . $current_vulns_found  . ' unfixed vulnerabilities. <a href="admin.php?page=' . SIXSCAN_COMMON_DASHBOARD_URL . '&fixnow=1">Click here</a> to fix them now.</p></div>';
 }
 
 /*	Hiding the vulnerabilties warning */
