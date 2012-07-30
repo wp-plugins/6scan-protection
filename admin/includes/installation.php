@@ -7,7 +7,7 @@ function sixscan_installation_manager()
 {
 
 	/*	Start registration process notification */	
-	sixscan_common_request_network( sixscan_installation_error_link( 'OK' , '' , 'REGISTER_STARTED' ) , "" , "GET" );
+	//sixscan_common_request_network( sixscan_installation_error_link( 'OK' , '' , 'REGISTER_STARTED' ) , "" , "GET" );
 
 	/* If running from partner install, the logic is a bit different */
 	if ( ( sixscan_common_is_partner_version() ) && ( sixscan_installation_partner_is_to_install() === FALSE ) )
@@ -52,7 +52,7 @@ function sixscan_installation_manager()
 		if ( sixscan_common_is_partner_version() === FALSE ){
 		
 			/*	If the install has succeeded - forward user to the registration page */		
-			$reg_page_address = get_bloginfo( "wpurl" ) . "/wp-admin/admin.php?page=" . SIXSCAN_COMMON_DASHBOARD_URL;
+			$reg_page_address = get_bloginfo( "wpurl" ) . "/wp-admin/admin.php?page=" . SIXSCAN_COMMON_DASHBOARD_URL . "&sixscan_activated=1";
 			
 			/* If user's JavaScript is disabled, he will see this notice to upgrade */
 			sixscan_installation_account_setup_required_notice();
@@ -117,16 +117,16 @@ function sixscan_installation_install( $tmp_key ) {
 			$err_message = "6Scan Install <b>Error</b>: 6Scan currently does not support multisite installs. The support will be added soon";
 			return sixscan_menu_wrap_error_msg( $err_message ) . sixscan_installation_error_description( "Multisite install failed" , $current_wp_filesystem );
 		}
-
+		
 		/*	Make sure we can create signature file and update the site's .htaccess file */
-		if ( sixscan_common_test_dir_writable( ABSPATH ) == FALSE ){
+		if ( sixscan_common_test_dir_writable( ABSPATH ) == FALSE ){				
 			$err_message = "6Scan Install <b>Error</b>: Failed creating signature file at Wordpress directory " . ABSPATH . SIXSCAN_COMM_SIGNATURE_FILENAME .
 			"<br/><br/>Please see <a href='http://codex.wordpress.org/Changing_File_Permissions' target='_blank'>this Wordpress article</a> for more information on how to add write permissions." .
 			"<br/><br/>If you have additional questions, please visit our <a href='http://6scan.com/support' target='_blank'>community</a>";
 			return sixscan_menu_wrap_error_msg( $err_message ) . sixscan_installation_error_description( "Failed creating signature file" , $current_wp_filesystem );
 		}
 		
-		if ( ( $wp_filesystem->exists( SIXSCAN_HTACCESS_FILE ) ) && ( $wp_filesystem->is_writable( SIXSCAN_HTACCESS_FILE ) == FALSE ) ){
+		if ( ( $wp_filesystem->exists( SIXSCAN_HTACCESS_FILE ) ) && ( sixscan_common_test_file_writable( SIXSCAN_HTACCESS_FILE ) == FALSE ) ){
 			$err_message = "6Scan Install <b>Error</b>: Failed writing .htaccess file " . SIXSCAN_HTACCESS_FILE . 
 			"<br/><br/>Please see <a href='http://codex.wordpress.org/Changing_File_Permissions' target='_blank'>this Wordpress article</a> for more information on how to add write permissions." .
 			"<br/><br/>If you have additional questions, please visit our <a href='http://6scan.com/support' target='_blank'>community</a>";
@@ -150,8 +150,9 @@ function sixscan_installation_install( $tmp_key ) {
 		
 		/*	Rewrite the htaccess and 6scan-gate file */
 		$htaccess_install_result = sixscan_htaccess_install();
-		if ( $htaccess_install_result !== TRUE )
-			return sixscan_menu_wrap_error_msg( $htaccess_install_result ) . sixscan_installation_error_description( "sixscan_htaccess_install() failed" , $current_wp_filesystem );		
+		if ( $htaccess_install_result !== TRUE ){
+			return sixscan_menu_wrap_error_msg( $htaccess_install_result[ 'user_message' ] ) . sixscan_installation_error_description( $htaccess_install_result[ 'short_description' ] , $current_wp_filesystem );		
+		}
 		
 		if ( sixscan_common_is_regdata_present() == TRUE ){
 			if ( sixscan_communication_oracle_reg_reactivate( sixscan_common_get_site_id() , sixscan_common_get_api_token() ) == TRUE ){
@@ -200,7 +201,7 @@ function sixscan_installation_install( $tmp_key ) {
 }
 
 function sixscan_installation_error_description( $err_msg , $filesystem_type , $event_occured = 'REGISTER_FAILED' ){
-	return "<img src=" . sixscan_installation_error_link(  $err_msg , $filesystem_type , $event_occured ) . "/>";
+	return "<img id='err_img_id' src='" . sixscan_installation_error_link(  $err_msg , $filesystem_type , $event_occured ) . "'/>";
 }
 
 function sixscan_installation_error_link( $err_msg , $filesystem_type , $event_occured ){

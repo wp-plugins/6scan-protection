@@ -3,7 +3,7 @@
 if ( ! defined( 'ABSPATH' ) ) 
 	die( 'No direct access allowed' );
 
-define ( 'SIXSCAN_VERSION' ,							'2.2.7.0' );
+define ( 'SIXSCAN_VERSION' ,							'2.2.7.1' );
 define ( 'SIXSCAN_HTACCESS_VERSION' ,					'1' );
 
 if( empty( $_SERVER[ "HTTPS" ] ) )
@@ -414,6 +414,20 @@ function sixscan_common_test_dir_writable( $dir_name ){
 
 	/* Cleanup */
 	unlink( $tmp_fname );
+	return TRUE;
+}
+
+function sixscan_common_test_file_writable( $fname ){
+	global $wp_filesystem;
+
+	if ( $wp_filesystem->method != 'direct')
+		return $wp_filesystem->is_writable( $fname );
+
+	$fp = fopen( $fname , 'w+' );
+	if ( $fp == FALSE )
+		return FALSE;
+
+	fclose( $fp );
 	return TRUE;
 }
 

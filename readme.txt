@@ -285,6 +285,9 @@ We are a team of ex-military security experts who have implemented traditional e
 = 2.2.5 =
 * Now running pure PHP code, when performing database backup. Now database backup has much less prerequisites
 
+= 2.2.7 =
+* Solved permission issues, while changing .htaccess. There could be an error, of wp_filesystem was initialized to other than 'direct'.
+
 == Upgrade Notice ==
 
 * Support menu, if user encounters a problem
