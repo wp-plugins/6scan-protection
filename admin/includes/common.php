@@ -423,7 +423,7 @@ function sixscan_common_test_file_writable( $fname ){
 	if ( $wp_filesystem->method != 'direct')
 		return $wp_filesystem->is_writable( $fname );
 
-	$fp = fopen( $fname , 'w+' );
+	$fp = fopen( $fname , 'a+' );
 	if ( $fp == FALSE )
 		return FALSE;
 
