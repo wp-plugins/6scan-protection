@@ -15,7 +15,6 @@ function sixscan_htaccess_install( $htaccess_sixscan_version = "") {
 	}		
 
 	if ( ! $wp_filesystem->copy( SIXSCAN_SIGNATURE_SRC, SIXSCAN_SIGNATURE_DEST , TRUE , 0755 ) ) {
-
 		$ret_error[ 'user_message' ] = 'Failed copying ' . SIXSCAN_SIGNATURE_SRC . ' during installation';
 		$ret_error[ 'short_description' ] = 'Failed copying signature during installation';
 		return $ret_error;

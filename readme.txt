@@ -1,6 +1,6 @@
 === 6Scan Security ===
 Contributors: 6Scan
-Version: 2.2.7
+Version: 2.2.8
 Tags: security,secure,wordpress security,firewall,antivirus,security plugin,securty,protection,anti-hack,hack,scan,exploit,anti-virus
 Requires at least: 3.0.0
 Tested up to: 3.4.1
@@ -10,7 +10,9 @@ Stable tag: trunk
 
 == Description ==
 
-6Scan Security is the most comprehensive *automatic* protection your Wordpress site can get against hackers.  Our security scanner goes beyond the rule-based protection of other Wordpress security plugins, employing active penetration testing algorithms to find security vulnerabilities.  These are then  automatically fixed before hackers can exploit them. Our team of website security experts ensures your protection is always up-to-date and airtight.
+6Scan Security is the most comprehensive *automatic* protection your Wordpress site can get against hackers.  Our security scanner goes beyond the rule-based protection of other Wordpress security plugins, employing active penetration testing algorithms to find security vulnerabilities.  These are then automatically fixed before hackers can exploit them. Our team of website security experts ensures your protection is always up-to-date and airtight.
+
+6Scan Security provides you with a free scan that will identify security vulnerabilities on your site and provide you with full instructions on how to fix them.  You may also purchase a premium subscription, which will automatically fix the vulnerabilities for you and provide you with other premium features, such as an advanced web application firewall, more frequent backups, and more.
 
 Our automatic security scanner finds and protects against:
 

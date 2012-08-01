@@ -127,14 +127,15 @@ function sixscan_menu_get_error_submission_form( $err_data = "" , $custom_form_m
 		$result_html .= "6Scan's support team would like to help you solve this problem!  Please verify your email below, add any comments you may have, and <b>click Submit to automatically open a support ticket.</b>\n<br><br>";	
 	else
 		$result_html .= $custom_form_message;
-	$result_html .= "<form action=\"" . SIXSCAN_BODYGUARD_ERROR_REPORT_FORM_URL . "\" method=POST>\n";
+	$result_html .= "<script language='Javascript'> function sanity_error_report(){ if  (document.getElementById('admin_comments').value ==''){ alert('Please add the error desription into comments field'); return false;} else {return true;} }</script>\n";
+	$result_html .= "<form action=\"" . SIXSCAN_BODYGUARD_ERROR_REPORT_FORM_URL . "\" method=POST onsubmit='return sanity_error_report();'>\n";
 	$result_html .= "<input type=hidden name=root_url value=\"" . get_option( 'siteurl' ) . "\">\n";
 	$result_html .= "<input type=hidden name=wordpress_version value=\"" . get_bloginfo('version') . "\">\n";
 	$result_html .= "<input type=hidden name=6scan_version value=\"" . SIXSCAN_VERSION . "\">\n";	
 	$result_html .= "<input type=hidden name=error_details value=\"" . $error_details . "\"><br>\n";
 	$result_html .= "<table>\n";
 	$result_html .= "<tr><td width='80'>Email:</td><td><input type=text name=admin_email value=\"" . get_option( "admin_email" ) . "\"></td></tr>\n";
-	$result_html .= "<tr><td width='80'>Comments(*):</td><td><textarea name=admin_comments cols=60 rows=3></textarea></td></tr>\n";
+	$result_html .= "<tr><td width='80'>Comments*:</td><td><textarea name=admin_comments id=admin_comments cols=60 rows=3></textarea></td></tr>\n";
 	$result_html .= "<input type=hidden name=return_url value='" . SERVER_HTTP_PREFIX . $_SERVER[ "SERVER_NAME" ] . $server_request_uri . "&ticket_submitted=1'>\n";
 	$result_html .= "<tr><td width='80'></td><td><input type=submit value='Submit error log'></td>\n";
 	$result_html .= "</table>";
@@ -157,6 +158,11 @@ function sixscan_menu_show_vulnerabilities_warning(){
 	if ( isset( $_GET[ 'page' ] ) && ( $_GET[ 'page' ] == SIXSCAN_COMMON_DASHBOARD_URL ) ){
 		return;
 	}	
+
+	/* Don't show this message to non-admins */
+	if ( ! current_user_can( 'manage_options' ) ){
+		return;
+	}
 	
 	$current_vulns_found = intval( get_option( SIXSCAN_OPTION_VULNERABITILY_COUNT ) );
 	/*	If we have 0 vulnerabilities, don't show the warning */

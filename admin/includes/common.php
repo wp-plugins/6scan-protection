@@ -3,7 +3,7 @@
 if ( ! defined( 'ABSPATH' ) ) 
 	die( 'No direct access allowed' );
 
-define ( 'SIXSCAN_VERSION' ,							'2.2.7.1' );
+define ( 'SIXSCAN_VERSION' ,							'2.2.8.0' );
 define ( 'SIXSCAN_HTACCESS_VERSION' ,					'1' );
 
 if( empty( $_SERVER[ "HTTPS" ] ) )
@@ -63,6 +63,9 @@ define ( 'SIXSCAN_LOGIN_LIMIT_LOGINS' ,					'login_attempts_limit' );
 define ( 'SIXSCAN_LOGIN_LOCKED_OUT_SECONDS' ,			'login_locked_out_seconds' );
 define ( 'SIXSCAN_LOGIN_LOCKED_OUT_MINUTES' ,			'login_locked_out_minutes' );
 define ( 'SIXSCAN_LOGIN_NOTIFY_ADMIN_EMAIL' ,			'login_notify_admin_email' );
+
+define ( 'SIXSCAN_ANTISPAM_PROTECTION_ON_OPTION' ,		'antispam_protection_on' );
+define ( 'SIXSCAN_ANTISPAM_DELETE_OLD_OPTION' ,			'antispam_delete_old_spam' );
 
 define ( 'SIXSCAN_UPDATE_OK_RESPONSE_CODE',				200 );
 define ( 'SIXSCAN_UPDATE_LAST_VERSION_RESPONSE_CODE',	304 );
