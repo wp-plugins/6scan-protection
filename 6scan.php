@@ -23,6 +23,7 @@ if ( defined( 'SIXSCAN_PLATFORM_TYPE' ) ){
 /* Get the current plugin directory name and URL , while we are at the root */
 define( 'SIXSCAN_PLUGIN_DIR' ,			trailingslashit( dirname(__FILE__) ) );	
 define( 'SIXSCAN_PLUGIN_URL' ,			trailingslashit( plugins_url( basename ( dirname (__FILE__) ) ) ) );
+define( 'SIXSCAN_PLUGIN_DIRNAME' ,		basename( dirname ( __FILE__ ) ) );
 
 /* Platform type */
 define ( 'SIXSCAN_PLATFORM_TYPE' , 	'wordpress' );

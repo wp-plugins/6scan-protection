@@ -14,7 +14,7 @@ function sixscan_installation_manager()
 	$tmp_key = sixscan_common_generate_random_string();
 	if ( sixscan_installation_wpfs_init( $tmp_key ) == FALSE)
 		return;
-
+	
 	/* Run the install */
 	$install_result = sixscan_installation_install( $tmp_key );
 	if ( $install_result !== TRUE ){
@@ -116,7 +116,7 @@ function sixscan_installation_install( $tmp_key ) {
 		}
 
 		/*	Make sure we can create signature file and update the site's .htaccess file */
-		if ( sixscan_common_test_dir_writable( ABSPATH ) == FALSE ){				
+		if ( sixscan_common_test_dir_writable( $wp_filesystem->abspath() ) == FALSE ){				
 			$err_message = "6Scan Install <b>Error</b>: Failed creating signature file at Wordpress directory " . ABSPATH . SIXSCAN_COMM_SIGNATURE_FILENAME .
 			"<br/><br/>Please see <a href='http://codex.wordpress.org/Changing_File_Permissions' target='_blank'>this Wordpress article</a> for more information on how to add write permissions." .
 			"<br/><br/>If you have additional questions, please visit our <a href='http://6scan.com/support' target='_blank'>community</a>";
@@ -338,8 +338,7 @@ function sixscan_installation_wpfs_init( &$config_key ){
 	if ( $wpfs_detect_try == 'direct' )
 		define( 'FS_METHOD' , 'direct' );
 	else if ( $wpfs_detect_try == 'ftpext' )
-		define( 'FS_METHOD' , 'ftpext' );
-
+		define( 'FS_METHOD' , 'ftpext' );	
 	if ( WP_Filesystem() ){
 		$config_key = "";
 		return TRUE;

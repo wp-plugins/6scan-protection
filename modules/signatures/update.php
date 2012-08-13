@@ -65,36 +65,48 @@ function sixscan_signature_engine_update_get ( $site_id , $api_token , $current_
 
 	global $wp_filesystem;
 	/*	Prepare temporary names */
-	$temp_upgrade_dir = get_temp_dir() . trailingslashit( "6scan_update" );
-	$temp_zip_file = get_temp_dir() . "bguard.zip";
-	
+	$temp_upgrade_dir_local = trailingslashit( WP_CONTENT_DIR ) . trailingslashit( "6scan_update" );
+	$temp_upgrade_dir = $wp_filesystem->wp_content_dir() . trailingslashit( "6scan_update" );
+	$temp_zip_file_local = trailingslashit( WP_CONTENT_DIR ) . "bguard.zip";
+	$temp_zip_file = $wp_filesystem->wp_content_dir() . "bguard.zip";
+
 	/*	Create temp directory for update */	
-	if ( ( $wp_filesystem->is_dir( $temp_upgrade_dir ) == FALSE ) && ( $wp_filesystem->mkdir( $temp_upgrade_dir ) == FALSE ) )
+	if ( $wp_filesystem->exists( $temp_upgrade_dir ) )
+		$wp_filesystem->delete ( $temp_upgrade_dir , TRUE );
+	
+	if ( ($wp_filesystem->is_dir( $temp_upgrade_dir ) == FALSE )  && ( $wp_filesystem->mkdir( $temp_upgrade_dir ) == FALSE ) )
 		return "Failed creating temp directory for update at " . $temp_upgrade_dir;		
 		
-	/*	Write the zip file */	
+	/*	Write the zip file */
+	if ( $wp_filesystem->exists( $temp_zip_file ) )
+		$wp_filesystem->delete( $temp_zip_file );
+	
 	if ( $wp_filesystem->put_contents( $temp_zip_file , $zipped_program ) == FALSE )
 		return "Failed writing file to " . $temp_zip_file;	
 	
-	/*	unzip_file returns mixed on failure. It uses global $wp_filesystem */	
-	if ( unzip_file( $temp_zip_file , $temp_upgrade_dir ) !== TRUE )
+	/*	unzip_file returns mixed on failure. It uses global $wp_filesystem. */	
+	if ( unzip_file( $temp_zip_file_local , $temp_upgrade_dir ) !== TRUE ){		
 		return "unzip_file() from $temp_zip_file to $temp_upgrade_dir failed";
+	}
 	
 	/*	Remove the no longer required zip file */
 	$wp_filesystem->delete( $temp_zip_file );
 	
-	$plugin_main_directory = plugin_dir_path( __FILE__ ) . "../../";	
-			
-	$temp_upgrade_dir_internal = sixscan_signatures_update_find_plugin_dir( $temp_upgrade_dir );
-	if ( $temp_upgrade_dir_internal == "")
-		return "Couldn't find plugin dir in the unzipped folder $temp_upgrade_dir";
-		
+	$plugin_main_directory = plugin_dir_path( __FILE__ ) . "../../";
+	$plugin_main_directory = $wp_filesystem->wp_plugins_dir() . SIXSCAN_PLUGIN_DIRNAME;
+
+	$temp_upgrade_dir_internal = sixscan_signatures_update_find_plugin_dir( $temp_upgrade_dir_local );
+
+	if ( $temp_upgrade_dir_internal == "" )
+		return "Couldn't find plugin dir in the unzipped folder $temp_upgrade_dir_local";
+	
+	$temp_upgrade_dir_internal = untrailingslashit( $wp_filesystem->find_folder( $temp_upgrade_dir_internal ) );
+
 	/*	Now bulk copy the rest of files to their places: */
 	sixscan_signatures_update_move_dir_recursive( $temp_upgrade_dir_internal , $plugin_main_directory );
 		
-	/*	Remove the tmp directory */
-	$wp_filesystem->delete ( $temp_upgrade_dir_internal );
-	$wp_filesystem->delete ( $temp_upgrade_dir );
+	/*	Remove the tmp directory */	
+	$wp_filesystem->delete ( $temp_upgrade_dir , TRUE );
 	
 	return TRUE;
 }
@@ -140,11 +152,12 @@ function sixscan_signatures_update_get( $site_id , $api_token , $current_signatu
 }
 
 function sixscan_signatures_update_parse( $raw_data ) {
-		
-	$signature_filename = ABSPATH . "/" . SIXSCAN_COMM_SIGNATURE_FILENAME;
+	global $wp_filesystem;
+
+	$signature_filename = $wp_filesystem->find_folder( ABSPATH ) . SIXSCAN_COMM_SIGNATURE_FILENAME;
 	$signature_filename_tmp = $signature_filename . ".tmp";
 	$signature_offset = strpos( $raw_data , SIXSCAN_SIGNATURE_MULTIPART_DELIMITER );
-	global $wp_filesystem;
+	
 
 	if ($signature_offset === FALSE)
 		return "Couldn't find MULTIPART_DELIMITER in signatures. Wrong format";
@@ -188,8 +201,10 @@ function sixscan_signatures_current_md5( $sig_file_location ){
 function sixscan_signatures_update_htaccess( $links_list ) {
 	global $wp_filesystem;
 
-	if ( file_exists( SIXSCAN_HTACCESS_FILE ) ) {
-		$htaccess_content = $wp_filesystem->get_contents( SIXSCAN_HTACCESS_FILE );
+	$htaccess_fpath = sixscan_common_get_htaccess_file_path( $wp_filesystem->method == 'direct' );
+
+	if ( $wp_filesystem->exists( $htaccess_fpath ) ) {
+		$htaccess_content = $wp_filesystem->get_contents( $htaccess_fpath );
 		/*	Remove old 6Scan signature contents */
 		$new_content = trim( preg_replace( '@# Created by 6Scan plugin(.*?)# End of 6Scan plugin@s', '', $htaccess_content) );
 	}
@@ -286,7 +301,7 @@ RewriteRule .*  - [E=sixscansecuritylog:1,E=sixscanwafsqli:1] -\n\n";
 	/*	Now add the URL rules */
 	$htaccess_links .= $vuln_urls;		
 	
-	$tmp_htaccess_file = SIXSCAN_HTACCESS_FILE . ".tmp";	
+	$tmp_htaccess_file = $htaccess_fpath . ".tmp";	
 	
 	$new_content = "# Created by 6Scan plugin
 #Those are used by 6Scan Gateway
@@ -314,8 +329,8 @@ $htaccess_links .
 		
 	$wp_filesystem->put_contents( $tmp_htaccess_file , $new_content );
 		
-	if ( sixscan_signatures_update_copy_file( $tmp_htaccess_file , SIXSCAN_HTACCESS_FILE ) == FALSE )
-		return "Failed moving htaccess from $tmp_htaccess_file to " . SIXSCAN_HTACCESS_FILE;
+	if ( sixscan_signatures_update_copy_file( $tmp_htaccess_file , $htaccess_fpath ) == FALSE )
+		return "Failed moving htaccess from $tmp_htaccess_file to " . $htaccess_fpath;
 		
 	return TRUE;
 }
@@ -348,15 +363,18 @@ function sixscan_signatures_update_move_dir_recursive( $source , $dest ){
 		if ( ! $wp_filesystem->is_dir( $dest ) )
 			$wp_filesystem->mkdir( $dest );
 			
-		$file_list = scandir( $source );
-
-		foreach( $file_list as $current_file ) {
+		//$file_list = scandir( $source );
+		$file_list = $wp_filesystem->dirlist( $source );
+		
+		foreach( $file_list as $farray => $current_fname ) {
+			$current_file = $current_fname['name'];
+			
 			if( $current_file == "." || $current_file == ".." ) {
 				/* skip "current" and "previous" directory */
 				continue;
 			}
 			
-			if( is_dir( $source . "/" . $current_file ) ) {	
+			if( $wp_filesystem->is_dir( $source . "/" . $current_file ) ) {	
 			/*	If it is directory , we have to call the recursion.*/
 				sixscan_signatures_update_move_dir_recursive( $source . "/" . $current_file, $dest. "/" . $current_file );
 				/*	We can now remove the source directory */
@@ -415,6 +433,7 @@ function sixscan_signatures_update_copy_file( $src_file , $dst_file ){
 	
 	global $wp_filesystem;
 	
+	$wp_filesystem->delete( $dst_file );
 	return $wp_filesystem->move( $src_file , $dst_file , TRUE );
 }
 
@@ -448,14 +467,10 @@ function sixscan_signatures_init_wp_filesystem( $msg_headers ){
 	if ( $wp_fs_param === FALSE ){
 		return WP_Filesystem();
 	}
-	
+
 	$cfg_arr = unserialize( sixscan_common_decrypt_string( base64_decode ( $wp_fs_param ) , $config_key ) );
 	
-	$wp_fs = WP_Filesystem( $cfg_arr );
-	if ( $wp_fs ){
-		$wp_filesystem->connect();
-		return $wp_fs;
-	}
+	$wp_fs = WP_Filesystem( $cfg_arr );	
 
 	return $wp_fs;
 }
