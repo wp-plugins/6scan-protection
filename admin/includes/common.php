@@ -3,7 +3,7 @@
 if ( ! defined( 'ABSPATH' ) ) 
 	die( 'No direct access allowed' );
 
-define ( 'SIXSCAN_VERSION' ,							'2.2.8.0' );
+define ( 'SIXSCAN_VERSION' ,							'2.2.8.2' );
 define ( 'SIXSCAN_HTACCESS_VERSION' ,					'1' );
 
 if( empty( $_SERVER[ "HTTPS" ] ) )
@@ -130,7 +130,7 @@ if ( defined( 'SIXSCAN_PLUGIN_DIR' ) ){
 			return SIXSCAN_HTACCESS_6SCAN;
 
 		global $wp_filesystem;
-		return $wp_filesystem->find_folder( SIXSCAN_HTACCESS_6SCAN );
+		return untrailingslashit ( $wp_filesystem->find_folder( SIXSCAN_HTACCESS_6SCAN ) );
 	}
 
 
@@ -140,7 +140,7 @@ if ( defined( 'SIXSCAN_PLUGIN_DIR' ) ){
 			return SIXSCAN_SIGNATURE_SRC;
 		
 		global $wp_filesystem;
-		return $wp_filesystem->find_folder( SIXSCAN_SIGNATURE_SRC );	
+		return untrailingslashit( $wp_filesystem->find_folder( SIXSCAN_SIGNATURE_SRC ) );	
 	}
 
 	define( 'SIXSCAN_HTACCESS_6SCAN_GATE_SOURCE',  			SIXSCAN_PLUGIN_DIR . '/data/' . SIXSCAN_HTACCESS_6SCAN_GATE_FILE_NAME );
@@ -149,7 +149,7 @@ if ( defined( 'SIXSCAN_PLUGIN_DIR' ) ){
 			return SIXSCAN_HTACCESS_6SCAN_GATE_SOURCE;
 		
 		global $wp_filesystem;
-		return $wp_filesystem->find_folder( SIXSCAN_HTACCESS_6SCAN_GATE_SOURCE );		
+		return untrailingslashit( $wp_filesystem->find_folder( SIXSCAN_HTACCESS_6SCAN_GATE_SOURCE ) );		
 	}	
 	define( 'SIXSCAN_ANALYZER_LOG_FILEPATH',				SIXSCAN_PLUGIN_DIR . SIXSCAN_SECURITY_LOG_FILENAME );	
 }

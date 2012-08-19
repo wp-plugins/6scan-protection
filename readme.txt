@@ -290,6 +290,9 @@ We are a team of ex-military security experts who have implemented traditional e
 = 2.2.7 =
 * Solved permission issues, while changing .htaccess. There could be an error, of wp_filesystem was initialized to other than 'direct'.
 
+= 2.2.8 =
+* Changed path references. Now the are referenced as $wp_filesystem->abspath() and alike (The ABSPATH define is only used in several 'direct' access parts)
+
 == Upgrade Notice ==
 
 * Support menu, if user encounters a problem
