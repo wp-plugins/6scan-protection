@@ -1,6 +1,6 @@
 === 6Scan Security ===
 Contributors: 6Scan
-Version: 2.2.8
+Version: 2.2.9
 Tags: security,secure,wordpress security,firewall,antivirus,security plugin,securty,protection,anti-hack,hack,scan,exploit,anti-virus
 Requires at least: 3.0.0
 Tested up to: 3.4.2
@@ -290,6 +290,9 @@ We are a team of ex-military security experts who have implemented traditional e
 
 = 2.2.8 =
 * Changed path references. Now the are referenced as $wp_filesystem->abspath() and alike (The ABSPATH define is only used in several 'direct' access parts)
+
+= 2.2.9 =
+* Added a dismiss link for security vulnerabilities warning
 
 == Upgrade Notice ==
 

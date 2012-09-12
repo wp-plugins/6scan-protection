@@ -379,7 +379,6 @@ function sixscan_installation_wpfs_detect(){
 	}
 
 	/*	Taken from Wordpress file.php, with minor changes for our needs, we are testing direct file access */
-	$context = trailingslashit( $context );
 	$temp_file_name = WP_CONTENT_DIR . 'temp-write-test-' . time();
 	if ( sixscan_installation_try_direct_write_file( $temp_file_name , TRUE ) == TRUE )
 		return 'direct';		
