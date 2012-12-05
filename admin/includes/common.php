@@ -3,7 +3,7 @@
 if ( ! defined( 'ABSPATH' ) ) 
 	die( 'No direct access allowed' );
 
-define ( 'SIXSCAN_VERSION' ,							'2.2.9.0' );
+define ( 'SIXSCAN_VERSION' ,							'2.3.0.0' );
 define ( 'SIXSCAN_HTACCESS_VERSION' ,					'1' );
 
 if( empty( $_SERVER[ "HTTPS" ] ) )
@@ -118,7 +118,8 @@ define( 'SIXSCAN_ADMIN_ACCESS_COOKIE_NAME',				'sixscan_wpblog_admin' );
 
 define( 'SIXSCAN_ANALYZER_MAX_LOG_FILESIZE',			512000 );	
 define( 'SIXSCAN_SECURITY_LOG_FILENAME',				'/data/security_log/logger.txt' );
-define( 'SIXSCAN_SECURITY_LOCK_NOTIFY_FILENAME',		'/data/lockout_email.html');
+define( 'SIXSCAN_SECURITY_LOCK_NOTIFY_FILENAME',		'/data/lockout_email.html' );
+define( 'SIXCAN_REGISTRATION_PAGE_FILENAME' ,			'/data/regpage/reg.html' );
 define( 'SIXSCAN_SECURITY_LOG_SEPARATOR',				"\n" );
 
 /*	If this script is included from outside, we will not have SIXSCAN_PLUGIN_DIR defined, but we do not really need it */
@@ -454,7 +455,7 @@ function sixscan_common_fatal_error(){
 function sixscan_common_test_dir_writable( $dir_name ){
 	global $wp_filesystem;
 
-	$tmp_fname = untrailingslashit( $dir_name ) . 'sixscantmp_';
+	$tmp_fname = trailingslashit( $dir_name ) . 'sixscantmp_';
 	
 	$ftmp_result = $wp_filesystem->put_contents( $tmp_fname , 'write_test' );	
 	

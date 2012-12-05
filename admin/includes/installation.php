@@ -3,12 +3,20 @@
 if ( ! defined( 'ABSPATH' ) ) 
 	die( 'No direct access allowed' );	
 
+
 function sixscan_installation_manager()
 {	
 
 	/* If running from partner install, the logic is a bit different */
 	if ( ( sixscan_common_is_partner_version() ) && ( sixscan_installation_partner_is_to_install() === FALSE ) )
 		return;
+
+	/* Before install of any kind progresses, user is shown a registration page.
+	On the first load it shows a registration screen and returns False.
+	If user clicks 'Agree' - the page reloads with &agree=yes parameter, sixscan_registration_at_install() returns True and registration continues.	
+	No data is transferred to the server until user clicks "Agree" */
+	if ( sixscan_registration_at_install() === FALSE )
+		return; 	
 
 	/* If we are waiting for user to input wpfs data */
 	$tmp_key = sixscan_common_generate_random_string();
@@ -23,8 +31,9 @@ function sixscan_installation_manager()
 		if ( sixscan_common_is_partner_version() === FALSE ){
 			print $install_result;		
 			
+			/* Makes 6Scan not-active */
 			$sixscan_plugin_name = plugin_basename( realpath( dirname( __FILE__ ) . "/../../6scan.php" ) );
-			
+		
 			/*	This dirty patch is required because some hostings (free?) have a short sql timeout. When it timeouts, 6Scan can't
 			disable itelf, and user gets stuck in infinite deactivate loop. 
 			We can't enlarge the timeout, since it requires sql root access. We can only reconnect to the SQL.
@@ -36,7 +45,7 @@ function sixscan_installation_manager()
 			}
 
 			/*	deactivate myself */			
-			deactivate_plugins( $sixscan_plugin_name );
+			deactivate_plugins( $sixscan_plugin_name );			
 		}
 		else if ( sixscan_installation_partner_run_first_time() === FALSE  ){
 			/* If we are in partner version, but not running for the first time - we can show the error */
@@ -47,25 +56,73 @@ function sixscan_installation_manager()
 	else{		
 		/*	No redirects in partner version */
 		if ( sixscan_common_is_partner_version() === FALSE ){
-		
-			/*	If the install has succeeded - forward user to the registration page */		
-			$reg_page_address = get_bloginfo( "wpurl" ) . "/wp-admin/admin.php?page=" . SIXSCAN_COMMON_DASHBOARD_URL . "&sixscan_activated=1";
 			
-			/* If user's JavaScript is disabled, he will see this notice to upgrade */
-			sixscan_installation_account_setup_required_notice();
-			/*	Forward user to the registration screen */
-			print <<<EOT
-				<script type="text/javascript">
-					document.getElementById('6scan_dashboard_redirect_caption').style.display = 'none';
-					window.location = "$reg_page_address";
-				</script>
-EOT;
+			sixscan_registration_forward_to_dashboard( "&sixscan_activated=1" );
 		}
 	}
 	
 	/*	Zeroize our databse flag, so that we only try installing one time */
 	if ( sixscan_common_is_partner_version() )
 		sixscan_installation_partner_mark_install_tried();
+}
+
+function sixscan_registration_forward_to_dashboard( $additional_flags = "" ){
+	$reg_page_address = get_bloginfo( "wpurl" ) . "/wp-admin/admin.php?page=" . SIXSCAN_COMMON_DASHBOARD_URL . $additional_flags;
+	/*	If the install has succeeded - forward user to the registration page */		
+			
+	/* If user's JavaScript is disabled, he will see this notice to upgrade */
+	sixscan_installation_account_setup_required_notice();
+	/*	Forward user to the registration screen */
+	print <<<EOT
+		<script type="text/javascript">
+			document.getElementById('6scan_dashboard_redirect_caption').style.display = 'none';
+			window.location = "$reg_page_address";
+		</script>
+EOT;
+}
+
+function sixscan_registration_at_install(){
+	/* The logic is as following:
+	When the plugin just got activated - forward user to the dashboard.
+	When the current page is 6Scan Dashboard - show him the registration page 
+	*/
+	$just_activated = isset( $_GET[ 'activate' ] ) ? strtolower( $_GET[ 'activate' ] ) : '';
+	$current_page = isset( $_GET[ 'page' ] ) ? strtolower( $_GET[ 'page' ] ) : '';
+	$agree_val = isset( $_GET[ 'agree' ] ) ? strtolower( $_GET[ 'agree' ] ) : '';
+	
+	if ( $just_activated == 'true' ){
+		sixscan_registration_forward_to_dashboard();
+		return FALSE;
+	}
+
+	if ( $current_page != SIXSCAN_COMMON_DASHBOARD_URL )
+		return FALSE;
+
+	/* First entry to registration page */
+	if ( $agree_val == '' ){		
+		/* Registration page content */
+		$registration_page = file_get_contents( SIXSCAN_PLUGIN_DIR . SIXCAN_REGISTRATION_PAGE_FILENAME );
+
+		/* Add nonce token and email address to the Registration form (Nothing is sent to the server) */ 	
+		$replaced_values = array( '_nonce_value_sixscan' , '_email_value_sixscan' , '_page_value_sixscan' , '_reg_logo_link_sixscan');
+		$new_values =  array( wp_create_nonce( 'sixscan_registration_html' ) , get_option( 'admin_email' ) , SIXSCAN_COMMON_DASHBOARD_URL , SIXSCAN_PLUGIN_URL . 'data/img/reg_logo.png' );
+	 	$registration_page = str_replace ( $replaced_values , $new_values , $registration_page );
+	 	
+
+
+	 	print $registration_page;
+	 	return FALSE;
+	}
+
+	/* Origin verification */
+	if (! wp_verify_nonce( $_GET[ '_sixscannonce' ], 'sixscan_registration_html') ) die( 'Security failure' );
+
+	/* User clicked 'yes'. Continue to registration */
+	if ($agree_val == 'yes' ){
+		return TRUE;
+	}
+
+	return FALSE;
 }
 
 function sixscan_installation_partner_is_to_install(){
@@ -270,12 +327,14 @@ function sixscan_installation_partner_info_get( & $partner_id , & $partner_key )
 }
 
 function sixscan_installation_register_with_server( $tmpkey ){
-		
+	
+	$admin_email = isset( $_GET['email'] ) ? $_GET['email'] : "";
+	
 	/*	If there is partner file, partner_id and partner_key are filled */
 	sixscan_installation_partner_info_get( $partner_id , $partner_key );
 
 	$sixscan_register_result = sixscan_communication_oracle_reg_register( get_option( 'siteurl' ) ,
-							get_option( 'admin_email' ) , SIXSCAN_PLUGIN_URL . "modules/signatures/notice.php" , 
+							$admin_email , SIXSCAN_PLUGIN_URL . "modules/signatures/notice.php" , 
 							$sixscan_oracle_auth_struct , $partner_id , $partner_key , $tmpkey );			
 
 	if ( $sixscan_register_result !== TRUE ){	

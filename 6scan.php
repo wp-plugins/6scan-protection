@@ -4,7 +4,7 @@ Plugin Name: 6Scan Security
 Plugin URI: http://www.6scan.com/
 Description: 6Scan Security provides enterprise-grade security with a firewall, automatic backup, analytics and much more.
 Author: 6Scan
-Version: 2.2.9
+Version: 2.3.0
 Author URI: http://www.6scan.com
 */
 
@@ -48,7 +48,7 @@ if ( is_admin() ) {
 	register_uninstall_hook( __FILE__ , 	'sixscan_events_uninstall' );		
 	
 	/*	This action installs the plugin */
-	if ( sixscan_common_is_account_active() == FALSE ){
+	if ( sixscan_common_is_account_active() == FALSE ){		
 		add_action( 'admin_notices' , 'sixscan_installation_manager' );
 	}
 	else{

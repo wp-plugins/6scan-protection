@@ -1,6 +1,6 @@
 === 6Scan Security ===
 Contributors: 6Scan
-Version: 2.2.9
+Version: 2.3.0
 Tags: security,secure,wordpress security,firewall,antivirus,security plugin,securty,protection,anti-hack,hack,scan,exploit,anti-virus
 Requires at least: 3.0.0
 Tested up to: 3.4.2
@@ -291,8 +291,10 @@ We are a team of ex-military security experts who have implemented traditional e
 = 2.2.8 =
 * Changed path references. Now the are referenced as $wp_filesystem->abspath() and alike (The ABSPATH define is only used in several 'direct' access parts)
 
-= 2.2.9 =
-* Added a dismiss link for security vulnerabilities warning
+= 2.3.0 =
+*) Fixed a bug during install with wp_filesystem()
+*) When user clicks "Activation" he sees a local page with terms, textbox for his email address and an "Install" button. Registration data (user's email and url) will be passed to 6Scan server only after user clicks Install. 
+
 
 == Upgrade Notice ==
 
