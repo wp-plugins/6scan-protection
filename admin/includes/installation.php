@@ -86,9 +86,9 @@ function sixscan_registration_at_install(){
 	When the plugin just got activated - forward user to the dashboard.
 	When the current page is 6Scan Dashboard - show him the registration page 
 	*/
-	$just_activated = isset( $_GET[ 'activate' ] ) ? strtolower( $_GET[ 'activate' ] ) : '';
-	$current_page = isset( $_GET[ 'page' ] ) ? strtolower( $_GET[ 'page' ] ) : '';
-	$agree_val = isset( $_GET[ 'agree' ] ) ? strtolower( $_GET[ 'agree' ] ) : '';
+	$just_activated = isset( $_REQUEST[ 'activate' ] ) ? strtolower( $_REQUEST[ 'activate' ] ) : '';
+	$current_page = isset( $_REQUEST[ 'page' ] ) ? strtolower( $_REQUEST[ 'page' ] ) : '';
+	$agree_val = isset( $_REQUEST[ 'agree' ] ) ? strtolower( $_REQUEST[ 'agree' ] ) : '';
 	
 	if ( $just_activated == 'true' ){
 		sixscan_registration_forward_to_dashboard();
@@ -108,17 +108,15 @@ function sixscan_registration_at_install(){
 		$new_values =  array( wp_create_nonce( 'sixscan_registration_html' ) , get_option( 'admin_email' ) , SIXSCAN_COMMON_DASHBOARD_URL , SIXSCAN_PLUGIN_URL . 'data/img/reg_logo.png' );
 	 	$registration_page = str_replace ( $replaced_values , $new_values , $registration_page );
 	 	
-
-
 	 	print $registration_page;
 	 	return FALSE;
 	}
 
 	/* Origin verification */
-	if (! wp_verify_nonce( $_GET[ '_sixscannonce' ], 'sixscan_registration_html') ) die( 'Security failure' );
+	if (! wp_verify_nonce( $_REQUEST[ '_sixscannonce' ], 'sixscan_registration_html') ) die( 'Security failure' );
 
 	/* User clicked 'yes'. Continue to registration */
-	if ($agree_val == 'yes' ){
+	if ( $agree_val == 'yes' ){
 		return TRUE;
 	}
 
@@ -328,7 +326,7 @@ function sixscan_installation_partner_info_get( & $partner_id , & $partner_key )
 
 function sixscan_installation_register_with_server( $tmpkey ){
 	
-	$admin_email = isset( $_GET['email'] ) ? $_GET['email'] : "";
+	$admin_email = isset( $_REQUEST['email'] ) ? $_REQUEST['email'] : "";
 	
 	/*	If there is partner file, partner_id and partner_key are filled */
 	sixscan_installation_partner_info_get( $partner_id , $partner_key );
@@ -410,10 +408,11 @@ function sixscan_installation_wpfs_init( &$config_key ){
 	if ( ( isset( $_GET[ 'page' ] ) == FALSE ) || ( $_GET[ 'page' ] != SIXSCAN_COMMON_DASHBOARD_URL ) )
 		print "<p><h1>6Scan requires filesystem credentials to update signature files - fill the information below and click proceed</h1></p>";
 
-	if ( ( $creds = request_filesystem_credentials( $url ) ) !== FALSE ){	
+	/* request_filesystem_credentials() has to pass $_POST['email'] to the next registration stage */
+	if ( ( $creds = request_filesystem_credentials( $url , '' , FALSE , FALSE, array( 'email' , 'agree' , '_sixscannonce' ) ) ) !== FALSE ){	
 		if ( ! WP_Filesystem( $creds ) ) {
 			/* Current POST data failed, present new form . Error is now "TRUE" */
-			request_filesystem_credentials( $url , '' , TRUE );
+			request_filesystem_credentials( $url , '' , TRUE , FALSE , array( 'email' , 'agree' , '_sixscannonce' ) );
 		}
 		else{			
 			update_option( SIXSCAN_OPTION_WPFS_CONFIG , base64_encode( sixscan_common_encrypt_string( serialize( $creds ) , $config_key ) ) );

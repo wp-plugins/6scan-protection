@@ -1,6 +1,6 @@
 === 6Scan Security ===
 Contributors: 6Scan
-Version: 2.3.0
+Version: 2.3.1
 Tags: security,secure,wordpress security,firewall,antivirus,security plugin,securty,protection,anti-hack,hack,scan,exploit,anti-virus
 Requires at least: 3.0.0
 Tested up to: 3.5
@@ -295,6 +295,9 @@ We are a team of ex-military security experts who have implemented traditional e
 * Fixed a bug during install with wp_filesystem()
 * When user clicks "Activation" he sees a local page with terms, textbox for his email address and an "Install" button. Registration data (user's email and url) will be passed to 6Scan server only after user clicks Install. 
 * Supports Wordpress 3.5
+
+= 2.3.1 =
+* Minor bugfixes
 
 
 == Upgrade Notice ==
