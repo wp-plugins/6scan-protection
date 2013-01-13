@@ -1,6 +1,6 @@
 === 6Scan Security ===
 Contributors: 6Scan
-Version: 2.3.1
+Version: 2.3.2
 Tags: security,secure,wordpress security,firewall,antivirus,security plugin,securty,protection,anti-hack,hack,scan,exploit,anti-virus
 Requires at least: 3.0.0
 Tested up to: 3.5
@@ -299,6 +299,8 @@ We are a team of ex-military security experts who have implemented traditional e
 = 2.3.1 =
 * Minor bugfixes
 
+= 2.3.2 =
+* A minor UI change
 
 == Upgrade Notice ==
 

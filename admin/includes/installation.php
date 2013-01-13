@@ -60,7 +60,7 @@ function sixscan_installation_manager()
 			sixscan_registration_forward_to_dashboard( "&sixscan_activated=1" );
 		}
 	}
-	
+
 	/*	Zeroize our databse flag, so that we only try installing one time */
 	if ( sixscan_common_is_partner_version() )
 		sixscan_installation_partner_mark_install_tried();

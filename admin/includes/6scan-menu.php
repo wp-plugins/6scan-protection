@@ -88,6 +88,10 @@ function sixscan_menu_create_dashboard_frame( $redirect_request = "" ){
 		return;
 	}
 	
+	/* Do not show dashboard iframe, if account is not active */
+	if ( sixscan_common_is_account_active() == FALSE )
+		return;
+
 	/*	Widget has smaller iframe size */
 	if ( $redirect_request == SIXSCAN_COMMON_DASHBOARD_URL_WIDGET )
 		$user_height = '550px';
