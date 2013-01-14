@@ -293,14 +293,14 @@ We are a team of ex-military security experts who have implemented traditional e
 
 = 2.3.0 =
 * Fixed a bug during install with wp_filesystem()
-* When user clicks "Activation" he sees a local page with terms, textbox for his email address and an "Install" button. Registration data (user's email and url) will be passed to 6Scan server only after user clicks Install. 
-* Supports Wordpress 3.5
+* When user clicks "Activation" he sees a local page with terms, textbox for his email address and an "Install" button. Registration data (user's email and url) will be passed to 6Scan server only after user clicks Install
+* 6Scan Security now supports Wordpress 3.5
 
 = 2.3.1 =
-* Minor bugfixes
+* Minor bugfixes during installation. A failed install could've caused the login credentials to be lost during page reload
 
 = 2.3.2 =
-* A minor UI change
+* A minor UI change. During plugin's reactivation user could see a "register" while already logged into his secure dashboard
 
 == Upgrade Notice ==
 
