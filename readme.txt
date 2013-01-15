@@ -304,6 +304,7 @@ We are a team of ex-military security experts who have implemented traditional e
 
 = 3.0.1 =
 * 6Scan Security now allows users to access their security dashboard of all registered websites. To allow that, newly registered users now have to enter a password (while activating the plugin)
+* Minor bugfixes
 
 == Upgrade Notice ==
 
