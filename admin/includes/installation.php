@@ -330,12 +330,13 @@ function sixscan_installation_partner_info_get( & $partner_id , & $partner_key )
 function sixscan_installation_register_with_server( $tmpkey ){
 	
 	$admin_email = isset( $_REQUEST['email'] ) ? $_REQUEST['email'] : "";
-	
+	$admin_pass = isset( $_REQUEST['password'] ) ? $_REQUEST['password'] : "";
+
 	/*	If there is partner file, partner_id and partner_key are filled */
 	sixscan_installation_partner_info_get( $partner_id , $partner_key );
 
 	$sixscan_register_result = sixscan_communication_oracle_reg_register( get_option( 'siteurl' ) ,
-							$admin_email , SIXSCAN_PLUGIN_URL . "modules/signatures/notice.php" , 
+							$admin_email , $admin_pass,  SIXSCAN_PLUGIN_URL . "modules/signatures/notice.php" , 
 							$sixscan_oracle_auth_struct , $partner_id , $partner_key , $tmpkey );			
 
 	if ( $sixscan_register_result !== TRUE ){	
@@ -411,11 +412,11 @@ function sixscan_installation_wpfs_init( &$config_key ){
 	if ( ( isset( $_GET[ 'page' ] ) == FALSE ) || ( $_GET[ 'page' ] != SIXSCAN_COMMON_DASHBOARD_URL ) )
 		print "<p><h1>6Scan requires filesystem credentials to update signature files - fill the information below and click proceed</h1></p>";
 
-	/* request_filesystem_credentials() has to pass $_POST['email'] to the next registration stage */
-	if ( ( $creds = request_filesystem_credentials( $url , '' , FALSE , FALSE, array( 'email' , 'agree' , '_sixscannonce' ) ) ) !== FALSE ){	
+	/* request_filesystem_credentials() has to pass $_POST['email'] + $_POST['password'] to the next registration stage */
+	if ( ( $creds = request_filesystem_credentials( $url , '' , FALSE , FALSE, array( 'email' , 'password' , 'agree' , '_sixscannonce' ) ) ) !== FALSE ){	
 		if ( ! WP_Filesystem( $creds ) ) {
 			/* Current POST data failed, present new form . Error is now "TRUE" */
-			request_filesystem_credentials( $url , '' , TRUE , FALSE , array( 'email' , 'agree' , '_sixscannonce' ) );
+			request_filesystem_credentials( $url , '' , TRUE , FALSE , array( 'email' , 'password' , 'agree' , '_sixscannonce' ) );
 		}
 		else{			
 			update_option( SIXSCAN_OPTION_WPFS_CONFIG , base64_encode( sixscan_common_encrypt_string( serialize( $creds ) , $config_key ) ) );

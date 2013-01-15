@@ -38,7 +38,10 @@ function sixscan_signatures_loginsec_init_login_inf(){
 function sixscan_signatures_loginsec_analyze( $user, $username, $password ){
 	
 	$is_to_block_user = false;
-	$loginsec_options = get_option( SIXSCAN_OPTION_LOGIN_SETTINGS );	
+	$loginsec_options = false;
+	
+	if ( is_array(  get_option( SIXSCAN_OPTION_LOGIN_SETTINGS ) ) )
+		$loginsec_options = array();
 
 	/*  Handle login count */
 	if ( is_array( $loginsec_options ) && array_key_exists( SIXSCAN_LOGIN_LIMITS_ACTIVATED , $loginsec_options ) &&
