@@ -2,8 +2,8 @@
 Contributors: 6Scan
 Version: 3.0.1
 Tags: security,secure,wordpress security,firewall,antivirus,security plugin,securty,protection,anti-hack,hack,scan,exploit,anti-virus
-Requires at least: 3.0.1
-Tested up to: 3.5
+Requires at least: 3.0.0
+Tested up to: 3.5.1
 Stable tag: trunk
 
 6Scan Security provides enterprise-grade security with a firewall, automatic backup, analytics and much more.
@@ -304,7 +304,6 @@ We are a team of ex-military security experts who have implemented traditional e
 
 = 3.0.1 =
 * 6Scan Security now allows users to access their security dashboard of all registered websites. To allow that, newly registered users now have to enter a password (while activating the plugin)
-* Minor bugfixes
 
 == Upgrade Notice ==
 
