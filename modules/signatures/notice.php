@@ -1,5 +1,35 @@
 <?php
 
+define('SIXSCAN_LOCK_EXPIRATION_SECONDS' 	, 60 );
+define('SIXSCAN_LOCK_FILE_NAME'				, sys_get_temp_dir() . '/__6scan_lock__.dat' );
+
+function sixscan_get_lock() {
+	if ( file_exists( SIXSCAN_LOCK_FILE_NAME ) ){		
+		$lock_creation_date = @filemtime( SIXSCAN_LOCK_FILE_NAME );		
+		if ( @time() - SIXSCAN_LOCK_EXPIRATION_SECONDS > $lock_creation_date ){
+			unlink( SIXSCAN_LOCK_FILE_NAME );			
+		}
+		else{
+			return FALSE;	/* Lock is not yet open */
+		}
+	}
+	
+	/* Sleep 2-10 ms and then check if file does not exist. If other proccess has created the file during this sleep - fail */
+	usleep ( rand( 2,30 ) * 1000 );
+
+	if ( file_exists( SIXSCAN_LOCK_FILE_NAME ) ){
+		return FALSE;
+	}
+	else{
+		file_put_contents( SIXSCAN_LOCK_FILE_NAME , '__lock__');	
+	}
+	return TRUE;
+}
+
+function sixscan_release_lock(){
+	unlink( SIXSCAN_LOCK_FILE_NAME );
+}
+
 $wp_load_location = sixscan_notice_find_wp_load_location();
 
 if ( $wp_load_location == FALSE ){
@@ -150,7 +180,13 @@ if ( isset( $_REQUEST[ SIXSCAN_NOTICE_SECURITY_LOG_NAME ] ) && ( $_REQUEST[ SIXS
 
 /* Update signatures, if needed */
 if ( isset( $_REQUEST[ SIXSCAN_NOTICE_UPDATE_NAME ] ) && ( $_REQUEST[ SIXSCAN_NOTICE_UPDATE_NAME ] == 1 ) ){
-	$error_list .= sixscan_signatures_update_request_total( $site_id ,  $api_token );
+	if ( sixscan_get_lock() ){
+		$error_list .= sixscan_signatures_update_request_total( $site_id ,  $api_token );
+		sixscan_release_lock();
+	}
+	else{
+		$error_list .= 'Failed getting lock. Try later';
+	}
 }
 
 if ( ( $security_result === TRUE ) && ( $error_list == "" ) ){

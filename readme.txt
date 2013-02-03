@@ -1,6 +1,6 @@
 === 6Scan Security ===
 Contributors: 6Scan
-Version: 3.0.1
+Version: 3.0.2
 Tags: security,secure,wordpress security,firewall,antivirus,security plugin,securty,protection,anti-hack,hack,scan,exploit,anti-virus
 Requires at least: 3.0.0
 Tested up to: 3.5.1
