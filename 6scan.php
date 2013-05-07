@@ -4,7 +4,7 @@ Plugin Name: 6Scan Security
 Plugin URI: http://www.6scan.com/
 Description: 6Scan Security provides enterprise-grade security with a firewall, automatic backup, analytics and much more.
 Author: 6Scan
-Version: 3.0.2
+Version: 3.0.3
 Author URI: http://www.6scan.com
 */
 
