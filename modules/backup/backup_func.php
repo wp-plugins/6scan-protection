@@ -140,24 +140,23 @@ function sixscan_backup_func_files( &$backed_up_filename ){
 	srand( (double) microtime() * 1000000 );
 	$tmp_random_seed = date("Y-m-d-H-i-s") . "_" . substr( md5 ( rand( 0, 32000 )) , 0 , 10 );	
 	$temp_file_archived = get_temp_dir() . "files_backup_$tmp_random_seed.tar.gz";
-	$tmp_backup_dir = "/tmp/6scan_backup_$tmp_random_seed/";
+	$tmp_backup_dir = "/tmp/6scan_backup_$tmp_random_seed";
 
 	/*	If a previous file was not deleted from some reason, delete it now */
-	sixscan_backup_func_delete_previous( SIXSCAN_BACKUP_LAST_FS_NAME , $temp_file_archived );
+	sixscan_backup_func_delete_previous( SIXSCAN_BACKUP_LAST_FS_NAME , array( $temp_file_archived, $tmp_backup_dir ) );
 
 	/* Prepare backup directory */	
-	$backup_cmd = "mkdir $tmp_backup_dir; cp -r " . ABSPATH . " $tmp_backup_dir";
+	$backup_cmd = "mkdir $tmp_backup_dir; cp -r " . ABSPATH . " $tmp_backup_dir/";
 	ob_start(); passthru( $backup_cmd ); ob_end_clean();
 
 	/* Linux backup is using tar.gz */		
-	$backup_cmd = "tar -czf $temp_file_archived $tmp_backup_dir 2>&1";
+	$backup_cmd = "tar -czf $temp_file_archived $tmp_backup_dir/ 2>&1";
 	$ret_val = 0;
 
 	/* Run the tar command, while ignoring its output */
 	ob_start(); passthru( $backup_cmd , $ret_val ); $tar_output = ob_get_contents(); ob_clean();
 
-	$cleanup_cmd = "rm -rf $tmp_backup_dir 2>&1";
-	passthru( $cleanup_cmd );
+    sixscan_backup_func_clear_file( $tmp_backup_dir );
 
 	/* Check for error that might've occured while running tar. Retval 0 is ok */
 	if ( $ret_val == 0 ){
@@ -223,11 +222,25 @@ function sixscan_backup_func_db( &$backed_up_filename ){
 function sixscan_backup_func_delete_previous( $backup_type , $new_backup_filename ){
 
 	$last_db_backup_name = get_option( $backup_type );
-	if ( file_exists( $last_db_backup_name ) )
-		@unlink( $last_db_backup_name );
+
+	if ( is_array( $last_db_backup_name) ){
+	    foreach ( $last_db_backup_name  as $one_file ){
+            sixscan_backup_func_clear_file( $one_file );
+	    }
+	}
+    else {
+        sixscan_backup_func_clear_file( $last_db_backup_name );
+    }
+
 	update_option( $backup_type , $new_backup_filename );
 }
 
+function sixscan_backup_func_clear_file( $fname ){
+    if ( strlen( $fname ) > 0 ){
+        $cleanup_cmd = "rm -rf $fname 2>&1";
+        passthru( $cleanup_cmd );
+    }
+}
 
 /* Backup the db OR just a table */
 function sixscan_backup_sql( $host , $user , $pass , $name , $sql_output_file )
