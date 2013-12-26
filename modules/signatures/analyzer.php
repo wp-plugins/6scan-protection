@@ -144,38 +144,49 @@ function sixscan_signatures_analyzer_is_to_block_request(){
 		'block' - log and block
 	*/
 
+	$triggered_vuln_type = 'None';
+	$is_waf_enabled = True;
+	
 	/* WAF is disabled */
 	if ( in_array( 'waf_global_enable' , $allowed_waf_rules ) == FALSE )
-		return array('noblock','');
+		$is_waf_enabled = False;	
 
 	/* 	Filter strange requests */
 	if ( sixscan_signatures_analyzer_is_env_flag_on( "sixscanstrangerequest" ) ){
-		if ( in_array( 'waf_non_standard_req_disable' , $allowed_waf_rules ) )
-			return array('block','');
+		if ( in_array( 'waf_non_standard_req_disable' , $allowed_waf_rules ) && $is_waf_enabled )
+			return array('block', 'non_getpost_request');
+		else
+			$triggered_vuln_type = 'non_getpost_request';
 	}
 
 	/* 	Filter SQL injection */
 	if ( sixscan_signatures_analyzer_is_env_flag_on( "sixscanwafsqli" ) ){
-		if ( in_array( 'waf_sql_protection_enable' , $allowed_waf_rules ) )
-            return array('block','sql');
+		if ( in_array( 'waf_sql_protection_enable' , $allowed_waf_rules ) && $is_waf_enabled )
+            return array('block', 'sql');
+		else
+			$triggered_vuln_type = 'sql';
 	}
 
 	/* 	Filter Cross Site Scripting */
 	if ( sixscan_signatures_analyzer_is_env_flag_on( "sixscanwafxss" ) ){
-		if ( in_array( 'waf_xss_protection_enable' , $allowed_waf_rules ) )
-            return array('block','xss');
+		if ( in_array( 'waf_xss_protection_enable' , $allowed_waf_rules ) && $is_waf_enabled )
+            return array('block', 'xss');
+		else
+			$triggered_vuln_type = 'xss';
 	}
 
 	/* 	Filter CSRF on POST */
 	if ( sixscan_signatures_analyzer_is_env_flag_on( "sixscanwafcsrf" ) ){
-		if ( in_array( 'waf_post_csrf_protection_enable' , $allowed_waf_rules ) )
-            return array('block','csrf');
+		if ( in_array( 'waf_post_csrf_protection_enable' , $allowed_waf_rules ) && $is_waf_enabled )
+            return array('block', 'csrf');
+		else
+			$triggered_vuln_type = 'csrf';
 	}
 
 	/* 	Filter RFI */
 	if ( sixscan_signatures_analyzer_is_env_flag_on( "sixscanwafrfi" ) ){
-		if ( in_array( 'waf_rfi_protection_enable' , $allowed_waf_rules ) ){
-			$allowed_rfi_scripts = array( '/wp-login.php' );
+		if ( in_array( 'waf_rfi_protection_enable' , $allowed_waf_rules ) && $is_waf_enabled ){
+			$allowed_rfi_scripts = array( '/wp-login.php', '/wp-cron.php' );
 
 			/*	If link is OK to be used with URL as mask */
 			if ( in_array( $_SERVER['SCRIPT_NAME'] ,  $allowed_rfi_scripts ) )
@@ -193,17 +204,23 @@ function sixscan_signatures_analyzer_is_to_block_request(){
 				if ( ( sixscan_signatures_analyzer_is_rfi_by_mask( $_SERVER['QUERY_STRING'] , $current_hostname , TRUE ) == FALSE )
 					&&	( sixscan_signatures_analyzer_is_rfi_by_mask( $_SERVER['QUERY_STRING'] , $current_hostname . "/" ) == FALSE ) )
 
-                    return array('block','rfi');
+                    return array('block', 'rfi');
 
-                return array('ignore','');
+                return array('ignore', '');
+			}
+			else{
+				$triggered_vuln_type = 'rfi';
 			}
 
 			/* RFI with no exclusions - always blocking */
-            return array('block','rfi');
+            return array('block', 'rfi');
+		}
+		else{
+			$triggered_vuln_type = 'rfi';
 		}
 	}
 
 	/* Trigger is not blocked */
-    return array('noblock','');
+    return array('noblock', $triggered_vuln_type);
 }
 ?>

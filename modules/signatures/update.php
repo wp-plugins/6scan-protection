@@ -231,7 +231,7 @@ function sixscan_signatures_update_htaccess( $links_list ) {
 	$current_hostname = str_replace( "." , "\." , $mixed_site_address[ 'host' ] );
 
 	$vuln_urls = "#Broad-spectrum protection: User agent/referrer injections. XSS,RFI and SQLI prevention
-RewriteCond %{REQUEST_METHOD} ^(OPTIONS|HEAD|PUT|DELETE|TRACE|CONNECT|PATCH|TRACK|DEBUG) [NC]\n";
+RewriteCond %{REQUEST_METHOD} ^(OPTIONS|PUT|DELETE|TRACE|CONNECT|PATCH|TRACK|DEBUG) [NC]\n";
 	
 	if (sixscan_signatures_is_to_block_non_standard_requests())
 		$vuln_urls .= "RewriteRule ^(.*)$ - [F,L]\n";
