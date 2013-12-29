@@ -99,7 +99,7 @@ function sixscan_signatures_analyzer_suspicious_request(){
                                     'remote_referrer' => $_SERVER['HTTP_REFERER'],
                                     'time' => $current_time));
 
-	@file_put_contents( SIXSCAN_ANALYZER_LOG_FILEPATH , $data_log ,  FILE_APPEND );
+	@file_put_contents( SIXSCAN_ANALYZER_LOG_FILEPATH , $data_log . "\n" ,  FILE_APPEND );
 
 	if ( $analyze_action == 'block' )
 		sixscan_signatures_analyzer_deny_access();
@@ -154,9 +154,9 @@ function sixscan_signatures_analyzer_is_to_block_request(){
 	/* 	Filter strange requests */
 	if ( sixscan_signatures_analyzer_is_env_flag_on( "sixscanstrangerequest" ) ){
 		if ( in_array( 'waf_non_standard_req_disable' , $allowed_waf_rules ) && $is_waf_enabled )
-			return array('block', 'non_getpost_request');
+			return array('block', 'request_type_' . $_SERVER['REQUEST_METHOD']);
 		else
-			$triggered_vuln_type = 'non_getpost_request';
+			$triggered_vuln_type = 'request_type_' . $_SERVER['REQUEST_METHOD'];
 	}
 
 	/* 	Filter SQL injection */
