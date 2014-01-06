@@ -7,14 +7,13 @@ if ( ! defined( 'ABSPATH' ) )
 function sixscan_signatures_loginsec_register(){	
 
 	/*	Filter on error, that is displayed to user when authentication failed */
-	add_filter( 'login_errors' , sixscan_signatures_loginsec_fault_message );	
+	add_filter( 'login_errors' , 'sixscan_signatures_loginsec_fault_message' );	
 	
 	/*	User authorization was completed successfully */	
-	add_action( 'set_current_user' , sixscan_signatures_loginsec_login_success );
+	add_action( 'set_current_user' , 'sixscan_signatures_loginsec_login_success' );
 
 	/* Action on authentication attempt */
-	add_filter( 'authenticate' , sixscan_signatures_loginsec_analyze , 20 , 3 );
-
+	add_filter( 'authenticate' , 'sixscan_signatures_loginsec_analyze' , 20 , 3 );
 }
 
 /*	Checks whether the time delta has passed */
