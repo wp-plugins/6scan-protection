@@ -226,11 +226,12 @@ function sixscan_signatures_update_htaccess( $links_list ) {
 	
 	/*	We need the site relative path */
 	$rel_path = isset( $mixed_site_address[ 'path' ] ) ? $mixed_site_address[ 'path' ] : "";	
-	
-	/*	Escape the dot of current hostname for regexps */
-	$current_hostname = str_replace( "." , "\." , $mixed_site_address[ 'host' ] );
+		
+	$current_hostname = $mixed_site_address[ 'host' ];	
 	if ( substr( $current_hostname, 0, 4) === 'www.' )
 		$current_hostname = substr($current_hostname, 4);
+	/*	Escape the dot of current hostname for regexps */
+	$current_hostname = str_replace( "." , "\." , $current_hostname );
 		
 	$vuln_urls = "#Broad-spectrum protection: User agent/referrer injections. XSS,RFI and SQLI prevention
 RewriteCond %{REQUEST_METHOD} ^(OPTIONS|PUT|DELETE|TRACE|CONNECT|PATCH|TRACK|DEBUG) [NC]\n";
@@ -247,7 +248,7 @@ RewriteRule .*  - [E=sixscansecuritylog:1,E=sixscanwafrfi:1] -
 
 RewriteCond %{REQUEST_METHOD} ^(POST) [NC]
 RewriteCond %{HTTP_REFERER} !^$
-RewriteCond %{HTTP_REFERER} !^https?://(www.)?" . $current_hostname . " [NC]
+RewriteCond %{HTTP_REFERER} !^(WordPress\/[\d.]+;\s+)?https?://(www.)?" . $current_hostname . " [NC]
 RewriteRule .*  - [E=sixscansecuritylog:1,E=sixscanwafcsrf:1] -
 
 RewriteCond %{QUERY_STRING} (<|%3c).*(script|iframe|src).*(>|%3e) [NC]

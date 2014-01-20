@@ -154,73 +154,68 @@ function sixscan_signatures_analyzer_is_to_block_request(){
 	/* 	Filter strange requests */
 	if ( sixscan_signatures_analyzer_is_env_flag_on( "sixscanstrangerequest" ) ){
 		if ( in_array( 'waf_non_standard_req_disable' , $allowed_waf_rules ) && $is_waf_enabled )
-			return array('block', 'request_type_' . $_SERVER['REQUEST_METHOD']);
+			return array('block', 'Abuse of Functionality');
 		else
-			$triggered_vuln_type = 'request_type_' . $_SERVER['REQUEST_METHOD'];
+			$triggered_vuln_type = 'Abuse of Functionality';
 	}
 
 	/* 	Filter SQL injection */
 	if ( sixscan_signatures_analyzer_is_env_flag_on( "sixscanwafsqli" ) ){
 		if ( in_array( 'waf_sql_protection_enable' , $allowed_waf_rules ) && $is_waf_enabled )
-            return array('block', 'sql');
+            return array('block', 'SQL Injection');
 		else
-			$triggered_vuln_type = 'sql';
+			$triggered_vuln_type = 'SQL Injection';
 	}
 
 	/* 	Filter Cross Site Scripting */
 	if ( sixscan_signatures_analyzer_is_env_flag_on( "sixscanwafxss" ) ){
 		if ( in_array( 'waf_xss_protection_enable' , $allowed_waf_rules ) && $is_waf_enabled )
-            return array('block', 'xss');
+            return array('block', 'Cross-Site Scripting');
 		else
-			$triggered_vuln_type = 'xss';
+			$triggered_vuln_type = 'Cross-Site Scripting';
 	}
 
 	/* 	Filter CSRF on POST */
 	if ( sixscan_signatures_analyzer_is_env_flag_on( "sixscanwafcsrf" ) ){
 		if ( in_array( 'waf_post_csrf_protection_enable' , $allowed_waf_rules ) && $is_waf_enabled )
-            return array('block', 'csrf');
+            return array('block', 'Cross-Site Request Forgery');
 		else
-			$triggered_vuln_type = 'csrf';
+			$triggered_vuln_type = 'Cross-Site Request Forgery';
 	}
 
 	/* 	Filter RFI */
 	if ( sixscan_signatures_analyzer_is_env_flag_on( "sixscanwafrfi" ) ){
-		if ( in_array( 'waf_rfi_protection_enable' , $allowed_waf_rules ) && $is_waf_enabled ){
-			$allowed_rfi_scripts = array( '/wp-login.php', '/wp-cron.php' );
+		
+		$allowed_rfi_scripts = array( '/wp-login.php', '/wp-cron.php' );
+		/*	If link is OK to be used with URL as mask */
+		if ( in_array( $_SERVER['SCRIPT_NAME'] ,  $allowed_rfi_scripts ) )
+			return array('ignore','');
+		
+		/*	Allow local inclusions */
+		$rfi_block = TRUE;
+		if ( in_array( 'waf_rfi_local_access_enable' , $allowed_waf_rules ) ){
 
-			/*	If link is OK to be used with URL as mask */
-			if ( in_array( $_SERVER['SCRIPT_NAME'] ,  $allowed_rfi_scripts ) )
-				return array('ignore','');
-
-			/*	Allow local inclusions */
-			if ( in_array( 'waf_rfi_local_access_enable' , $allowed_waf_rules ) ){
-
-				$mixed_site_address = parse_url( home_url() );
-
-				$current_hostname = $mixed_site_address[ 'host' ] ;
-
-				/* 	If the RFI doesn't satisfy requested mask - block the request.
-					Have to add "/", to avoid turning good domains (www.site.com) into bad (www.site.com.badsite.com) */
-				if ( ( sixscan_signatures_analyzer_is_rfi_by_mask( $_SERVER['QUERY_STRING'] , $current_hostname , TRUE ) == FALSE )
-					&&	( sixscan_signatures_analyzer_is_rfi_by_mask( $_SERVER['QUERY_STRING'] , $current_hostname . "/" ) == FALSE ) )
-
-                    return array('block', 'rfi');
-
-                return array('ignore', '');
-			}
-			else{
-				$triggered_vuln_type = 'rfi';
-			}
-
-			/* RFI with no exclusions - always blocking */
-            return array('block', 'rfi');
+			$mixed_site_address = parse_url( home_url() );
+			$current_hostname = $mixed_site_address[ 'host' ] ;
+			/* 	If the RFI doesn't satisfy requested mask - block the request.
+				Have to add "/", to avoid turning good domains (www.site.com) into bad (www.site.com.badsite.com) */
+			if (!( ( sixscan_signatures_analyzer_is_rfi_by_mask( $_SERVER['QUERY_STRING'] , $current_hostname , TRUE ) == FALSE )
+				&&	( sixscan_signatures_analyzer_is_rfi_by_mask( $_SERVER['QUERY_STRING'] , $current_hostname . "/" ) == FALSE )))
+				$rfi_block = FALSE;			
 		}
-		else{
-			$triggered_vuln_type = 'rfi';
-		}
+		
+		if ($rfi_block){		
+			if ( in_array( 'waf_rfi_protection_enable' , $allowed_waf_rules ) && $is_waf_enabled)
+				return array('block', 'Remote File Inclusion (RFI)');
+			else
+				$triggered_vuln_type = 'Remote File Inclusion (RFI)';
+		}				
 	}
 
 	/* Trigger is not blocked */
-    return array('noblock', $triggered_vuln_type);
+	if ( $triggered_vuln_type == 'None' )
+		return array('ignore', '');
+	else
+		return array('noblock', $triggered_vuln_type);
 }
 ?>
