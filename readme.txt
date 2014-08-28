@@ -3,7 +3,7 @@ Contributors: 6Scan
 Version: 3.0.6
 Tags: security,secure,wordpress security,firewall,antivirus,security plugin,securty,protection,anti-hack,hack,scan,exploit,anti-virus, malware,google safe browsing, phishing, scrapers, hackers, hacking, server-side agent, hacker attack, IP-blocking, password hacking, suspicious traffic, database hacking, sql-injection, wordpress plugin, dual scan, scan on demand, uptime monitoring, sms notifications, mobile notifications, email notifications, security badge, blacklist monitoring, google monitoring, free scan, free scanner, hacker exploits, security research, security expertssecurty, secrity, secure, login, plugin, privacy, protection, protected, permissions, code, encode, script, attack, hach, blocked, block, prevent, prevention, firewall security, web server security, proxy security, secure website, protected site, secure login, login security, enterprise security, scan, site scanning, automatic backup, web analytics, intrusion, comprehensive security, algorithms, security vulnerabilities
 Requires at least: 3.0.0
-Tested up to: 3.9
+Tested up to: 4.0
 Stable tag: trunk
 
 6Scan Security provides comprehensive enterprise-grade security with frequent site scans, powerful firewall, automatic backup, web analytics and much more. Get your free scan today to see how your site rates on protection levels.
